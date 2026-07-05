@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SAT Nexus",
+  "version": "1.0.0",
+  "identifier": "ai.arena.satnexus",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../out"
+  },
+  "app": {
+    "windows": [{
+      "title": "SAT Nexus",
+      "width": 1440,
+      "height": 900,
+      "minWidth": 1100,
+      "minHeight": 700,
+      "backgroundColor": "#050505"
+    }],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.png"]
+  }
+}

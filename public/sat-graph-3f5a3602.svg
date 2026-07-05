@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" width="560" height="360">
+  <rect width="100%" height="100%" fill="#0b1014"/>
+  <g stroke="#1d2630" stroke-width="1">
+    <line x1="40" y1="30" x2="40" y2="330"/><line x1="80" y1="30" x2="80" y2="330"/><line x1="120" y1="30" x2="120" y2="330"/><line x1="160" y1="30" x2="160" y2="330"/><line x1="200" y1="30" x2="200" y2="330"/><line x1="240" y1="30" x2="240" y2="330"/><line x1="280" y1="30" x2="280" y2="330"/><line x1="320" y1="30" x2="320" y2="330"/><line x1="360" y1="30" x2="360" y2="330"/><line x1="400" y1="30" x2="400" y2="330"/><line x1="440" y1="30" x2="440" y2="330"/><line x1="480" y1="30" x2="480" y2="330"/><line x1="520" y1="30" x2="520" y2="330"/>
+    <line x1="20" y1="300" x2="540" y2="300" stroke="#3a4554" stroke-width="1.5"/>
+    <line x1="20" y1="260" x2="540" y2="260"/><line x1="20" y1="220" x2="540" y2="220"/><line x1="20" y1="180" x2="540" y2="180"/><line x1="20" y1="140" x2="540" y2="140"/><line x1="20" y1="100" x2="540" y2="100"/><line x1="20" y1="60" x2="540" y2="60"/>
+  </g>
+  <line x1="30" y1="60" x2="500" y2="320" stroke="#00F5FF" stroke-width="2.5"/>
+  <line x1="20" y1="180" x2="500" y2="315" stroke="#9D4EDD" stroke-width="2.5"/>
+  <text x="350" y="295" fill="#7ea7b8" font-size="13" font-family="Inter, sans-serif">Intersection (8,0)</text>
+  <text x="24" y="50" fill="#9fb8c8" font-size="12" font-family="Inter, sans-serif">y</text>
+  <text x="520" y="316" fill="#9fb8c8" font-size="12" font-family="Inter, sans-serif">x</text>
+</svg>

@@ -1,0 +1,63 @@
+// SAT Nexus Prisma Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Question {
+  id               String   @id
+  questionText     String
+  passage          String?
+  imageUrl         String?
+  mathExpression   String?
+  choices          String? // JSON
+  correctAnswer    String
+  explanation      String
+  difficulty       String
+  domain           String
+  skill            String
+  subskill         String?
+  source           String?
+  tags             String? // JSON array
+  timesAnswered    Int      @default(0)
+  timesCorrect     Int      @default(0)
+  avgResponseMs    Int?
+  mastery          Int      @default(0)
+  lastReviewed     DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  type             String   @default("multiple_choice")
+  favorite         Boolean  @default(false)
+  notes            String?
+
+  attempts Attempt[]
+}
+
+model Attempt {
+  id            String   @id @default(cuid())
+  questionId    String
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  chosen        String?
+  correct       Boolean
+  responseMs    Int?
+  confidence    Int?
+  createdAt     DateTime @default(now())
+}
+
+model PracticeTest {
+  id            String   @id @default(cuid())
+  testNumber    String
+  dateTaken     DateTime
+  totalScore    Int
+  rwScore       Int
+  mathScore     Int
+  timeSpentMin  Int?
+  correctCount  Int?
+  incorrectCount Int?
+  breakdownJson String?
+  createdAt     DateTime @default(now())
+}

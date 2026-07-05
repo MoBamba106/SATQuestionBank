@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+dist
+.env.local
+*.db
+*.sqlite
+prisma/dev.db
