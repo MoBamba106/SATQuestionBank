@@ -23,6 +23,8 @@ export interface SATQuestion {
   createdAt: string;
   type: QuestionType;
   favorite?: boolean;
+  notes?: string;
+  collections?: string[]; // collection IDs
 }
 
 export interface OCRResult {
@@ -41,14 +43,71 @@ export interface QuestionAttempt {
   domain?: SATQuestion["domain"];
   skill?: string;
   difficulty?: SATQuestion["difficulty"];
-  mode?: "practice" | "exam";
+  mode?: "practice" | "exam" | "bluebook";
   createdAt: string;
+}
+
+export interface QuestionHistory {
+  questionId: string;
+  attempts: QuestionAttempt[];
+  timesAnswered: number;
+  timesCorrect: number;
+  mastery: number;
+  lastReviewed?: string;
 }
 
 export interface StudyCollection {
   id: string;
   name: string;
+  description?: string;
   questionIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudySession {
+  id: string;
+  name: string;
+  description?: string;
+  questionIds: string[];
+  duration?: number; // in minutes
+  createdAt: string;
+}
+
+export interface Streak {
+  id: string;
+  currentStreak: number;
+  longestStreak: number;
+  lastStudyDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+  unlockedAt?: string;
+  createdAt: string;
+}
+
+export interface PracticeTestData {
+  id: string;
+  testNumber: string;
+  dateTaken: string;
+  totalScore: number;
+  rwScore: number;
+  mathScore: number;
+  timeSpentMin?: number;
+  correctCount?: number;
+  incorrectCount?: number;
+  breakdownJson?: string;
+  questionAnswers?: Array<{
+    questionId: string;
+    chosen: string;
+    correct: boolean;
+  }>;
   createdAt: string;
   updatedAt: string;
 }

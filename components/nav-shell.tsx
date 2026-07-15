@@ -3,14 +3,23 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { UploadCloud, Library, FlaskConical, BarChart3, Sparkles, Search, Command } from "lucide-react";
+import { UploadCloud, Library, FlaskConical, BarChart3, Sparkles, Search, Command, Zap, Trophy, BookOpen, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBank } from "@/lib/store";
+import { CommandPalette } from "@/components/command-palette";
 
 const nav = [
   { href: "/bank", label: "Question Bank", icon: Library, desc: "Browse" },
   { href: "/quiz", label: "Quiz", icon: FlaskConical, desc: "Practice" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, desc: "Progress" },
+];
+
+const secondaryNav = [
+  { href: "/study-sessions", label: "Study Sessions", icon: Zap, desc: "Quick Start" },
+  { href: "/collections", label: "Collections", icon: BookOpen, desc: "Organize" },
+  { href: "/mistakes", label: "Mistakes", icon: AlertCircle, desc: "Review" },
+  { href: "/achievements", label: "Achievements", icon: Trophy, desc: "Unlock" },
+  { href: "/bluebook", label: "Bluebook", icon: BookOpen, desc: "Official Tests" },
 ];
 
 export default function NavShell({ children }: { children: React.ReactNode }) {
@@ -42,8 +51,15 @@ export default function NavShell({ children }: { children: React.ReactNode }) {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint"/>
             <input placeholder="Quick jump ⌘K"
               className="w-full bg-white text-ink border border-paper-300 rounded-xl pl-9 pr-10 py-[11px] text-sm outline-none focus:border-[#5b8def] transition-all placeholder:text-ink-faint"
+              onClick={() => {
+                const event = new CustomEvent("openCommandPalette");
+                window.dispatchEvent(event);
+              }}
             />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-faint bg-paper-100 px-1.5 py-0.5 rounded border border-paper-300">⌘K</span>
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-ink-faint bg-paper-100 px-1.5 py-0.5 rounded border border-paper-300 cursor-pointer" onClick={() => {
+              const event = new CustomEvent("openCommandPalette");
+              window.dispatchEvent(event);
+            }}>⌘K</span>
           </div>
         </div>
 
@@ -66,6 +82,33 @@ export default function NavShell({ children }: { children: React.ReactNode }) {
                   <div className="flex-1">
                     <div className="text-[14px] font-[520]">{item.label}</div>
                     <div className="text-[11px] text-ink-faint">{item.desc}</div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Secondary Navigation */}
+        <nav className="px-4 space-y-1.5 mt-6 pt-6 border-t border-paper-300">
+          <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-ink-faint font-[600]">Tools</div>
+          {secondaryNav.map(item => {
+            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            return (
+              <Link key={item.href} href={item.href} className="block relative group">
+                {active && (
+                  <motion.div layoutId="nav-active-secondary"
+                    className="absolute inset-0 rounded-[14px] bg-white border border-paper-300 shadow-paper"
+                    transition={{ type: "spring", bounce: 0.18, duration: 0.5 }}
+                  />
+                )}
+                <div className={cn(
+                  "relative px-4 py-3 rounded-[14px] flex items-center gap-3 transition-all text-sm",
+                  active ? "text-ink" : "text-ink-soft hover:text-ink"
+                )}>
+                  <item.icon size={16} className={active ? "text-[#3a6fe3]" : ""}/>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-[500]">{item.label}</div>
                   </div>
                 </div>
               </Link>
@@ -105,6 +148,7 @@ export default function NavShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <main className="flex-1 min-w-0 pt-14 lg:pt-0">
+        <CommandPalette />
         {children}
       </main>
     </div>

@@ -33,6 +33,7 @@ model Question {
   type             String   @default("multiple_choice")
   favorite         Boolean  @default(false)
   notes            String?
+  collections      String?  // JSON array of collection IDs
 
   attempts Attempt[]
 }
@@ -48,16 +49,45 @@ model Attempt {
   createdAt     DateTime @default(now())
 }
 
-model PracticeTest {
+model Collection {
   id            String   @id @default(cuid())
-  testNumber    String
-  dateTaken     DateTime
-  totalScore    Int
-  rwScore       Int
-  mathScore     Int
-  timeSpentMin  Int?
-  correctCount  Int?
-  incorrectCount Int?
-  breakdownJson String?
+  name          String
+  description   String?
+  questionIds   String   // JSON array
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Streak {
+  id            String   @id @default(cuid())
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastStudyDate DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Achievement {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  icon          String?  // emoji or icon name
+  unlockedAt    DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model PracticeTest {
+  id               String   @id @default(cuid())
+  testNumber       String
+  dateTaken        DateTime
+  totalScore       Int
+  rwScore          Int
+  mathScore        Int
+  timeSpentMin     Int?
+  correctCount     Int?
+  incorrectCount   Int?
+  breakdownJson    String?  // JSON with detailed breakdown
+  questionAnswers  String?  // JSON array of {questionId, chosen, correct}
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
