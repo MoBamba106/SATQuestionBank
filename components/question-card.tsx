@@ -19,7 +19,7 @@ function decodeEntities(s:string){
     .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
     .replace(/&nbsp;/g, " ").replace(/&ndash;/g, "–").replace(/&mdash;/g, "—")
     .replace(/&rsquo;/g, "'").replace(/&lsquo;/g, "'")
-    .replace(/&rdquo;/g, """).replace(/&ldquo;/g, """)
+    .replace(/&rdquo;/g, '"').replace(/&ldquo;/g, '"')
     .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
     .replace(/&#(\d+);/g, (_,n)=>String.fromCharCode(parseInt(n,10)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_,h)=>String.fromCharCode(parseInt(h,16)));
