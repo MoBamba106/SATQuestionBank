@@ -124,7 +124,7 @@ async function main(){
         } else {
           choices = Object.entries(qdata.answerOptions).map(([k,v]:any)=>({
             key: k.toUpperCase(),
-            text: toText(String(v)),
+            text: String(v), // keep HTML for rich media
             html: String(v)
           }));
         }

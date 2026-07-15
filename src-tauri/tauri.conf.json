@@ -1,28 +1,59 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "SAT Nexus",
-  "version": "1.0.0",
+  "version": "1.8.4",
   "identifier": "ai.arena.satnexus",
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "",
     "frontendDist": "../out"
   },
   "app": {
-    "windows": [{
-      "title": "SAT Nexus",
-      "width": 1440,
-      "height": 900,
-      "minWidth": 1100,
-      "minHeight": 700,
-      "backgroundColor": "#050505"
-    }],
-    "security": { "csp": null }
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "SAT Nexus – Soft Paper",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1100,
+        "minHeight": 720,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": false,
+        "backgroundColor": "#faf8f3"
+      }
+    ],
+    "security": {
+      "csp": null,
+      "dangerousDisableAssetCspModification": {
+        "disable": false
+      },
+      "devCsp": null,
+      "freezePrototype": false
+    },
+    "macOSPrivateApi": false
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/icon.png"]
-  }
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png",
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png"
+    ],
+    "resources": [],
+    "externalBin": [],
+    "copyright": "",
+    "category": "Education",
+    "shortDescription": "SAT Question Bank",
+    "longDescription": "SAT Nexus – College Board Question Bank – Soft Paper",
+    "windows": {
+      "allowDowngrades": true
+    }
+  },
+  "plugins": {}
 }

@@ -31,3 +31,24 @@ export interface OCRResult {
   rawText: string;
   warnings: string[];
 }
+
+export interface QuestionAttempt {
+  id: string;
+  questionId: string;
+  isCorrect: boolean;
+  answer?: string;
+  checkedAnswer?: string;
+  domain?: SATQuestion["domain"];
+  skill?: string;
+  difficulty?: SATQuestion["difficulty"];
+  mode?: "practice" | "exam";
+  createdAt: string;
+}
+
+export interface StudyCollection {
+  id: string;
+  name: string;
+  questionIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}

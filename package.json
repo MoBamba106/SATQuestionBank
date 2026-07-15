@@ -1,8 +1,8 @@
 {
   "name": "sat-nexus",
-  "version": "1.0.0",
+  "version": "1.8.4",
   "private": true,
-  "description": "Premium SAT Question Bank - cyberpunk black + neon",
+  "description": "SAT Nexus – Soft Paper • CB HTML rendering fixed • desktop installer • v1.8.2",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -10,50 +10,162 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "cb:import": "tsx scripts/cb-import.ts",
     "cb:seed": "tsx scripts/cb-seed.ts",
     "cb:full": "npm run cb:import && npm run cb:seed",
-    "desktop": "electron .",
-    "desktop:build": "next build && next export -o out",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
+    "desktop": "npx electron .",
+    "desktop:install": "npm install --save-dev electron electron-builder",
+    "desktop:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && npx electron .\"",
+    "desktop:go": "node desktop-launcher.js",
+    "desktop:build": "npm run build && npx electron-builder --win --x64",
+    "desktop:build:dir": "npm run build && npx electron-builder --win --x64 --dir",
+    "desktop:dist": "npm run build && npx electron-builder",
+    "tauri": "npx tauri",
+    "tauri:dev": "cross-env TAURI=1 npm run dev:tauri",
+    "dev:tauri": "node scripts/tauri-prebuild.js && cross-env TAURI=1 next dev -p 1420",
+    "tauri:build": "node scripts/tauri-prebuild.js && cross-env TAURI=1 npm run build && npx tauri build; node scripts/tauri-postbuild.js",
+    "tauri:build:clean": "node scripts/tauri-prebuild.js && cross-env TAURI=1 npm run build && npx tauri build && node scripts/tauri-postbuild.js",
+    "tauri:install": "npm install -D @tauri-apps/cli@latest @tauri-apps/api@latest",
+    "app:build": "npm run build && npm run desktop:build",
+    "app:install": "npm ci && npx prisma generate && npx prisma migrate deploy && npm run build",
+    "analyze": "ANALYZE=true next build",
     "postinstall": "prisma generate"
   },
-  "main": "electron-main.js",
   "dependencies": {
     "@prisma/client": "^5.16.1",
+    "@radix-ui/react-select": "^2.3.3",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-shell": "^2",
     "clsx": "^2.1.1",
     "framer-motion": "^11.2.10",
-    "gsap": "^3.12.5",
     "katex": "^0.16.10",
     "lucide-react": "^0.400.0",
     "next": "14.2.5",
-    "pdfjs-dist": "^4.3.136",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-katex": "^3.0.1",
     "recharts": "^2.12.7",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.3.0",
-    "tesseract.js": "^5.1.0",
-    "vaul": "^0.9.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.2.5",
+    "@tauri-apps/cli": "^2",
     "@types/katex": "^0.16.7",
     "@types/node": "^20.12.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/react-katex": "^3.0.4",
     "autoprefixer": "^10.4.19",
-    "electron": "^43.0.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.9.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8.4.38",
     "prisma": "^5.16.1",
     "tailwindcss": "^3.4.4",
     "tsx": "^4.15.7",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "wait-on": "^7.2.0"
+  },
+  "optionalDependencies": {
+    "pdfjs-dist": "^4.3.136",
+    "tesseract.js": "^5.1.0"
+  },
+  "build": {
+    "appId": "ai.arena.satnexus",
+    "productName": "SAT Nexus",
+    "copyright": "Copyright © 2026 SAT Nexus",
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/@prisma/**/*",
+      "node_modules/.prisma/**/*",
+      "prisma/**/*"
+    ],
+    "files": [
+      "electron-main.js",
+      "package.json",
+      "next.config.mjs",
+      "public/**/*",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "node_modules/next/**/*",
+      "node_modules/react/**/*",
+      "node_modules/react-dom/**/*",
+      "prisma/**/*",
+      "!**/*.map",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/.cache"
+    ],
+    "extraResources": [
+      {
+        "from": "prisma",
+        "to": "prisma",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "public",
+        "to": "public"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "src-tauri/icons/icon.ico",
+      "artifactName": "SAT-Nexus-Setup-${version}.${ext}",
+      "publisherName": "SAT Nexus"
+    },
+    "mac": {
+      "icon": "src-tauri/icons/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "icon": "src-tauri/icons/icon.png",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education"
+    },
+    "directories": {
+      "buildResources": "src-tauri/icons",
+      "output": "dist-electron"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SAT Nexus",
+      "artifactName": "SAT-Nexus-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "SAT-Nexus-Portable-${version}.${ext}"
+    }
   }
 }

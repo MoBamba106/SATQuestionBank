@@ -5,6 +5,8 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// No revalidate / dynamic exports on client component (prevents Next.js static export error)
+
 export default function AnalyticsPage() {
   const questions = useBank(s=>s.questions);
   const total = questions.length;
@@ -46,19 +48,19 @@ export default function AnalyticsPage() {
         <GlassCard className="p-6 xl:col-span-2 min-h-[320px] flex items-center justify-center">
           {!tests.length ? (
             <div className="text-center">
-              <div className="text-lg font-[600]">No practice tests logged yet</div>
+              <div className="text-lg font-[600] text-ink">No practice tests logged yet</div>
               <div className="text-sm text-ink-soft mt-2 max-w-md">Take a quiz in the Quiz tab, or import a Bluebook PDF / manually enter scores. Charts will populate with YOUR real data only.</div>
-              <button onClick={()=>setShowImport(true)} className="mt-4 px-4 py-2 rounded-xl bg-neon-cyan text-black font-[600] text-sm">Import Bluebook Score</button>
+              <button onClick={()=>setShowImport(true)} className="mt-4 px-4 py-2 rounded-xl bg-[#3a6fe3] text-white font-[600] text-sm">Import Bluebook Score</button>
             </div>
           ) : (
             <div className="w-full h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={tests}>
-                  <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false}/>
-                  <XAxis dataKey="date" stroke="#777" />
-                  <YAxis stroke="#777" domain={[800,1600]}/>
-                  <Tooltip contentStyle={{background:"#0b1014", border:"1px solid #333", borderRadius:12}}/>
-                  <Line type="monotone" dataKey="total" stroke="#00F5FF" strokeWidth={2.5} dot />
+                  <CartesianGrid stroke="rgba(60,45,20,0.08)" vertical={false}/>
+                  <XAxis dataKey="date" stroke="#8a8680" />
+                  <YAxis stroke="#8a8680" domain={[800,1600]}/>
+                  <Tooltip contentStyle={{background:"#ffffff", border:"1px solid #e5dfd2", borderRadius:12, color:"#2b2b2a"}}/>
+                  <Line type="monotone" dataKey="total" stroke="#3a6fe3" strokeWidth={2.5} dot />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -176,35 +178,35 @@ function ManualTestModal({onClose, onSave}:{onClose:()=>void, onSave:(t:any)=>vo
   const [form, setForm] = useState({name:"Bluebook Test", date: new Date().toISOString().slice(0,10), total:"", rw:"", math:""});
   return (
     <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-      className="fixed inset-0 z-50 bg-black/75 backdrop-blur flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black/30 backdrop-blur flex items-center justify-center p-4"
       onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} className="glass rounded-[22px] p-6 max-w-lg w-full">
-        <div className="text-lg font-[600] mb-4">Manual Test Entry</div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="text-lg font-[600] mb-4 text-ink">Manual Test Entry</div>
+        <div className="grid grid-cols-2 gap-3 text-sm text-ink">
           <label className="col-span-2">Test name
             <input value={form.name} onChange={e=>setForm({...form, name:e.target.value})}
-              className="w-full mt-1 bg-[#0b1014] border border-paper-300 rounded-xl px-3 py-2"/>
+              className="w-full mt-1 bg-white text-ink border border-paper-300 rounded-xl px-3 py-2"/>
           </label>
           <label>Date
             <input type="date" value={form.date} onChange={e=>setForm({...form, date:e.target.value})}
-              className="w-full mt-1 bg-[#0b1014] border border-paper-300 rounded-xl px-3 py-2"/>
+              className="w-full mt-1 bg-white text-ink border border-paper-300 rounded-xl px-3 py-2"/>
           </label>
           <label>Total (400-1600)
             <input type="number" value={form.total} onChange={e=>setForm({...form, total:e.target.value})}
-              className="w-full mt-1 bg-[#0b1014] border border-paper-300 rounded-xl px-3 py-2"/>
+              className="w-full mt-1 bg-white text-ink border border-paper-300 rounded-xl px-3 py-2"/>
           </label>
           <label>R&W (200-800)
             <input type="number" value={form.rw} onChange={e=>setForm({...form, rw:e.target.value})}
-              className="w-full mt-1 bg-[#0b1014] border border-paper-300 rounded-xl px-3 py-2"/>
+              className="w-full mt-1 bg-white text-ink border border-paper-300 rounded-xl px-3 py-2"/>
           </label>
           <label>Math (200-800)
             <input type="number" value={form.math} onChange={e=>setForm({...form, math:e.target.value})}
-              className="w-full mt-1 bg-[#0b1014] border border-paper-300 rounded-xl px-3 py-2"/>
+              className="w-full mt-1 bg-white text-ink border border-paper-300 rounded-xl px-3 py-2"/>
           </label>
         </div>
         <div className="flex justify-end gap-2 mt-5">
-          <button onClick={onClose} className="px-3 py-2 rounded-xl glass-subtle text-sm">Cancel</button>
-          <button onClick={()=>onSave(form)} className="px-4 py-2 rounded-xl bg-neon-green text-black font-[600] text-sm">Save Test</button>
+          <button onClick={onClose} className="px-3 py-2 rounded-xl glass-subtle text-sm text-ink">Cancel</button>
+          <button onClick={()=>onSave(form)} className="px-4 py-2 rounded-xl bg-[#2ca974] text-white font-[600] text-sm">Save Test</button>
         </div>
       </div>
     </motion.div>

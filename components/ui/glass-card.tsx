@@ -1,18 +1,22 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { motion, HTMLMotionProps } from "framer-motion";
 import React from "react";
 
-export function GlassCard({ className, children, hover=true, ...props }: HTMLMotionProps<"div"> & { hover?: boolean }) {
+type DivProps = React.HTMLAttributes<HTMLDivElement> & { hover?: boolean };
+
+export function GlassCard({ className, children, hover=true, ...props }: DivProps) {
   return (
-    <motion.div
+    <div
       {...props}
-      className={cn("glass rounded-[22px] relative scanlines overflow-hidden", hover && "transition-transform hover:-translate-y-[2px] hover:shadow-neon-cyan/20", className)}
-      whileHover={hover ? { y: -3 } : undefined}
+      className={cn(
+        "glass rounded-[20px] relative overflow-hidden transition-all duration-200",
+        hover && "hover:-translate-y-[2px] hover:shadow-paper-lg",
+        className
+      )}
     >
-      <div className="absolute inset-0 opacity-[0.35] pointer-events-none"
-        style={{background:"linear-gradient(180deg, rgba(255,255,255,0.07), transparent 35%)"}} />
       {children}
-    </motion.div>
+    </div>
   );
 }
+
+// lightweight – no framer-motion per card (was causing 3k+ motion nodes lag)
