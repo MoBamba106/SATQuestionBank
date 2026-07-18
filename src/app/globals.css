@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --paper: #faf8f3;
+  --paper-2: #f4f0e6;
+  --paper-3: #eee9da;
+  --ink: #2b2b2a;
+  --ink-soft: #55524a;
+  --ink-faint: #8a8680;
+  --line: #d5cfc0;
+  --line-soft: #e7e0d0;
+  --accent: #3a5fc8;
+  --accent-soft: #5b8def;
+  --good: #2ca974;
+  --bad: #d95670;
+  --warn: #d9922e;
+}
+
+* { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='0.023'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(180,165,130,0.055) 32px),
+    radial-gradient(1000px 500px at 20% -5%, rgba(255,240,190,0.45), transparent 60%),
+    radial-gradient(800px 500px at 90% 100%, rgba(200,235,255,0.18), transparent 55%);
+  background-attachment: fixed;
+}
+
+.font-display { font-family: 'Fraunces', Georgia, serif; }
+.font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* ---------- Soft Paper surfaces ---------- */
+.glass {
+  background: #ffffff;
+  border: 1px solid rgba(60,45,20,0.12);
+  border-radius: 20px;
+  box-shadow: 0 3px 14px rgba(60,45,20,0.06), 0 1px 3px rgba(60,45,20,0.04);
+  position: relative;
+  color: var(--ink);
+}
+.glass::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+.glass-subtle {
+  background: #fdfcfa;
+  border: 1px solid rgba(60,45,20,0.10);
+  border-radius: 16px;
+  box-shadow: 0 1px 6px rgba(60,45,20,0.04);
+}
+.shadow-paper-lg { box-shadow: 0 12px 32px rgba(60,45,20,0.10), 0 2px 6px rgba(60,45,20,0.05); }
+
+/* ---------- Inputs: ALWAYS light paper, dark ink ---------- */
+input, select, textarea {
+  background-color: #ffffff;
+  color: var(--ink);
+  border-color: var(--line);
+}
+input::placeholder, textarea::placeholder { color: var(--ink-faint); }
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 3px rgba(91,141,239,0.15);
+}
+
+.input {
+  background-color: #fff;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 9px 14px;
+  font-size: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.input:focus { border-color: var(--accent-soft); box-shadow: 0 0 0 3px rgba(91,141,239,.15); outline: none; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 12px; font-weight: 600; font-size: 14px;
+  padding: 9px 16px; border: 1.5px solid transparent;
+  cursor: pointer; transition: all .15s ease;
+  user-select: none;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary {
+  background: linear-gradient(180deg, #4a76d8, #3a5fc8);
+  color: #fff; border-color: #3355b4;
+  box-shadow: 0 2px 8px rgba(58,95,200,0.28), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.btn-primary:hover:not(:disabled) { background: linear-gradient(180deg, #537ede, #4169d2); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(58,95,200,0.34); }
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-soft {
+  background: #f6f2e8; color: var(--ink); border-color: var(--line);
+}
+.btn-soft:hover:not(:disabled) { background: #efe9db; border-color: #c9c1ac; }
+.btn-ghost { background: transparent; color: var(--ink-soft); }
+.btn-ghost:hover:not(:disabled) { background: rgba(60,45,20,0.06); color: var(--ink); }
+.btn-danger { background: #fdf2f4; color: #b23a52; border-color: #f0cdd5; }
+.btn-danger:hover:not(:disabled) { background: #fbe4e9; }
+.btn-good { background: #2ca974; color: #fff; border-color: #239263; box-shadow: 0 2px 8px rgba(44,169,116,.28); }
+.btn-good:hover:not(:disabled) { background: #32b880; }
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11.5px; font-weight: 600;
+  padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  background: #f8f5ec; color: var(--ink-soft);
+  white-space: nowrap;
+}
+.badge-blue { background: #e9effc; color: #3053ad; border-color: #cfdcf8; }
+
+/* ---------- Highlighter accents ---------- */
+.hl-yellow { background: linear-gradient(180deg, transparent 60%, #fff3a3 60%); }
+.hl-mint { background: linear-gradient(180deg, transparent 60%, #c8f5d9 60%); }
+.hl-pink { background: linear-gradient(180deg, transparent 60%, #ffd6e7 60%); }
+.hl-blue { background: linear-gradient(180deg, transparent 60%, #c9e8ff 60%); }
+
+::selection { background: #fff3a3; color: var(--ink); }
+
+/* ---------- SAT question HTML content ---------- */
+.sat-content { color: var(--ink); line-height: 1.7; font-size: 16px; overflow-wrap: break-word; }
+.sat-content p { margin: 0.7em 0; }
+.sat-content table { border-collapse: collapse; margin: 1em 0; width: auto; background: #fff; }
+.sat-content td, .sat-content th { border: 1px solid var(--line); padding: 8px 14px; text-align: left; }
+.sat-content img { max-width: 100%; height: auto; border-radius: 8px; margin: .8em 0; }
+.sat-content math { font-size: 1.08em; }
+.sat-content ul, .sat-content ol { margin-left: 1.4em; }
+.sat-content figure { margin: 1em 0; }
+
+/* ---------- Scrollbars ---------- */
+.scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: #f1ece1; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #d1c7b5; border-radius: 8px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #b8ad96; }
+
+:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
+
+/* ---------- Pop-in animation for floating panels ---------- */
+@keyframes paper-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.paper-pop { animation: paper-pop .18s cubic-bezier(.2,.9,.3,1.2) both; }
+
+@keyframes paper-fade { from { opacity: 0; } to { opacity: 1; } }
+.paper-fade { animation: paper-fade .18s ease both; }
+
+@keyframes gentle-pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+.gentle-pulse { animation: gentle-pulse 2.2s ease-in-out infinite; }

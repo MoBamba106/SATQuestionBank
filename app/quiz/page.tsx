@@ -41,25 +41,25 @@ export default function QuizPage() {
   const [moduleSeconds, setModuleSeconds] = useState(32 * 60);
   const [moduleNumber, setModuleNumber] = useState(1);
 
-  const skillOptions = useMemo(()=>{
-    if (domain==="Math") return ["All", ...Object.keys(MATH_SUBSKILLS)];
-    if (domain==="Reading & Writing") return ["All", ...Object.keys(RW_SUBSKILLS)];
+  const skillOptions = useMemo(() => {
+    if (domain === "Math") return ["All", ...Object.keys(MATH_SUBSKILLS)];
+    if (domain === "Reading & Writing") return ["All", ...Object.keys(RW_SUBSKILLS)];
     return ["All"];
   }, [domain]);
 
-  const subskillOptions = useMemo(()=>{
-    if (skill==="All" || domain==="All") return [];
-    if (domain==="Math") return MATH_SUBSKILLS[skill] || [];
+  const subskillOptions = useMemo(() => {
+    if (skill === "All" || domain === "All") return [];
+    if (domain === "Math") return MATH_SUBSKILLS[skill] || [];
     return RW_SUBSKILLS[skill] || [];
   }, [domain, skill]);
 
   const [subskill, setSubskill] = useState<string>("All");
 
-  const filteredPool = useMemo(()=> questions.filter(q=>
-    (domain==="All"||q.domain===domain) &&
-    (skill==="All"||q.skill===skill) &&
-    (subskill==="All"||q.subskill===subskill) &&
-    (diff==="All"||q.difficulty===diff)
+  const filteredPool = useMemo(() => questions.filter(q =>
+    (domain === "All" || q.domain === domain) &&
+    (skill === "All" || q.skill === skill) &&
+    (subskill === "All" || q.subskill === subskill) &&
+    (diff === "All" || q.difficulty === diff)
   ), [questions, domain, skill, subskill, diff]);
 
   const customQuestions = useMemo(() => {
@@ -71,7 +71,7 @@ export default function QuizPage() {
 
   useEffect(() => {
     if (customQuestions && customQuestions.length > 0 && !started) {
-      const shuffled = [...customQuestions].sort(()=>Math.random()-0.5).slice(0, Math.min(count, customQuestions.length));
+      const shuffled = [...customQuestions].sort(() => Math.random() - 0.5).slice(0, Math.min(count, customQuestions.length));
       const finalPool = shuffled.length ? shuffled : customQuestions.slice(0, Math.min(count, customQuestions.length));
       setPool(finalPool);
       setIdx(0); setAnswers({}); setChecked({}); setCheckedAnswers({}); setCheckAttempts({}); setFlags({});
@@ -82,7 +82,7 @@ export default function QuizPage() {
 
   const start = (useCustom = false) => {
     const sourcePool = useCustom && customQuestions ? customQuestions : effectivePool;
-    const shuffled = [...sourcePool].sort(()=>Math.random()-0.5).slice(0, Math.min(count, sourcePool.length));
+    const shuffled = [...sourcePool].sort(() => Math.random() - 0.5).slice(0, Math.min(count, sourcePool.length));
     const finalPool = shuffled.length ? shuffled : sourcePool.slice(0, Math.min(count, sourcePool.length));
     setPool(finalPool);
     setIdx(0); setAnswers({}); setChecked({}); setCheckedAnswers({}); setCheckAttempts({}); setFlags({}); setStarted(true); setShowResults(false);
@@ -94,38 +94,40 @@ export default function QuizPage() {
   const isChecked = current ? !!checked[current.id] : false;
   const checkedChoice = current ? checkedAnswers[current.id] : undefined;
   const currentCheckAttempts = current ? (checkAttempts[current.id] || 0) : 0;
-  const correct = current && isChecked ? String(checkedChoice||"").trim().toLowerCase() === String(current.correctAnswer).trim().toLowerCase() : false;
+  const correct = current && isChecked ? String(checkedChoice || "").trim().toLowerCase() === String(current.correctAnswer).trim().toLowerCase() : false;
 
   const setAnswer = (questionId: string, value: string) => {
-    setAnswers(a=>({...a, [questionId]: value}));
-    setChecked(c=> c[questionId] ? ({...c, [questionId]: false}) : c);
+    setAnswers(a => ({ ...a, [questionId]: value }));
+    setChecked(c => c[questionId] ? ({ ...c, [questionId]: false }) : c);
   };
 
   const doCheck = () => {
     if (!current || !chosen) return;
     const isCorrect = String(chosen).trim().toLowerCase() === String(current.correctAnswer).trim().toLowerCase();
     recordAttempt(current.id, isCorrect, { answer: chosen, checkedAnswer: chosen, mode: examMode ? "exam" : "practice" });
-    setCheckedAnswers(a=>({...a, [current.id]: chosen}));
-    setCheckAttempts(a=>({...a, [current.id]: (a[current.id] || 0) + 1}));
-    setChecked(c=>({...c, [current.id]: true}));
+    setCheckedAnswers(a => ({ ...a, [current.id]: chosen }));
+    setCheckAttempts(a => ({ ...a, [current.id]: (a[current.id] || 0) + 1 }));
+    setChecked(c => ({ ...c, [current.id]: true }));
   };
 
   const next = () => {
     if (examMode && current && chosen) {
       const isCorrect = String(chosen).trim().toLowerCase() === String(current.correctAnswer).trim().toLowerCase();
       recordAttempt(current.id, isCorrect, { answer: chosen, checkedAnswer: chosen, mode: "exam" });
-      setCheckedAnswers(a=>({...a, [current.id]: chosen}));
-      setChecked(c=>({...c, [current.id]: true}));
-      setCheckAttempts(a=>({...a, [current.id]: (a[current.id] || 0) + 1}));
+      setCheckedAnswers(a => ({ ...a, [current.id]: chosen }));
+      setChecked(c => ({ ...c, [current.id]: true }));
+      setCheckAttempts(a => ({ ...a, [current.id]: (a[current.id] || 0) + 1 }));
     }
-    if (idx < pool.length-1) {
+    if (idx < pool.length - 1) {
       const nextIdx = idx + 1;
       if (examMode && nextIdx === Math.floor(pool.length / 2)) {
         setModuleNumber(2);
         setModuleSeconds(32 * 60);
       }
       setIdx(nextIdx);
-    } else setShowResults(true);
+    } else {
+      setShowResults(true);
+    }
   };
 
   useEffect(() => {
@@ -148,9 +150,9 @@ export default function QuizPage() {
       if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
       const k = e.key.toLowerCase();
       if (k === "n") { e.preventDefault(); next(); }
-      if (k === "p") { e.preventDefault(); setIdx(i=>Math.max(0,i-1)); }
-      if (k === "f") { e.preventDefault(); setFlags(f=>({...f, [current.id]: !f[current.id]})); }
-      if (["a","b","c","d"].includes(k) && current.choices?.some(c=>c.key.toLowerCase()===k)) {
+      if (k === "p") { e.preventDefault(); setIdx(i => Math.max(0, i - 1)); }
+      if (k === "f") { e.preventDefault(); setFlags(f => ({ ...f, [current.id]: !f[current.id] })); }
+      if (["a", "b", "c", "d"].includes(k) && current.choices?.some(c => c.key.toLowerCase() === k)) {
         e.preventDefault();
         setAnswer(current.id, k.toUpperCase());
       }
@@ -164,21 +166,28 @@ export default function QuizPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [started, current, examMode, chosen, idx, pool.length]);
 
-  const score = pool.filter(q=> checked[q.id] && String(checkedAnswers[q.id]||"").trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase()).length;
+  const score = pool.filter(q => checked[q.id] && String(checkedAnswers[q.id] || "").trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase()).length;
   const totalChecked = Object.keys(checked).length;
 
   const pieData = [
-    { name:"Correct", value: score, fill:"#2ca974" },
-    { name:"Incorrect", value: Math.max(0, totalChecked - score), fill:"#e56a8a" },
-    { name:"Unanswered", value: Math.max(0, pool.length - totalChecked), fill:"#d8cfbd" },
+    { name: "Correct", value: score, fill: "#2ca974" },
+    { name: "Incorrect", value: Math.max(0, totalChecked - score), fill: "#e56a8a" },
+    { name: "Unanswered", value: Math.max(0, pool.length - totalChecked), fill: "#d8cfbd" },
   ];
+
   const bySkill = Object.entries(
-    pool.reduce((acc:any, q)=>{ const k=q.skill; if(!acc[k]) acc[k]={total:0, correct:0}; acc[k].total++; if(checked[q.id] && String(checkedAnswers[q.id]||"").toLowerCase()===String(q.correctAnswer).toLowerCase()) acc[k].correct++; return acc; }, {})
-  ).map(([k,v]:any)=>({ skill:k, pct: v.total? Math.round(v.correct/v.total*100):0 }));
+    pool.reduce((acc: any, q) => {
+      const k = q.skill;
+      if (!acc[k]) acc[k] = { total: 0, correct: 0 };
+      acc[k].total++;
+      if (checked[q.id] && String(checkedAnswers[q.id] || "").toLowerCase() === String(q.correctAnswer).toLowerCase()) acc[k].correct++;
+      return acc;
+    }, {})
+  ).map(([k, v]: any) => ({ skill: k, pct: v.total ? Math.round(v.correct / v.total * 100) : 0 }));
 
   const hasCustom = customQuizPool && customQuizPool.length > 0;
-
   const safeAttempts = attempts || [];
+
   const unresolvedMistakeIds = useMemo(() => {
     const byQ = new Map<string, any>();
     safeAttempts.forEach(a => {
@@ -187,16 +196,16 @@ export default function QuizPage() {
     });
     const out: string[] = [];
     for (const [id, list] of byQ.entries()) {
-      const sorted = [...list].sort((a,b)=>new Date(a.createdAt).getTime()-new Date(b.createdAt).getTime());
-      const lastWrongIdx = sorted.map(x=>x.isCorrect).lastIndexOf(false);
+      const sorted = [...list].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      const lastWrongIdx = sorted.map(x => x.isCorrect).lastIndexOf(false);
       if (lastWrongIdx === -1) continue;
-      const correctedAfter = sorted.slice(lastWrongIdx + 1).some(x=>x.isCorrect);
+      const correctedAfter = sorted.slice(lastWrongIdx + 1).some(x => x.isCorrect);
       if (!correctedAfter) out.push(id);
     }
     return out;
-  }, [attempts]);
+  }, [safeAttempts]);
 
-  const favoriteCount = useMemo(() => questions.filter(q=>q.favorite).length, [questions]);
+  const favoriteCount = useMemo(() => questions.filter(q => q.favorite).length, [questions]);
 
   const skillHeat = useMemo(() => {
     const skillMap = questions.reduce((acc, q) => {
@@ -208,7 +217,7 @@ export default function QuizPage() {
     }, {} as Record<string, { total: number; wrong: number }>);
     return Object.entries(skillMap)
       .map(([skill, v]) => ({ skill, score: v.total ? Math.round((v.wrong / Math.max(1, v.total)) * 100) : 0 }))
-      .sort((a,b)=>b.score-a.score)
+      .sort((a, b) => b.score - a.score)
       .slice(0, 8);
   }, [questions, safeAttempts]);
 
@@ -269,13 +278,13 @@ export default function QuizPage() {
     setExamMode(false);
     setModuleNumber(1);
     setModuleSeconds(32 * 60);
-    if (name === "Quick 10") { applyPreset("10 Mixed"); setTimeout(()=>start(false), 0); return; }
-    if (name === "Math Warmup") { setDomain("Math"); setSkill("All"); setSubskill("All"); setDiff("Easy"); setCount(10); setTimeout(()=>start(false), 0); return; }
-    if (name === "Hard Practice") { setDomain("All"); setSkill("All"); setSubskill("All"); setDiff("Hard"); setCount(15); setTimeout(()=>start(false), 0); return; }
+    if (name === "Quick 10") { applyPreset("10 Mixed"); setTimeout(() => start(false), 0); return; }
+    if (name === "Math Warmup") { setDomain("Math"); setSkill("All"); setSubskill("All"); setDiff("Easy"); setCount(10); setTimeout(() => start(false), 0); return; }
+    if (name === "Hard Practice") { setDomain("All"); setSkill("All"); setSubskill("All"); setDiff("Hard"); setCount(15); setTimeout(() => start(false), 0); return; }
     if (name === "Review Mistakes") {
       if (unresolvedMistakeIds.length) {
         setCustomQuizPool(unresolvedMistakeIds);
-        setTimeout(()=>start(true), 0);
+        setTimeout(() => start(true), 0);
       }
       return;
     }
@@ -286,13 +295,13 @@ export default function QuizPage() {
       setIdx(0); setAnswers({}); setChecked({}); setCheckedAnswers({}); setCheckAttempts({}); setFlags({}); setStarted(true); setShowResults(false);
       return;
     }
-    if (name === "Reading Sprint") { setDomain("Reading & Writing"); setSkill("All"); setSubskill("All"); setDiff("Medium"); setCount(12); setTimeout(()=>start(false), 0); return; }
+    if (name === "Reading Sprint") { setDomain("Reading & Writing"); setSkill("All"); setSubskill("All"); setDiff("Medium"); setCount(12); setTimeout(() => start(false), 0); return; }
     if (name === "Bluebook Mode") {
       setDomain("All"); setSkill("All"); setSubskill("All"); setDiff("All"); setCount(22);
       setExamMode(true);
       setModuleNumber(1);
       setModuleSeconds(32 * 60);
-      setTimeout(()=>start(false), 0);
+      setTimeout(() => start(false), 0);
       return;
     }
   };
@@ -321,8 +330,8 @@ export default function QuizPage() {
                   <div className="text-sm text-ink-soft">{customQuestions?.length || 0} questions selected from the bank</div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={()=>setCustomQuizPool(null)} className="px-4 py-2 text-sm rounded-xl bg-white border">Clear</button>
-                  <button onClick={()=>start(true)} className="px-6 py-2.5 text-sm rounded-xl bg-[#3a6fe3] text-white font-semibold flex items-center gap-2">
+                  <button onClick={() => setCustomQuizPool(null)} className="px-4 py-2 text-sm rounded-xl bg-white border">Clear</button>
+                  <button onClick={() => start(true)} className="px-6 py-2.5 text-sm rounded-xl bg-[#3a6fe3] text-white font-semibold flex items-center gap-2">
                     <Play size={15}/> Start Selected Quiz
                   </button>
                 </div>
@@ -334,8 +343,8 @@ export default function QuizPage() {
                 <div>
                   <div className="text-[11px] uppercase tracking-wider text-ink-soft mb-2.5 font-medium px-1">Quick start</div>
                   <div className="flex flex-wrap gap-2">
-                    {["10 Mixed","20 Mixed","Hard Math","Reading Drill","Full Practice"].map(p => (
-                      <button key={p} onClick={()=>applyPreset(p)}
+                    {["10 Mixed", "20 Mixed", "Hard Math", "Reading Drill", "Full Practice"].map(p => (
+                      <button key={p} onClick={() => applyPreset(p)}
                         className="px-4 py-1.5 text-[13px] rounded-full bg-white border border-paper-300 hover:border-[#c9c4b5] text-ink transition-all active:scale-[0.985]">
                         {p}
                       </button>
@@ -346,8 +355,8 @@ export default function QuizPage() {
                 <GlassCard className="p-5">
                   <div className="text-[11px] uppercase tracking-wider text-ink-soft mb-3 font-medium">Study Sessions</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {["Quick 10","Math Warmup","Hard Practice","Review Mistakes","Mixed Review","Reading Sprint","Bluebook Mode"].map(name => (
-                      <button key={name} onClick={()=>startSession(name)}
+                    {["Quick 10", "Math Warmup", "Hard Practice", "Review Mistakes", "Mixed Review", "Reading Sprint", "Bluebook Mode"].map(name => (
+                      <button key={name} onClick={() => startSession(name)}
                         className="px-3 py-2 rounded-xl bg-white border border-paper-300 text-[12px] text-ink hover:border-[#bfb39d] text-left">
                         {name}
                       </button>
@@ -366,7 +375,7 @@ export default function QuizPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <div className="text-xs uppercase tracking-wider text-ink-soft mb-1.5 font-medium">Domain</div>
-                        <Select value={domain} onValueChange={(value)=>{setDomain(value); setSkill("All"); setSubskill("All");}}>
+                        <Select value={domain} onValueChange={(value) => { setDomain(value); setSkill("All"); setSubskill("All"); }}>
                           <SelectTrigger><SelectValue placeholder="Domain" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="All">All</SelectItem>
@@ -377,10 +386,10 @@ export default function QuizPage() {
                       </div>
                       <div>
                         <div className="text-xs uppercase tracking-wider text-ink-soft mb-1.5 font-medium">Skill</div>
-                        <Select value={skill} onValueChange={(value)=>{setSkill(value); setSubskill("All");}}>
+                        <Select value={skill} onValueChange={(value) => { setSkill(value); setSubskill("All"); }}>
                           <SelectTrigger><SelectValue placeholder="Skill" /></SelectTrigger>
                           <SelectContent>
-                            {skillOptions.map(s=> <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            {skillOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -389,11 +398,11 @@ export default function QuizPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <div className="text-xs uppercase tracking-wider text-ink-soft mb-1.5 font-medium">Subskill</div>
-                        <Select value={subskill} disabled={subskillOptions.length===0} onValueChange={setSubskill}>
+                        <Select value={subskill} disabled={subskillOptions.length === 0} onValueChange={setSubskill}>
                           <SelectTrigger><SelectValue placeholder="Subskill" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="All">All</SelectItem>
-                            {subskillOptions.map(s=> <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                            {subskillOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -419,7 +428,7 @@ export default function QuizPage() {
                           {count}
                         </div>
                       </div>
-                      <input type="range" min={countMin} max={countMax} step={1} value={count} onChange={e=>setCount(parseInt(e.target.value))}
+                      <input type="range" min={countMin} max={countMax} step={1} value={count} onChange={e => setCount(parseInt(e.target.value))}
                         className="w-full h-2.5 appearance-none rounded-full cursor-pointer"
                         style={{ background: `linear-gradient(to right, #3a6fe3 0%, #3a6fe3 ${countPct}%, #d9d2c6 ${countPct}%, #d9d2c6 100%)` }} />
                       <div className="flex justify-between text-[10px] text-ink-faint mt-0.5">
@@ -445,9 +454,9 @@ export default function QuizPage() {
                 </GlassCard>
 
                 <div>
-                  <button 
-                    onClick={()=>start(false)} 
-                    disabled={eligible===0}
+                  <button
+                    onClick={() => start(false)}
+                    disabled={eligible === 0}
                     className="w-full py-[18px] rounded-2xl bg-[#3a6fe3] hover:bg-[#2f5cc7] active:bg-[#274ea8] transition-all text-white font-semibold text-[17px] shadow-[0_4px_14px_rgb(58,111,227,0.35)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3">
                     Start Quiz <Play size={19}/>
                   </button>
@@ -460,7 +469,7 @@ export default function QuizPage() {
                   <div className="text-sm font-[600] mb-2 text-ink">Skill Heat Map</div>
                   <div className="space-y-2">
                     {skillHeat.map(s => (
-                      <button key={s.skill} onClick={() => { setSkill(s.skill); setDomain(questions.find(q=>q.skill===s.skill)?.domain || "All"); }} className="w-full text-left">
+                      <button key={s.skill} onClick={() => { setSkill(s.skill); setDomain(questions.find(q => q.skill === s.skill)?.domain || "All"); }} className="w-full text-left">
                         <div className="flex justify-between text-[12px] text-ink-soft mb-1">
                           <span>{s.skill}</span><span>{s.score}%</span>
                         </div>
@@ -480,11 +489,11 @@ export default function QuizPage() {
           </div>
         ) : (
           <div className={
-            current?.domain==="Reading & Writing" && current?.passage
+            current?.domain === "Reading & Writing" && current?.passage
               ? "grid xl:grid-cols-[560px_1fr] gap-6"
               : "grid xl:grid-cols-[1fr_440px] gap-6"
           }>
-            {current?.domain==="Reading & Writing" && current?.passage && (
+            {current?.domain === "Reading & Writing" && current?.passage && (
               <div className="space-y-4">
                 <GlassCard className="p-6 h-fit max-h-[80vh] overflow-auto scrollbar-thin">
                   <div className="text-[11px] uppercase tracking-wider text-ink-soft mb-3">Passage</div>
@@ -505,23 +514,23 @@ export default function QuizPage() {
             <div>
               <div className="flex items-center justify-between mb-4 text-sm flex-wrap gap-3">
                 <div className="text-ink-soft">
-                  Question {idx+1} / {pool.length} • {current?.domain} › {current?.skill}{current?.subskill ? ` › ${current.subskill}` : ""}
+                  Question {idx + 1} / {pool.length} • {current?.domain} › {current?.skill}{current?.subskill ? ` › ${current.subskill}` : ""}
                 </div>
                 <div className="flex items-center gap-3">
                   {current && (
-                    <button onClick={()=>toggleFavorite(current.id)}
+                    <button onClick={() => toggleFavorite(current.id)}
                       className={`flex items-center gap-1.5 text-[13px] ${current.favorite ? "text-[#b8870a]" : "text-ink-soft hover:text-ink"}`}>
                       <Star size={14} fill={current.favorite ? "#f7d35c" : "none"} /> {current.favorite ? "Favorited" : "Favorite"}
                     </button>
                   )}
-                  <button onClick={()=> current && setFlags(f=>({...f, [current.id]: !f[current.id]}))}
-                    className={`flex items-center gap-1.5 text-[13px] ${flags[current?.id||""]?"text-[#b45309]":"text-ink-soft hover:text-ink"}`}>
-                    <Flag size={14}/> {flags[current?.id||""] ? "Flagged" : "Flag"}
+                  <button onClick={() => current && setFlags(f => ({ ...f, [current.id]: !f[current.id] }))}
+                    className={`flex items-center gap-1.5 text-[13px] ${flags[current?.id || ""] ? "text-[#b45309]" : "text-ink-soft hover:text-ink"}`}>
+                    <Flag size={14} /> {flags[current?.id || ""] ? "Flagged" : "Flag"}
                   </button>
-                  {current?.domain==="Math" && (
-                    <button onClick={()=>setShowDesmos(s=>!s)}
+                  {current?.domain === "Math" && (
+                    <button onClick={() => setShowDesmos(s => !s)}
                       className="glass-subtle px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-[13px] text-ink">
-                      <Calculator size={14}/> {showDesmos?"Hide Desmos":"Desmos"}
+                      <Calculator size={14} /> {showDesmos ? "Hide Desmos" : "Desmos"}
                     </button>
                   )}
                 </div>
@@ -531,8 +540,8 @@ export default function QuizPage() {
                 <GlassCard className="p-7">
                   {examMode && (
                     <div className="mb-3 px-3 py-2 rounded-xl bg-[#eef3ff] border border-[#cfdbf9] text-[12px] text-[#2f5cc7] flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5"><Timer size={13}/> Bluebook Mode • Module {moduleNumber}</span>
-                      <span className="font-semibold tabular-nums">{Math.floor(moduleSeconds/60)}:{String(moduleSeconds%60).padStart(2,"0")}</span>
+                      <span className="inline-flex items-center gap-1.5"><Timer size={13} /> Bluebook Mode • Module {moduleNumber}</span>
+                      <span className="font-semibold tabular-nums">{Math.floor(moduleSeconds / 60)}:{String(moduleSeconds % 60).padStart(2, "0")}</span>
                     </div>
                   )}
                   <div className="text-[11px] font-mono text-ink-soft mb-3">
@@ -543,26 +552,26 @@ export default function QuizPage() {
 
                   {current.mathExpression && (
                     <div className="mt-4 glass-subtle rounded-xl p-3 text-[15px] text-ink">
-                      <InlineMath math={current.mathExpression}/>
+                      <InlineMath math={current.mathExpression} />
                     </div>
                   )}
                   {current.imageUrl && (
                     <div className="mt-4 rounded-xl overflow-hidden border border-paper-300 bg-white p-3">
-                      <img src={current.imageUrl} alt="question figure" className="max-h-[360px] mx-auto"/>
+                      <img src={current.imageUrl} alt="question figure" className="max-h-[360px] mx-auto" />
                     </div>
                   )}
 
                   <div className="mt-6 space-y-3">
-                    {current.choices && current.choices.length>0 ? current.choices.map(opt=>(
+                    {current.choices && current.choices.length > 0 ? current.choices.map(opt => (
                       <button key={opt.key}
-                        onClick={()=>setAnswer(current.id, opt.key)}
+                        onClick={() => setAnswer(current.id, opt.key)}
                         className={`w-full text-left px-4 py-3 rounded-[16px] border transition-all ${
-                          chosen===opt.key
+                          chosen === opt.key
                             ? isChecked
                               ? (correct ? "border-[#2ca974] bg-[#e8f7ef]" : "border-[#e56a8a] bg-[#fff0f3]")
                               : "border-[#5b8def] bg-[#eef4ff]"
                             : "border-paper-300 bg-white hover:border-[#c9c4b5]"
-                        } ${isChecked ? "cursor-default":""}`}>
+                        } ${isChecked ? "cursor-default" : ""}`}>
                         <div className="flex gap-3 items-start">
                           <span className="font-mono text-[12px] text-[#3a6fe3] mt-0.5">{opt.key}</span>
                           <div className="flex-1 text-[14px] text-ink sat-content">
@@ -573,8 +582,8 @@ export default function QuizPage() {
                     )) : (
                       <input
                         placeholder="Type your answer…"
-                        value={chosen||""}
-                        onChange={e=>setAnswer(current.id, e.target.value)}
+                        value={chosen || ""}
+                        onChange={e => setAnswer(current.id, e.target.value)}
                         className="w-full bg-white text-ink border border-paper-300 rounded-xl px-4 py-3 text-[15px] outline-none"
                       />
                     )}
@@ -584,12 +593,12 @@ export default function QuizPage() {
                     {!examMode && (
                       <button onClick={doCheck} disabled={!chosen}
                         className="px-5 py-[11px] rounded-xl bg-[#3a6fe3] text-white font-[650] disabled:opacity-40 flex items-center gap-2">
-                        <CheckCircle size={16}/> Check Answer
+                        <CheckCircle size={16} /> Check Answer
                       </button>
                     )}
                     <button onClick={next}
                       className="ml-auto px-5 py-[11px] rounded-xl bg-white border border-paper-300 font-[650] flex items-center gap-2 text-ink">
-                      {idx < pool.length-1 ? "Next →" : (examMode ? "Submit Exam" : "Finish Quiz")}
+                      {idx < pool.length - 1 ? "Next →" : (examMode ? "Submit Exam" : "Finish Quiz")}
                     </button>
                   </div>
 
@@ -614,64 +623,64 @@ export default function QuizPage() {
                   )}
 
                   <div className="mt-4">
-                    <div className="text-[11px] text-ink-faint mb-1 flex items-center gap-1"><NotebookPen size={12}/> Question Note</div>
+                    <div className="text-[11px] text-ink-faint mb-1 flex items-center gap-1"><NotebookPen size={12} /> Question Note</div>
                     <textarea
                       value={questionNotes[current.id] || ""}
-                      onChange={e=>setQuestionNote(current.id, e.target.value)}
+                      onChange={e => setQuestionNote(current.id, e.target.value)}
                       placeholder="Write your takeaway for this question..."
                       className="w-full h-20 bg-white text-ink border border-paper-300 rounded-xl p-3 text-sm"
                     />
                   </div>
 
                   <div className="flex justify-between mt-7 text-sm">
-                    <button disabled={idx===0} onClick={()=>setIdx(i=>Math.max(0,i-1))}
+                    <button disabled={idx === 0} onClick={() => setIdx(i => Math.max(0, i - 1))}
                       className="px-4 py-2 rounded-xl glass-subtle flex items-center gap-1 disabled:opacity-30 text-ink">
-                      <ChevronLeft size={16}/> Back
+                      <ChevronLeft size={16} /> Back
                     </button>
                     <div className="text-ink-soft">
                       {Object.keys(checked).length} / {pool.length} checked
                     </div>
                     <button onClick={next}
                       className="px-4 py-2 rounded-xl glass-subtle flex items-center gap-1 text-ink">
-                      {idx===pool.length-1 ? "Results" : "Next"} <ChevronRight size={16}/>
+                      {idx === pool.length - 1 ? "Results" : "Next"} <ChevronRight size={16} />
                     </button>
                   </div>
                 </GlassCard>
               )}
 
               <div className="flex flex-wrap gap-2 mt-4">
-                {pool.map((q,i)=>{
+                {pool.map((q, i) => {
                   const st = checked[q.id]
-                    ? (String(checkedAnswers[q.id]||"").toLowerCase()===String(q.correctAnswer).toLowerCase() ? "ok":"bad")
-                    : answers[q.id] ? "ans":"";
+                    ? (String(checkedAnswers[q.id] || "").toLowerCase() === String(q.correctAnswer).toLowerCase() ? "ok" : "bad")
+                    : answers[q.id] ? "ans" : "";
                   return (
-                    <button key={q.id} onClick={()=>setIdx(i)}
+                    <button key={q.id} onClick={() => setIdx(i)}
                       className={`w-9 h-9 rounded-[12px] text-[12px] border transition-all ${
-                        i===idx ? "border-[#3a6fe3] text-[#3a6fe3] scale-105" :
-                        st==="ok" ? "border-[#2ca974] text-[#15803d]" :
-                        st==="bad" ? "border-[#e56a8a] text-[#be185d]" :
-                        st==="ans" ? "border-[#b8a98a] text-ink-soft" :
+                        i === idx ? "border-[#3a6fe3] text-[#3a6fe3] scale-105" :
+                        st === "ok" ? "border-[#2ca974] text-[#15803d]" :
+                        st === "bad" ? "border-[#e56a8a] text-[#be185d]" :
+                        st === "ans" ? "border-[#b8a98a] text-ink-soft" :
                         "border-paper-300 text-ink-soft"
                       } glass-subtle`}>
-                      {i+1}
+                      {i + 1}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {current?.domain==="Math" && showDesmos && (
+            {current?.domain === "Math" && showDesmos && (
               <div className="space-y-4">
                 <GlassCard className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-[600] text-ink">Desmos Calculator</div>
                     <div className="flex items-center gap-2 text-[11px] text-ink-soft">
                       <span>height</span>
-                      <input type="range" min={280} max={760} value={dHeight} onChange={e=>setDHeight(parseInt(e.target.value))} className="accent-[#3a6fe3]" />
-                      <button onClick={()=>setShowDesmos(false)} className="ml-2 text-ink-soft hover:text-ink"><X size={14}/></button>
+                      <input type="range" min={280} max={760} value={dHeight} onChange={e => setDHeight(parseInt(e.target.value))} className="accent-[#3a6fe3]" />
+                      <button onClick={() => setShowDesmos(false)} className="ml-2 text-ink-soft hover:text-ink"><X size={14} /></button>
                     </div>
                   </div>
-                  <div className="rounded-xl overflow-hidden border border-paper-300 bg-white" style={{height: dHeight, minHeight:260, resize:"vertical", overflow:"auto"}}>
+                  <div className="rounded-xl overflow-hidden border border-paper-300 bg-white" style={{ height: dHeight, minHeight: 260, resize: "vertical", overflow: "auto" }}>
                     <iframe src="https://www.desmos.com/calculator" className="w-full h-full" title="Desmos" />
                   </div>
                   <div className="text-[11px] text-ink-soft mt-2">Resizable • drag bottom edge • SAT official</div>
@@ -688,7 +697,7 @@ export default function QuizPage() {
               </div>
             )}
 
-            {current?.domain==="Reading & Writing" && !current?.passage && (
+            {current?.domain === "Reading & Writing" && !current?.passage && (
               <div className="space-y-4">
                 <GlassCard className="p-4">
                   <div className="text-[12px] text-ink-soft uppercase tracking-wider">Session</div>
@@ -712,35 +721,35 @@ export default function QuizPage() {
                   <div className="text-[12px] text-[#3a6fe3] uppercase tracking-wider">Quiz Complete</div>
                   <h2 className="text-[30px] font-display font-[700] mt-1 text-ink">Nice work!</h2>
                   <div className="text-ink-soft mt-1">
-                    Score <b className="text-ink">{score}</b> / {pool.length} • {pool.length ? Math.round(score/pool.length*100) : 0}%
+                    Score <b className="text-ink">{score}</b> / {pool.length} • {pool.length ? Math.round(score / pool.length * 100) : 0}%
                   </div>
                 </div>
-                <button onClick={()=>{setShowResults(false); setStarted(false);}} className="glass-subtle p-2 rounded-xl text-ink"><X size={18}/></button>
+                <button onClick={() => { setShowResults(false); setStarted(false); }} className="glass-subtle p-2 rounded-xl text-ink"><X size={18} /></button>
               </div>
 
               <div className="grid md:grid-cols-3 gap-5 mt-6">
                 <GlassCard className="p-5 md:col-span-1">
                   <div className="text-sm font-[600] mb-2 text-ink">Breakdown</div>
-                  <div style={{width:"100%", height:200}}>
+                  <div style={{ width: "100%", height: 200 }}>
                     <ResponsiveContainer>
                       <PieChart>
                         <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={54} outerRadius={80} paddingAngle={2}>
-                          {pieData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                          {pieData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                         </Pie>
-                        <Tooltip contentStyle={{background:"#ffffff", border:"1px solid #e5dfd2", borderRadius:12, color:"#2b2b2a"}}/>
+                        <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #e5dfd2", borderRadius: 12, color: "#2b2b2a" }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
                 </GlassCard>
                 <GlassCard className="p-5 md:col-span-2">
                   <div className="text-sm font-[600] mb-2 text-ink">Accuracy by Skill</div>
-                  <div style={{width:"100%", height:200}}>
+                  <div style={{ width: "100%", height: 200 }}>
                     <ResponsiveContainer>
                       <BarChart data={bySkill}>
-                        <XAxis dataKey="skill" stroke="#8a8680" fontSize={11} interval={0} angle={-15} textAnchor="end" height={60}/>
-                        <YAxis stroke="#8a8680" fontSize={12} domain={[0,100]}/>
-                        <Tooltip contentStyle={{background:"#ffffff", border:"1px solid #e5dfd2", borderRadius:12, color:"#2b2b2a"}}/>
-                        <Bar dataKey="pct" fill="#3a6fe3" radius={[6,6,0,0]}/>
+                        <XAxis dataKey="skill" stroke="#8a8680" fontSize={11} interval={0} angle={-15} textAnchor="end" height={60} />
+                        <YAxis stroke="#8a8680" fontSize={12} domain={[0, 100]} />
+                        <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #e5dfd2", borderRadius: 12, color: "#2b2b2a" }} />
+                        <Bar dataKey="pct" fill="#3a6fe3" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -750,19 +759,19 @@ export default function QuizPage() {
               <div className="mt-6">
                 <div className="text-sm font-[600] mb-3 text-ink">Question Review</div>
                 <div className="space-y-2 max-h-[300px] overflow-auto pr-2 scrollbar-thin">
-                  {pool.map((q,i)=>{
+                  {pool.map((q, i) => {
                     const a = checkedAnswers[q.id] ?? answers[q.id];
-                    const ok = String(a||"").toLowerCase()===String(q.correctAnswer).toLowerCase();
+                    const ok = String(a || "").toLowerCase() === String(q.correctAnswer).toLowerCase();
                     return (
                       <div key={q.id} className="flex items-start gap-3 text-[13px] glass-subtle rounded-xl px-3 py-2">
-                        <span className={`mt-0.5 text-[11px] font-mono ${ok?"text-[#15803d]":"text-[#be185d]"}`}>{i+1}</span>
+                        <span className={`mt-0.5 text-[11px] font-mono ${ok ? "text-[#15803d]" : "text-[#be185d]"}`}>{i + 1}</span>
                         <div className="flex-1">
                           <div className="text-ink-soft line-clamp-1">
                             <SafeHtml html={q.questionText} />
                           </div>
-                          <div className="text-[11px] text-ink-faint">Your: {a||"—"} • Correct: {q.correctAnswer} • {q.skill}</div>
+                          <div className="text-[11px] text-ink-faint">Your: {a || "—"} • Correct: {q.correctAnswer} • {q.skill}</div>
                         </div>
-                        <div className={`text-[11px] ${ok?"text-[#15803d]":"text-[#be185d]"}`}>{ok?"✓":"✗"}</div>
+                        <div className={`text-[11px] ${ok ? "text-[#15803d]" : "text-[#be185d]"}`}>{ok ? "✓" : "✗"}</div>
                       </div>
                     )
                   })}
@@ -770,10 +779,10 @@ export default function QuizPage() {
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button onClick={()=>{setShowResults(false); setStarted(false);}} className="px-4 py-2 rounded-xl glass-subtle text-ink">Close</button>
-                <button onClick={()=>{ setIdx(0); setAnswers({}); setChecked({}); setCheckedAnswers({}); setCheckAttempts({}); setShowResults(false); }}
+                <button onClick={() => { setShowResults(false); setStarted(false); }} className="px-4 py-2 rounded-xl glass-subtle text-ink">Close</button>
+                <button onClick={() => { setIdx(0); setAnswers({}); setChecked({}); setCheckedAnswers({}); setCheckAttempts({}); setShowResults(false); }}
                   className="px-4 py-2 rounded-xl bg-[#3a6fe3] text-white font-[600] flex items-center gap-2">
-                  <RotateCcw size={15}/> Retry Quiz
+                  <RotateCcw size={15} /> Retry Quiz
                 </button>
               </div>
             </div>
