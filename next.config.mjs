@@ -13,8 +13,12 @@ const nextConfig = {
       { protocol: "http", hostname: "**" },
     ],
   },
-  serverExternalPackages: ["pg"],
-  turbopack: {},
+  serverExternalPackages: ["pg", "@electric-sql/pglite"],
+  turbopack: {
+    // Prevent a parent-directory package-lock.json from being selected as the
+    // workspace root (common when the repo lives under Downloads on Windows).
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;

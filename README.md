@@ -154,18 +154,30 @@ test_history(id PK, user_id, test_name, test_date, total_score, rw_score, math_s
 
 ---
 
-## Run
+## Run locally
 
 ```bash
 npm install
-npx prisma migrate dev
-npm run db:seed      # 3 verified CB
-# or full bank:
-npm run cb:full      # ~3,400 Qs, ~20 min
 npm run dev
-# http://localhost:3000/bank
-# /quiz  /analytics
 ```
+
+Open <http://localhost:3000>. On the first run, SAT Nexus creates an embedded
+Postgres-compatible database in `.sat-nexus-db` and imports the bundled question
+bank automatically. No separate PostgreSQL install, migration, or seed command
+is required.
+
+### Use an external PostgreSQL server (optional)
+
+Local development uses the embedded database even if an old `DATABASE_URL` is
+present in `.env`. To opt into a separate PostgreSQL server, set both values:
+
+```env
+DATABASE_MODE=postgres
+DATABASE_URL=postgresql://user:password@localhost:5432/sat_nexus
+```
+
+Make sure that server is running before `npm run dev`. In production, a defined
+`DATABASE_URL` is used automatically.
 
 ---
 

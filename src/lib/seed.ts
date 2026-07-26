@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { db } from "@/db";
+import { db, ensureDatabaseReady } from "@/db";
 import { sql } from "drizzle-orm";
 import { questions, practiceTests, practiceTestQuestions } from "@/db/schema";
 
@@ -104,11 +104,18 @@ function buildModule(
 const seededState: { promise: Promise<unknown> | null } = { promise: null };
 
 export function ensureSeeded(): Promise<unknown> {
-  if (!seededState.promise) seededState.promise = doSeed();
+  if (!seededState.promise) {
+    seededState.promise = doSeed().catch((error) => {
+      seededState.promise = null;
+      throw error;
+    });
+  }
   return seededState.promise;
 }
 
 async function doSeed() {
+  await ensureDatabaseReady();
+
   // --- questions ---
   const qCount = await db.execute(sql`select count(*)::int as c from questions`);
   const c = Number((qCount as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);

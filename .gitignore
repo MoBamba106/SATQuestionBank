@@ -6,4 +6,5 @@ dist
 *.db
 *.sqlite
 prisma/dev.db
+.sat-nexus-db/
 *.tsbuildinfo
