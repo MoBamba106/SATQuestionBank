@@ -11,7 +11,7 @@ import {
   Flag,
   GitBranch,
   Loader2,
-  LogOut,
+  PauseCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -21,6 +21,7 @@ import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiPatch, apiPost, mutateKey } from "@/lib/api-client";
 import { scoreModule } from "@/lib/adaptive";
 import { estimateSatScore } from "@/lib/sat-score";
+import { removeBluebookProgress, saveBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import { answersMatch, cn, difficultyColor, domainColor, formatTime, skillColor } from "@/lib/utils";
 import type { AdaptivePath, AdaptiveRoute, PracticeTestDetail, SATQuestion } from "@/lib/types";
 
@@ -63,22 +64,24 @@ function activeModule(
 export function BluebookRunner({
   test,
   sessionId,
+  resume,
   onExit,
 }: {
   test: PracticeTestDetail;
   sessionId: string;
+  resume?: BluebookProgress | null;
   onExit: () => void;
 }) {
   const router = useRouter();
-  const [stage, setStage] = React.useState<Stage>(0);
-  const [rwRoute, setRwRoute] = React.useState<AdaptiveRoute | null>(null);
-  const [mathRoute, setMathRoute] = React.useState<AdaptiveRoute | null>(null);
-  const [rwRoutingScore, setRwRoutingScore] = React.useState<{ correct: number; total: number } | null>(null);
-  const [mathRoutingScore, setMathRoutingScore] = React.useState<{ correct: number; total: number } | null>(null);
-  const [qIdx, setQIdx] = React.useState(0);
-  const [answers, setAnswers] = React.useState<Record<string, string>>({});
-  const [flags, setFlags] = React.useState<Record<string, boolean>>({});
-  const [secondsLeft, setSecondsLeft] = React.useState(Math.round(test.rwMinutes / 2) * 60);
+  const [stage, setStage] = React.useState<Stage>(resume?.stage ?? 0);
+  const [rwRoute, setRwRoute] = React.useState<AdaptiveRoute | null>(resume?.rwRoute ?? null);
+  const [mathRoute, setMathRoute] = React.useState<AdaptiveRoute | null>(resume?.mathRoute ?? null);
+  const [rwRoutingScore, setRwRoutingScore] = React.useState<{ correct: number; total: number } | null>(resume?.rwRoutingScore ?? null);
+  const [mathRoutingScore, setMathRoutingScore] = React.useState<{ correct: number; total: number } | null>(resume?.mathRoutingScore ?? null);
+  const [qIdx, setQIdx] = React.useState(resume?.questionIndex ?? 0);
+  const [answers, setAnswers] = React.useState<Record<string, string>>(resume?.answers ?? {});
+  const [flags, setFlags] = React.useState<Record<string, boolean>>(resume?.flags ?? {});
+  const [secondsLeft, setSecondsLeft] = React.useState(resume?.secondsLeft ?? Math.round(test.rwMinutes / 2) * 60);
   const [confirmEnd, setConfirmEnd] = React.useState(false);
   const [finishing, setFinishing] = React.useState(false);
   const [done, setDone] = React.useState(false);
@@ -92,6 +95,31 @@ export function BluebookRunner({
   const chosen = current ? answers[current.id] : undefined;
   const isLastModule = stage === 3;
   const lowTime = secondsLeft <= 300;
+
+  const progressSnapshot = React.useCallback((): BluebookProgress => ({
+    version: 1,
+    testId: test.id,
+    sessionId,
+    stage,
+    questionIndex: qIdx,
+    answers,
+    flags,
+    secondsLeft,
+    rwRoute,
+    mathRoute,
+    rwRoutingScore,
+    mathRoutingScore,
+    updatedAt: new Date().toISOString(),
+  }), [answers, flags, mathRoute, mathRoutingScore, qIdx, rwRoute, rwRoutingScore, secondsLeft, sessionId, stage, test.id]);
+
+  React.useEffect(() => {
+    if (!done) saveBluebookProgress(progressSnapshot());
+  }, [done, progressSnapshot]);
+
+  const pauseAndExit = () => {
+    saveBluebookProgress(progressSnapshot());
+    onExit();
+  };
 
   React.useEffect(() => {
     if (done) return;
@@ -146,6 +174,7 @@ export function BluebookRunner({
       });
       mutateKey("stats");
       mutateKey("mistakes");
+      removeBluebookProgress(test.id);
       setDone(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
@@ -155,7 +184,7 @@ export function BluebookRunner({
     } finally {
       setFinishing(false);
     }
-  }, [answers, done, finishing, mathRoute, rwRoute, sessionId, takenModules]);
+  }, [answers, done, finishing, mathRoute, rwRoute, sessionId, takenModules, test.id]);
 
   const advance = React.useCallback(() => {
     if (stage === 0) {
@@ -263,7 +292,7 @@ export function BluebookRunner({
     <div className="grid gap-5 lg:grid-cols-[1fr_240px]">
       <div className="space-y-4">
         <GlassCard hover={false} className="flex flex-wrap items-center gap-3 px-4 py-3">
-          <button className="btn btn-ghost !px-2" onClick={onExit} title="Exit test"><LogOut className="h-4 w-4" /></button>
+          <button className="btn btn-ghost !px-2" onClick={pauseAndExit} title="Pause and exit test" aria-label="Pause and exit test"><PauseCircle className="h-4 w-4" /></button>
           <div className="min-w-0 grow">
             <div className="truncate text-[13px] font-bold text-[var(--ink)]">{test.title}</div>
             <div className="text-[11.5px] font-medium text-[var(--ink-faint)]">

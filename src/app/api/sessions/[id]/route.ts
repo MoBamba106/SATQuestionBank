@@ -31,6 +31,17 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
 }
 
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  try {
+    await ensureSeeded();
+    const { id } = await ctx.params;
+    await db.execute(sql`DELETE FROM quiz_sessions WHERE id = ${id} AND finished_at IS NULL`);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to discard session" }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();

@@ -3,8 +3,9 @@
 import * as React from "react";
 import { BookMarked, Check, ChevronLeft, ChevronRight, Search, Shuffle } from "lucide-react";
 import { STUDY_ITEMS, type StudyTopic } from "@/lib/study-content";
-import { cn } from "@/lib/utils";
+import { cn, difficultyColor } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
+import { PaperSelect } from "@/components/ui/paper-select";
 
 const TOPICS: { topic: StudyTopic; tone: string }[] = [
   { topic: "Vocabulary", tone: "soft-tone-rose" },
@@ -17,6 +18,7 @@ const STORAGE_KEY = "sat-nexus-study-mastered";
 export default function StudyLibraryPage() {
   const [topic, setTopic] = React.useState<StudyTopic>("Vocabulary");
   const [search, setSearch] = React.useState("");
+  const [difficulty, setDifficulty] = React.useState("All");
   const [cardIndex, setCardIndex] = React.useState(0);
   const [revealed, setRevealed] = React.useState(false);
   const [mastered, setMastered] = React.useState<string[]>([]);
@@ -31,8 +33,12 @@ export default function StudyLibraryPage() {
 
   const filtered = React.useMemo(() => {
     const needle = search.trim().toLowerCase();
-    return STUDY_ITEMS.filter((item) => item.topic === topic && (!needle || `${item.term} ${item.definition}`.toLowerCase().includes(needle)));
-  }, [search, topic]);
+    return STUDY_ITEMS.filter((item) =>
+      item.topic === topic
+      && (difficulty === "All" || item.difficulty === difficulty)
+      && (!needle || `${item.term} ${item.definition} ${item.phonetic ?? ""}`.toLowerCase().includes(needle)),
+    );
+  }, [difficulty, search, topic]);
   const current = filtered[Math.min(cardIndex, Math.max(0, filtered.length - 1))];
 
   const saveMastered = (next: string[]) => {
@@ -66,7 +72,7 @@ export default function StudyLibraryPage() {
           <button
             key={item.topic}
             type="button"
-            onClick={() => { setTopic(item.topic); setCardIndex(0); setRevealed(false); }}
+            onClick={() => { setTopic(item.topic); setDifficulty("All"); setCardIndex(0); setRevealed(false); }}
             className={cn("soft-tone px-4 py-3 text-left text-[13.5px] font-bold transition-opacity", item.tone, topic === item.topic ? "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--paper)]" : "opacity-70 hover:opacity-100")}
           >
             {item.topic}
@@ -84,6 +90,8 @@ export default function StudyLibraryPage() {
               </div>
               <button type="button" onClick={() => setRevealed((value) => !value)} className="mt-5 flex min-h-[260px] w-full flex-col items-center justify-center rounded-[9px] border border-[var(--line)] bg-[var(--paper-soft)] p-8 text-center">
                 <span className="font-display text-4xl font-bold text-[var(--ink)]">{current.term}</span>
+                {current.phonetic && <span className="mt-2 font-mono text-[13px] text-[var(--ink-faint)]">{current.phonetic}</span>}
+                {current.difficulty && <span className={cn("badge mt-3", difficultyColor(current.difficulty))}>{current.difficulty}</span>}
                 {revealed ? (
                   <span className="mt-5 max-w-xl text-[16px] leading-relaxed text-[var(--ink-soft)]">
                     {current.definition}
@@ -104,20 +112,38 @@ export default function StudyLibraryPage() {
       ) : (
         <>
           <GlassCard hover={false} className="p-4">
-            <div className="relative max-w-xl">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-faint)]" />
-              <input className="input !pl-9" placeholder={`Search ${topic.toLowerCase()}…`} value={search} onChange={(event) => setSearch(event.target.value)} />
+            <div className="grid max-w-3xl gap-3 sm:grid-cols-[1fr_180px]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-faint)]" />
+                <input className="input !pl-9" placeholder={`Search ${topic.toLowerCase()}…`} value={search} onChange={(event) => setSearch(event.target.value)} />
+              </div>
+              {topic === "Vocabulary" && (
+                <PaperSelect
+                  value={difficulty}
+                  onValueChange={(value) => { setDifficulty(value); setCardIndex(0); }}
+                  options={[
+                    { value: "All", label: "All levels" },
+                    { value: "Easy", label: "Easy" },
+                    { value: "Medium", label: "Medium" },
+                    { value: "Hard", label: "Hard" },
+                  ]}
+                />
+              )}
             </div>
           </GlassCard>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((item) => (
               <GlassCard key={item.id} hover={false} className="flex flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-display text-xl font-bold text-[var(--ink)]">{item.term}</h2>
+                  <div>
+                    <h2 className="font-display text-xl font-bold text-[var(--ink)]">{item.term}</h2>
+                    {item.phonetic && <span className="font-mono text-[11.5px] text-[var(--ink-faint)]">{item.phonetic}</span>}
+                  </div>
                   <button type="button" onClick={() => toggleMastered(item.id)} className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border", mastered.includes(item.id) ? "border-[var(--good)] bg-[var(--good)] text-white" : "border-[var(--line)] text-transparent")} aria-label={mastered.includes(item.id) ? "Mark not mastered" : "Mark mastered"}>
                     <Check className="h-4 w-4" />
                   </button>
                 </div>
+                {item.difficulty && <span className={cn("badge mt-3 w-fit", difficultyColor(item.difficulty))}>{item.difficulty}</span>}
                 <p className="mt-2 grow text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.definition}</p>
                 {item.example && <p className="mt-3 border-t border-[var(--line-soft)] pt-3 text-[12px] italic text-[var(--ink-faint)]">{item.example}</p>}
               </GlassCard>
@@ -126,8 +152,9 @@ export default function StudyLibraryPage() {
         </>
       )}
 
-      <div className="flex items-center gap-2 text-[11.5px] text-[var(--ink-faint)]">
-        <Shuffle className="h-3.5 w-3.5" /> {mastered.length} study notes marked mastered on this device.
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-[var(--ink-faint)]">
+        <span className="inline-flex items-center gap-2"><Shuffle className="h-3.5 w-3.5" /> {mastered.length} study notes marked mastered on this device.</span>
+        {topic === "Vocabulary" && <span>600 academic words · difficulty is relative frequency · see VOCABULARY_ATTRIBUTION.md</span>}
       </div>
     </div>
   );

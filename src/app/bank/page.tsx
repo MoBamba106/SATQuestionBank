@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   FolderPlus,
-  Loader2,
   Play,
   Search,
   Star,
@@ -17,6 +16,7 @@ import {
 import { PaperSelect } from "@/components/ui/paper-select";
 import { QuestionCard } from "@/components/question-card";
 import { GlassCard } from "@/components/ui/glass-card";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { BulkAddToCollectionDialog } from "@/components/bulk-add-to-collection";
 import { useApi } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
@@ -136,11 +136,12 @@ export default function BankPage() {
       <GlassCard hover={false} className="p-4 sm:p-5">
         <div className="grid gap-3 lg:grid-cols-[minmax(240px,1.35fr)_repeat(4,minmax(145px,1fr))]">
           <div>
-            <label className="mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#8e5264]">Search</label>
+            <label className="filter-label mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em]" data-tone="rose">Search</label>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8e5264]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-faint)]" />
               <input
-                className="input w-full !border-[#d2abb7] !bg-[#f0dfe5] !pl-9 !text-[#6f4452] placeholder:!text-[#9a7480]"
+                data-tone="rose"
+                className="filter-search input w-full !pl-9"
                 placeholder="Search question text or ID"
                 value={searchInput}
                 onChange={(event) => {
@@ -151,7 +152,7 @@ export default function BankPage() {
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#6e5d7b]">Section</label>
+            <label className="filter-label mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em]" data-tone="lavender">Section</label>
             <PaperSelect
               ariaLabel="Section"
               tone="lavender"
@@ -170,7 +171,7 @@ export default function BankPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#245d73]">Domain</label>
+            <label className="filter-label mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em]" data-tone="blue">Domain</label>
             <PaperSelect
               ariaLabel="Domain"
               tone="blue"
@@ -188,7 +189,7 @@ export default function BankPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#477b5c]">Skill</label>
+            <label className="filter-label mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em]" data-tone="green">Skill</label>
             <PaperSelect
               ariaLabel="Skill"
               tone="green"
@@ -205,7 +206,7 @@ export default function BankPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#8b622f]">Difficulty</label>
+            <label className="filter-label mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em]" data-tone="yellow">Difficulty</label>
             <PaperSelect
               ariaLabel="Difficulty"
               tone="yellow"
@@ -248,9 +249,7 @@ export default function BankPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-20 text-[var(--ink-faint)]">
-          <Loader2 className="h-5 w-5 animate-spin" /> Loading questions…
-        </div>
+        <PageSkeleton cards={9} />
       ) : data && data.questions.length === 0 ? (
         <GlassCard hover={false} className="p-10 text-center">
           <p className="font-display text-xl font-bold text-[var(--ink-soft)]">No matching questions</p>

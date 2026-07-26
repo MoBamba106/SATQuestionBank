@@ -26,6 +26,7 @@ import {
   useSettings,
 } from "@/components/settings-provider";
 import { cn } from "@/lib/utils";
+import { clearAllBluebookProgress } from "@/lib/bluebook-cache";
 
 const THEMES: {
   id: AppTheme;
@@ -94,6 +95,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
       if (scope === "all") {
         resetSettings();
         window.localStorage.removeItem("sat-nexus-study-mastered");
+        clearAllBluebookProgress();
         window.sessionStorage.clear();
       }
       toast.success(scope === "all" ? "All personal data erased" : "Practice history cleared");

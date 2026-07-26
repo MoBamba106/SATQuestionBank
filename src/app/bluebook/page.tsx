@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info } from "lucide-react";
+import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, X } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PaperDialog } from "@/components/ui/paper-dialog";
-import { useApi } from "@/lib/api-client";
+import { apiDelete, useApi } from "@/lib/api-client";
+import { readBluebookProgress, removeBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import type { PracticeTestInfo } from "@/lib/types";
 
 export default function BluebookPage() {
@@ -13,11 +15,38 @@ export default function BluebookPage() {
   const { data, loading, error } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
   const [selected, setSelected] = React.useState<PracticeTestInfo | null>(null);
   const [starting, setStarting] = React.useState(false);
+  const [saved, setSaved] = React.useState<Record<string, BluebookProgress>>({});
+
+  React.useEffect(() => {
+    if (!data?.tests) return;
+    const timer = window.setTimeout(() => {
+      const next: Record<string, BluebookProgress> = {};
+      for (const test of data.tests) {
+        const progress = readBluebookProgress(test.id);
+        if (progress) next[test.id] = progress;
+      }
+      setSaved(next);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [data?.tests]);
 
   const begin = () => {
     if (!selected || starting) return;
     setStarting(true);
-    router.push(`/quiz?test=${selected.id}`);
+    router.push(`/quiz?test=${selected.id}${saved[selected.id] ? "&resume=1" : ""}`);
+  };
+
+  const discardSaved = async (testId: string) => {
+    const progress = saved[testId];
+    removeBluebookProgress(testId);
+    setSaved((current) => {
+      const next = { ...current };
+      delete next[testId];
+      return next;
+    });
+    if (progress?.sessionId) {
+      try { await apiDelete(`/api/sessions/${progress.sessionId}`); } catch { /* local cache is already cleared */ }
+    }
   };
 
   return (
@@ -49,12 +78,12 @@ export default function BluebookPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-20 text-[var(--ink-faint)]">
-          <Loader2 className="h-5 w-5 animate-spin" /> Preparing practice tests…
-        </div>
+        <PageSkeleton cards={6} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {(data?.tests ?? []).map((t) => (
+          {(data?.tests ?? []).map((t) => {
+            const progress = saved[t.id];
+            return (
             <GlassCard key={t.id} className="flex flex-col p-6">
               <div className="flex items-start justify-between">
                 <div>
@@ -65,14 +94,34 @@ export default function BluebookPage() {
                     {t.testNumber}
                   </div>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-[6px] border border-[#c9d6eb] bg-[#e8eef8] text-[#315eaa]">
-                  <MonitorSmartphone className="h-5 w-5" />
+                <div className="flex items-center gap-2">
+                  {progress && (
+                    <button
+                      type="button"
+                      onClick={(event) => { event.stopPropagation(); void discardSaved(t.id); }}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink-faint)] hover:border-[var(--bad)] hover:text-[var(--bad)]"
+                      aria-label={`Discard saved ${t.title} and restart`}
+                      title="Remove saved test"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[6px] border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <MonitorSmartphone className="h-5 w-5" />
+                  </div>
                 </div>
               </div>
 
               <p className="mt-2 text-[12px] font-medium text-[var(--ink-faint)]">{t.releaseLabel}</p>
-              <div className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-[5px] border border-[#c9b9d1] bg-[#e9e1ec] px-2.5 py-1 text-[10.5px] font-bold text-[#6e5d7b]">
-                <GitBranch className="h-3.5 w-3.5" /> Adaptive Module 2
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span className="inline-flex w-fit items-center gap-1.5 rounded-[5px] border border-[var(--line)] bg-[var(--paper-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--ink-soft)]">
+                  <GitBranch className="h-3.5 w-3.5" /> Adaptive Module 2
+                </span>
+                {progress && (
+                  <span className="inline-flex w-fit items-center gap-1.5 rounded-[5px] border border-[var(--accent)] bg-[var(--accent-soft)] px-2.5 py-1 text-[10.5px] font-bold text-[var(--accent-dark)]">
+                    Saved · Module {progress.stage + 1}, Q{progress.questionIndex + 1}
+                  </span>
+                )}
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2.5">
@@ -98,18 +147,21 @@ export default function BluebookPage() {
               </div>
 
               <button className="btn btn-primary mt-5 w-full" onClick={() => setSelected(t)}>
-                <Play className="h-4 w-4" /> Start test
+                <Play className="h-4 w-4" /> {progress ? "Resume test" : "Start test"}
               </button>
             </GlassCard>
-          ))}
+            );
+          })}
         </div>
       )}
 
       <PaperDialog
         open={!!selected}
         onOpenChange={(o) => !o && setSelected(null)}
-        title={selected ? `Start ${selected.title}?` : ""}
-        description="Answers stay hidden until submission. Module 1 performance selects the adaptive Module 2 route."
+        title={selected ? `${saved[selected.id] ? "Resume" : "Start"} ${selected.title}?` : ""}
+        description={selected && saved[selected.id]
+          ? "Continue from the exact module, question, answers, flags, and time you saved."
+          : "Answers stay hidden until submission. Module 1 performance selects the adaptive Module 2 route."}
       >
         {selected && (
           <>
@@ -125,7 +177,7 @@ export default function BluebookPage() {
             <div className="mt-5 flex gap-2.5">
               <button className="btn btn-primary grow" onClick={begin} disabled={starting}>
                 {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                Begin test
+                {saved[selected.id] ? "Resume test" : "Begin test"}
               </button>
               <button className="btn btn-soft" onClick={() => setSelected(null)}>Not now</button>
             </div>

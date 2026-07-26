@@ -156,12 +156,14 @@ test_history(id PK, user_id, test_name, test_date, total_score, rw_score, math_s
 
 ## Current experience
 
-- Six saved appearance themes: Light, Dark, Obsidian, Highlighter, Liquid Glass, and Soft Paper
+- Six saved material themes: Light, Dark, faceted Obsidian, marker-style Highlighter, refractive Liquid Glass, and animated tactile Soft Paper
 - Accessibility and practice defaults in the bottom-left Settings panel
 - Local privacy controls for clearing analytics or erasing all personal study data
 - Adaptive full-length tests with estimated 400–1600 scoring and five-bar domain reports
 - Collection names, descriptions, and selectable icons
-- Study Library for vocabulary, grammar, formulas, and test strategy
+- Study Library with 600 difficulty-rated vocabulary words, IPA pronunciation, grammar, formulas, and test strategy
+- Pausable full-length tests with exact resume state and one-click cached-test reset
+- Theme-aware skeleton screens for route and question-bank loading
 
 See `FUTURE_FEATURES.md` for ideas that are waiting for explicit approval and are not implemented.
 

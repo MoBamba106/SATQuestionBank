@@ -12,6 +12,7 @@ import { useSettings } from "@/components/settings-provider";
 import { BluebookRunner } from "@/components/quiz/bluebook-runner";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { clearPool, readPool } from "@/lib/quiz-session";
+import { readBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import { skillsForDomain, subskillsFor } from "@/lib/sat-categories";
 import { cn, skillTone } from "@/lib/utils";
 import type { PracticeTestDetail, QuestionSummary, SATQuestion } from "@/lib/types";
@@ -25,7 +26,7 @@ const DOMAIN_OPTS = [
 type Phase =
   | { kind: "setup" }
   | { kind: "practice"; pool: SATQuestion[]; sessionId: string; label: string; mode: string }
-  | { kind: "bluebook"; test: PracticeTestDetail; sessionId: string };
+  | { kind: "bluebook"; test: PracticeTestDetail; sessionId: string; resume: BluebookProgress | null };
 
 function QuizInner() {
   const router = useRouter();
@@ -106,13 +107,18 @@ function QuizInner() {
       try {
         if (testParam) {
           const test = await apiGet<PracticeTestDetail>(`/api/practice-tests/${testParam}`);
-          const session = await apiPost<{ id: string }>("/api/sessions", {
-            mode: "bluebook",
-            label: test.title,
-            testId: test.id,
-            totalQuestions: test.totalQuestions,
-          });
-          setPhase({ kind: "bluebook", test, sessionId: session.id });
+          const resume = sp.get("resume") === "1" ? readBluebookProgress(test.id) : null;
+          let sessionId = resume?.sessionId;
+          if (!sessionId) {
+            const session = await apiPost<{ id: string }>("/api/sessions", {
+              mode: "bluebook",
+              label: test.title,
+              testId: test.id,
+              totalQuestions: test.totalQuestions,
+            });
+            sessionId = session.id;
+          }
+          setPhase({ kind: "bluebook", test, sessionId, resume });
           router.replace("/quiz", { scroll: false });
           return;
         }
@@ -199,7 +205,8 @@ function QuizInner() {
         key={phase.sessionId}
         test={phase.test}
         sessionId={phase.sessionId}
-        onExit={() => setPhase({ kind: "setup" })}
+        resume={phase.resume}
+        onExit={() => router.push("/bluebook")}
       />
     );
   }
@@ -250,7 +257,7 @@ function QuizInner() {
       <GlassCard hover={false} className="p-6 sm:p-8">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#6e5d7b]">Section</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="lavender">Section</label>
             <PaperSelect
               tone="lavender"
               value={domain}
@@ -259,7 +266,7 @@ function QuizInner() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#245d73]">Domain</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="blue">Domain</label>
             <PaperSelect
               tone="blue"
               value={skill}
@@ -269,7 +276,7 @@ function QuizInner() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#477b5c]">Skill</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="green">Skill</label>
             <PaperSelect
               tone="green"
               value={subskill}
@@ -279,7 +286,7 @@ function QuizInner() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8b622f]">Difficulty</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="yellow">Difficulty</label>
             <PaperSelect
               tone="yellow"
               value={difficulty}

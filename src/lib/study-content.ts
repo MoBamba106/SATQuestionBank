@@ -1,4 +1,7 @@
+import vocabulary from "@/data/vocabulary.json";
+
 export type StudyTopic = "Vocabulary" | "Grammar" | "Math formulas" | "Test strategy";
+export type VocabularyDifficulty = "Easy" | "Medium" | "Hard";
 
 export type StudyItem = {
   id: string;
@@ -6,24 +9,18 @@ export type StudyItem = {
   term: string;
   definition: string;
   example?: string;
+  phonetic?: string;
+  difficulty?: VocabularyDifficulty;
 };
 
+const VOCABULARY_ITEMS: StudyItem[] = vocabulary.map((item) => ({
+  ...item,
+  topic: "Vocabulary" as const,
+  difficulty: item.difficulty as VocabularyDifficulty,
+}));
+
 export const STUDY_ITEMS: StudyItem[] = [
-  { id: "v-abate", topic: "Vocabulary", term: "abate", definition: "to become less intense or widespread", example: "The storm began to abate before sunrise." },
-  { id: "v-ambivalent", topic: "Vocabulary", term: "ambivalent", definition: "having mixed or contradictory feelings", example: "She was ambivalent about changing schools." },
-  { id: "v-bolster", topic: "Vocabulary", term: "bolster", definition: "to support or strengthen", example: "The new evidence bolstered the argument." },
-  { id: "v-corroborate", topic: "Vocabulary", term: "corroborate", definition: "to confirm with additional evidence", example: "The records corroborate the scientist's account." },
-  { id: "v-delineate", topic: "Vocabulary", term: "delineate", definition: "to describe or mark precisely", example: "The author delineates the stages of the process." },
-  { id: "v-empirical", topic: "Vocabulary", term: "empirical", definition: "based on observation or experiment", example: "The claim lacks empirical support." },
-  { id: "v-equivocal", topic: "Vocabulary", term: "equivocal", definition: "ambiguous or open to more than one interpretation", example: "The study produced equivocal results." },
-  { id: "v-exacerbate", topic: "Vocabulary", term: "exacerbate", definition: "to make a problem worse", example: "The drought exacerbated food shortages." },
-  { id: "v-infer", topic: "Vocabulary", term: "infer", definition: "to reach a conclusion from evidence", example: "Readers can infer the speaker's frustration." },
-  { id: "v-mitigate", topic: "Vocabulary", term: "mitigate", definition: "to make less severe", example: "Trees can mitigate urban heat." },
-  { id: "v-nuance", topic: "Vocabulary", term: "nuance", definition: "a subtle distinction or variation", example: "The translation preserves the poem's nuance." },
-  { id: "v-pragmatic", topic: "Vocabulary", term: "pragmatic", definition: "focused on practical results", example: "They adopted a pragmatic solution." },
-  { id: "v-refute", topic: "Vocabulary", term: "refute", definition: "to prove a statement incorrect", example: "Later findings refuted the original hypothesis." },
-  { id: "v-substantiate", topic: "Vocabulary", term: "substantiate", definition: "to support with evidence", example: "The data substantiate the conclusion." },
-  { id: "v-ubiquitous", topic: "Vocabulary", term: "ubiquitous", definition: "present or found everywhere", example: "Mobile devices have become ubiquitous." },
+  ...VOCABULARY_ITEMS,
 
   { id: "g-boundary", topic: "Grammar", term: "Sentence boundaries", definition: "Join two independent clauses with a period, semicolon, or comma plus a coordinating conjunction.", example: "The trial ended; the researchers analyzed the results." },
   { id: "g-colon", topic: "Grammar", term: "Colon", definition: "Use a colon after a complete clause to introduce an explanation, example, or list." },
