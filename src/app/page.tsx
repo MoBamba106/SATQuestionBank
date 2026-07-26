@@ -136,7 +136,7 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex h-[220px] flex-col items-center justify-center border border-dashed border-[#d4cfc3] bg-[#faf8f2] text-center">
+            <div className="flex h-[220px] flex-col items-center justify-center border border-dashed border-[var(--line)] bg-[var(--paper-soft)] text-center">
               <BookOpenCheck className="mb-2 h-7 w-7 text-[#a9a398]" />
               <p className="text-[13.5px] font-semibold text-[var(--ink-soft)]">No activity recorded yet</p>
               <p className="mt-0.5 text-[12px] text-[var(--ink-faint)]">Your graded quiz answers will appear here.</p>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <p className="border border-dashed border-[#d4cfc3] bg-[#faf8f2] px-4 py-5 text-[13px] text-[var(--ink-faint)]">
+            <p className="border border-dashed border-[var(--line)] bg-[var(--paper-soft)] px-4 py-5 text-[13px] text-[var(--ink-faint)]">
               Completed quizzes will be listed here with their scores.
             </p>
           )}
@@ -202,7 +202,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-3 border-l border-t border-[var(--line-soft)] sm:grid-cols-5">
             {(tests?.tests ?? []).slice(0, 10).map((test) => (
-              <Link key={test.id} href="/bluebook" className="border-b border-r border-[var(--line-soft)] bg-[#faf8f2] px-2 py-3 text-center hover:bg-[#e8eef8]">
+              <Link key={test.id} href="/bluebook" className="border-b border-r border-[var(--line-soft)] bg-[var(--paper-soft)] px-2 py-3 text-center hover:bg-[var(--accent-soft)]">
                 <span className="font-display block text-xl font-bold text-[#315eaa]">{test.testNumber}</span>
                 <span className="text-[9.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">{test.totalQuestions} Q</span>
               </Link>

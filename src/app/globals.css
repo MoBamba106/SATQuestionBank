@@ -294,6 +294,27 @@ textarea:focus-visible {
   background: #ccdcf3;
 }
 
+/* Theme-safe answer states; dark themes no longer inherit bright white/pastel cards. */
+.answer-choice { color: var(--ink); background: var(--paper-raised); border-color: var(--line); }
+.answer-choice[data-answer-state="idle"]:hover { border-color: var(--accent); background: var(--paper-soft); }
+.answer-choice[data-answer-state="selected"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent); }
+.answer-choice[data-answer-state="correct"] { border-color: var(--good); background: color-mix(in srgb, var(--good) 14%, var(--paper-raised)); }
+.answer-choice[data-answer-state="wrong"] { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, var(--paper-raised)); }
+.answer-choice[data-answer-state="muted"] { opacity: .68; }
+.answer-letter { color: var(--ink-faint); background: var(--paper-soft); border-color: var(--line); }
+.answer-letter[data-answer-state="selected"] { color: white; background: var(--accent); border-color: var(--accent); }
+.answer-letter[data-answer-state="correct"] { color: white; background: var(--good); border-color: var(--good); }
+.answer-letter[data-answer-state="wrong"] { color: white; background: var(--bad); border-color: var(--bad); }
+.answer-input-correct { border-color: var(--good) !important; background: color-mix(in srgb, var(--good) 12%, var(--paper-raised)) !important; }
+.answer-input-wrong { border-color: var(--bad) !important; background: color-mix(in srgb, var(--bad) 11%, var(--paper-raised)) !important; }
+.answer-explanation { color: var(--ink); border-color: color-mix(in srgb, var(--good) 55%, var(--line)); background: color-mix(in srgb, var(--good) 10%, var(--paper-raised)); }
+.quiz-nav-button { color: var(--ink-faint); background: var(--paper-raised); border-color: var(--line); }
+.quiz-nav-button:hover { border-color: var(--accent); }
+.quiz-nav-button[data-nav-state="current"] { color: white; background: var(--accent); border-color: var(--accent); }
+.quiz-nav-button[data-nav-state="answered"] { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+.quiz-nav-button[data-nav-state="correct"] { color: var(--good); background: color-mix(in srgb, var(--good) 15%, var(--paper-raised)); border-color: var(--good); }
+.quiz-nav-button[data-nav-state="wrong"] { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--paper-raised)); border-color: var(--bad); }
+
 /* SAT question HTML */
 .sat-content {
   color: var(--ink);
@@ -307,7 +328,30 @@ textarea:focus-visible {
 .sat-content td,
 .sat-content th { padding: 8px 14px; text-align: left; border: 1px solid var(--line); }
 .sat-content img { max-width: 100%; height: auto; margin: 0.8em 0; border-radius: 4px; }
-.sat-content math { font-size: 1.08em; }
+.sat-content math,
+.sat-content .katex,
+.sat-content mjx-container {
+  font-size: 1.08em;
+  color: currentColor !important;
+  filter: none !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+html[data-theme="dark"] .sat-content img,
+html[data-theme="dark"] .sat-content svg,
+html[data-theme="obsidian"] .sat-content img,
+html[data-theme="obsidian"] .sat-content svg {
+  box-sizing: border-box;
+  padding: 10px;
+  background: #f7f6f2;
+  border: 1px solid #d5d1c8;
+  border-radius: 6px;
+  filter: none !important;
+  mix-blend-mode: normal;
+}
 .sat-content ul,
 .sat-content ol { margin-left: 1.4em; }
 .sat-content figure { margin: 1em 0; }
@@ -619,7 +663,9 @@ html[data-theme="obsidian"] .soft-tone {
 }
 html[data-theme="dark"] .badge,
 html[data-theme="obsidian"] .badge {
-  color: var(--ink-soft);
+  color: var(--ink-soft) !important;
+  background: var(--paper-soft) !important;
+  border-color: var(--line) !important;
 }
 html[data-theme="dark"] .bg-white,
 html[data-theme="obsidian"] .bg-white {
@@ -633,6 +679,148 @@ html[data-theme="dark"] .filter-search {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
 }
 html[data-theme="dark"] .filter-label { color: var(--ink-faint); }
+
+/* Paper is a separate handmade/deckled material. Soft Paper above is unchanged. */
+html[data-theme="paper"] {
+  --paper: #eee6d8;
+  --paper-raised: #f6eee1;
+  --paper-soft: #e7dccb;
+  --paper-deep: #d7c8b4;
+  --control-bg: #f8f1e7;
+  --ink: #4d3f4f;
+  --ink-soft: #65575c;
+  --ink-faint: #88786f;
+  --line: #cdbba5;
+  --line-soft: #dfd0bd;
+  --accent: #62beb6;
+  --accent-dark: #3e918b;
+  --accent-soft: #d8ece7;
+  --warn: #b86b34;
+}
+html[data-theme="paper"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='260' height='260' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.055' numOctaves='4' seed='12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)' opacity='.13'/%3E%3C/svg%3E"),
+    linear-gradient(110deg, #eee4d5, #f6eee1 48%, #e9dfd0);
+}
+html[data-theme="paper"] .glass {
+  border-color: #cdbba5;
+  border-radius: 3px 8px 5px 7px;
+  box-shadow: 7px 9px 0 rgba(92,67,43,.09), 0 16px 28px rgba(92,67,43,.14);
+  clip-path: polygon(.2% 1%, 5% .2%, 12% .8%, 21% .1%, 33% .7%, 45% .2%, 58% .8%, 69% .1%, 82% .7%, 94% .2%, 99.8% 1%, 100% 98.8%, 92% 99.5%, 80% 98.9%, 67% 99.6%, 52% 99%, 38% 99.7%, 23% 99.1%, 9% 99.6%, 0 98.8%);
+}
+html[data-theme="paper"] .glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .10;
+  background-image: url("data:image/svg+xml,%3Csvg width='150' height='150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence baseFrequency='.14' numOctaves='3' seed='6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+html[data-theme="paper"] aside,
+html[data-theme="paper"] header { box-shadow: 4px 0 12px rgba(92,67,43,.12); }
+html[data-theme="paper"] .paper-select-trigger,
+html[data-theme="paper"] .filter-search {
+  background: #f8f1e7 !important;
+  border-color: #d2c1ac !important;
+  box-shadow: 0 3px 8px rgba(92,67,43,.08);
+}
+html[data-theme="paper"] .filter-label { color: #8b674c; }
+
+/* Cardboard uses corrugation, kraft fibers, stamped ink and masking-tape tabs. */
+html[data-theme="cardboard"] {
+  --paper: #a97849;
+  --paper-raised: #c79b68;
+  --paper-soft: #b98958;
+  --paper-deep: #96683e;
+  --control-bg: #d0aa78;
+  --ink: #39291f;
+  --ink-soft: #56402f;
+  --ink-faint: #72563e;
+  --line: #785638;
+  --line-soft: #a7794e;
+  --accent: #334f48;
+  --accent-dark: #253b36;
+  --accent-soft: #a7b8a5;
+  --good: #395d45;
+  --bad: #7d342c;
+  --warn: #8d551f;
+}
+html[data-theme="cardboard"] body {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(76,48,27,.13) 0 1px, transparent 1px 9px),
+    url("data:image/svg+xml,%3Csvg width='180' height='180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='k'%3E%3CfeTurbulence baseFrequency='.09' numOctaves='3' seed='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23k)' opacity='.15'/%3E%3C/svg%3E"),
+    linear-gradient(#b98958, #a97849);
+}
+html[data-theme="cardboard"] .glass {
+  border: 1px solid #755334;
+  border-radius: 4px;
+  box-shadow: 5px 6px 0 rgba(61,38,22,.22), inset 0 1px 0 rgba(255,237,202,.2);
+}
+html[data-theme="cardboard"] .glass::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: -2px;
+  left: 50%;
+  width: 58px;
+  height: 13px;
+  transform: translateX(-50%) rotate(-1.5deg);
+  background: rgba(229,203,157,.65);
+  border-left: 1px dashed rgba(91,59,34,.24);
+  border-right: 1px dashed rgba(91,59,34,.24);
+  pointer-events: none;
+}
+html[data-theme="cardboard"] .paper-select-trigger,
+html[data-theme="cardboard"] .filter-search {
+  color: #39291f !important;
+  background: #d0aa78 !important;
+  border-color: #785638 !important;
+  box-shadow: inset 0 -2px 0 rgba(70,44,25,.12);
+}
+html[data-theme="cardboard"] .filter-label {
+  color: #4b3528;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: .15em;
+}
+
+/* Obsidian follows the default Obsidian Notes app: flat charcoal and restrained purple. */
+html[data-theme="obsidian"] {
+  --paper: #202020;
+  --paper-raised: #262626;
+  --paper-soft: #1b1b1b;
+  --paper-deep: #303030;
+  --control-bg: #2b2b2b;
+  --ink: #dcddde;
+  --ink-soft: #b8b8b8;
+  --ink-faint: #8b8b8b;
+  --line: #3a3a3a;
+  --line-soft: #303030;
+  --accent: #7f6df2;
+  --accent-dark: #6756d8;
+  --accent-soft: #3b355f;
+  --good: #5ca37a;
+  --bad: #cf6679;
+  --warn: #c49a58;
+}
+html[data-theme="obsidian"] body { background: #202020; background-image: none; }
+html[data-theme="obsidian"] .glass {
+  border-color: #383838;
+  border-radius: 6px;
+  background: #262626;
+  box-shadow: 0 2px 8px rgba(0,0,0,.28);
+  clip-path: none;
+}
+html[data-theme="obsidian"] .glass::after { display: none; }
+html[data-theme="obsidian"] .paper-select-trigger,
+html[data-theme="obsidian"] .filter-search {
+  color: #dcddde !important;
+  background: #2b2b2b !important;
+  border-color: #414141 !important;
+  box-shadow: none;
+}
+html[data-theme="obsidian"] .filter-label { color: #999; letter-spacing: .1em; }
+html[data-theme="obsidian"] aside,
+html[data-theme="obsidian"] header { background: #161616; border-color: #303030; }
 
 @keyframes paper-fiber-drift {
   0% { transform: translate3d(0,0,0) rotate(0deg); }

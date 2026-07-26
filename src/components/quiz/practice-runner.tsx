@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import {
-  ChevronLeft, ChevronRight, CheckCircle, Flag, NotebookPen, Timer, Loader2, LogOut, ListChecks,
+  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, NotebookPen, Timer, Loader2, LogOut, ListChecks,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
+import { FloatingDesmos } from "@/components/quiz/floating-desmos";
 import { QuizResults, type GradedMap } from "@/components/quiz/quiz-results";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
@@ -42,6 +43,7 @@ export function PracticeRunner({
   const [done, setDone] = React.useState(false);
   const [elapsed, setElapsed] = React.useState(0);
   const [noteOpen, setNoteOpen] = React.useState(false);
+  const [desmosOpen, setDesmosOpen] = React.useState(false);
   const [noteDrafts, setNoteDrafts] = React.useState<Record<string, string>>({});
   const noteSaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -195,6 +197,7 @@ export function PracticeRunner({
   const answeredCount = pool.filter((q) => answers[q.id] && answers[q.id].trim() !== "").length;
 
   return (
+    <>
     <div className="grid gap-5 lg:grid-cols-[1fr_240px]">
       <div className="space-y-4">
         {/* Header */}
@@ -211,9 +214,9 @@ export function PracticeRunner({
                 </span>
               )}
             </div>
-            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-[#e2dcc9] bg-[#efe9db]">
+            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-[var(--line)] bg-[var(--paper-deep)]">
               <div
-                className="h-full rounded-full bg-[#315eaa] transition-[width] duration-300"
+                className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300"
                 style={{ width: `${pool.length ? ((idx + 1) / pool.length) * 100 : 0}%` }}
               />
             </div>
@@ -230,7 +233,12 @@ export function PracticeRunner({
             <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
             {current.subskill && <span className={cn("badge hidden sm:inline-flex", skillColor(current.skill))}>{current.subskill}</span>}
             <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
-            <div className="ml-auto flex items-center">
+            <div className="ml-auto flex items-center gap-1">
+              {current.domain === "Math" && (
+                <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
+                  <Calculator className="h-3.5 w-3.5" /> Desmos
+                </button>
+              )}
               <FavoriteButton questionId={current.id} favorite={current.favorite} />
               <AddToCollectionButton questionId={current.id} />
               <button
@@ -262,12 +270,12 @@ export function PracticeRunner({
           />
 
           {noteOpen && (
-            <div className="mt-4 rounded-[6px] border border-[#e2c982] bg-[#fffaf0] p-4">
-              <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[#a08b3c]">
+            <div className="soft-tone soft-tone-yellow mt-4 rounded-[6px] p-4">
+              <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-current">
                 Your note for this question
               </label>
               <textarea
-                className="input min-h-[80px] w-full resize-y bg-[#fffef8]"
+                className="input min-h-[80px] w-full resize-y"
                 placeholder="Jot down what tripped you up…"
                 value={noteDraft}
                 onChange={(e) => {
@@ -328,22 +336,13 @@ export function PracticeRunner({
           {pool.map((q, i) => {
             const g = graded[q.id];
             const a = answers[q.id];
+            const navState = i === idx ? "current" : g ? (g.correct ? "correct" : "wrong") : a?.trim() ? "answered" : "empty";
             return (
               <button
                 key={q.id}
                 onClick={() => setIdx(i)}
-                className={cn(
-                  "relative flex h-8 items-center justify-center rounded-[5px] border text-[11.5px] font-bold transition-all",
-                  i === idx
-                    ? "border-[#3a5fc8] bg-[#3a5fc8] text-white shadow-[0_2px_6px_rgba(58,95,200,0.4)]"
-                    : g
-                      ? g.correct
-                        ? "border-[#bde5cf] bg-[#ecf8f1] text-[#238a5e]"
-                        : "border-[#f3ccd4] bg-[#fdf0f2] text-[#a33046]"
-                      : a && a.trim() !== ""
-                        ? "border-[#c9d6f5] bg-[#eef2fd] text-[#3053ad]"
-                        : "border-[var(--line-soft)] bg-white text-[var(--ink-faint)] hover:border-[#cfc5ae]",
-                )}
+                data-nav-state={navState}
+                className="quiz-nav-button relative flex h-8 items-center justify-center rounded-[5px] border text-[11.5px] font-bold transition-colors"
               >
                 {i + 1}
                 {flags[q.id] && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ffb74a] ring-2 ring-white" />}
@@ -352,12 +351,12 @@ export function PracticeRunner({
           })}
         </div>
         <div className="mt-3 space-y-1.5 border-t border-[var(--line-soft)] pt-3 text-[11px] text-[var(--ink-faint)]">
-          <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#3a5fc8]" /> Current</div>
-          <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#eef2fd] ring-1 ring-[#c9d6f5]" /> Answered</div>
+          <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[var(--accent)]" /> Current</div>
+          <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" /> Answered</div>
           {!isExam && (
             <>
-              <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#ecf8f1] ring-1 ring-[#bde5cf]" /> Correct</div>
-              <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#fdf0f2] ring-1 ring-[#f3ccd4]" /> Incorrect</div>
+              <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[color-mix(in_srgb,var(--good)_18%,var(--paper-raised))] ring-1 ring-[var(--good)]" /> Correct</div>
+              <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[color-mix(in_srgb,var(--bad)_16%,var(--paper-raised))] ring-1 ring-[var(--bad)]" /> Incorrect</div>
             </>
           )}
           <div className="pt-1 text-[10.5px] leading-relaxed">
@@ -366,5 +365,7 @@ export function PracticeRunner({
         </div>
       </GlassCard>
     </div>
+    <FloatingDesmos open={desmosOpen && current.domain === "Math"} onClose={() => setDesmosOpen(false)} />
+    </>
   );
 }

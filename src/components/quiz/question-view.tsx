@@ -41,30 +41,23 @@ export function QuestionView({
             const isSel = selected === c.key;
             const isAnswer = c.key.toUpperCase() === question.correctAnswer.toUpperCase();
             const wasCheckedWrong = graded && isSel && !isAnswer;
+            const answerState = graded
+              ? isAnswer ? "correct" : wasCheckedWrong ? "wrong" : "muted"
+              : isSel ? "selected" : "idle";
             return (
               <button
                 key={c.key}
                 disabled={lockSelection}
                 onClick={() => onSelect(c.key)}
+                data-answer-state={answerState}
                 className={cn(
-                  "flex w-full items-start gap-3.5 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
-                  !graded && !isSel && "border-[var(--line-soft)] bg-white hover:border-[#b9c9f2] hover:bg-[#f7f9fe]",
-                  !graded && isSel && "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]",
-                  graded && isAnswer && "border-[#2ca974] bg-[#ecf8f1]",
-                  wasCheckedWrong && "border-[#d95670] bg-[#fdf0f2]",
-                  graded && !isAnswer && !isSel && "border-[var(--line-soft)] bg-white opacity-70",
+                  "answer-choice flex w-full items-start gap-3.5 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
                   lockSelection && "cursor-default",
                 )}
               >
                 <span
-                  className={cn(
-                    "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-[1.5px] font-mono text-[12.5px] font-bold transition-colors",
-                    !graded && !isSel && "border-[var(--line)] bg-[#faf8f3] text-[var(--ink-faint)]",
-                    !graded && isSel && "border-[#3a5fc8] bg-[#3a5fc8] text-white",
-                    graded && isAnswer && "border-[#2ca974] bg-[#2ca974] text-white",
-                    wasCheckedWrong && "border-[#d95670] bg-[#d95670] text-white",
-                    graded && !isAnswer && !isSel && "border-[#e0d9c8] bg-white text-[var(--ink-faint)]",
-                  )}
+                  data-answer-state={answerState}
+                  className="answer-letter mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border font-mono text-[12.5px] font-bold transition-colors"
                 >
                   {c.key}
                 </span>
@@ -88,9 +81,9 @@ export function QuestionView({
               className={cn(
                 "input grow font-mono text-[15px]",
                 graded && selected && selected.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase()
-                  ? "border-[#2ca974] bg-[#ecf8f1]"
+                  ? "answer-input-correct"
                   : graded
-                    ? "border-[#d95670] bg-[#fdf0f2]"
+                    ? "answer-input-wrong"
                     : "",
               )}
               value={selected ?? ""}
@@ -106,7 +99,7 @@ export function QuestionView({
       )}
 
       {graded && showExplanation && question.explanation && (
-        <div className="rounded-[6px] border border-[#bad6c7] bg-[#f2faf5] p-4 sm:p-5">
+        <div className="answer-explanation rounded-[6px] border p-4 sm:p-5">
           <p className="mb-2 text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#238a5e]">Explanation</p>
           <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
         </div>

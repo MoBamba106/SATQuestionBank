@@ -40,6 +40,8 @@ const THEMES: {
   { id: "highlighter", name: "Highlighter", description: "Pastel study markers", swatches: ["#fff9df", "#f3b4b8", "#94c8e8", "#b8d2ad"] },
   { id: "liquid-glass", name: "Liquid Glass", description: "Translucent Apple-style depth", swatches: ["#dcecff", "#ffffffaa", "#6699ff", "#9e7bff"] },
   { id: "soft-paper", name: "Soft Paper", description: "Warm tactile notebook", swatches: ["#eee6dd", "#69d8cf", "#d19548", "#8a3d18"] },
+  { id: "paper", name: "Paper", description: "Deckled handmade stationery", swatches: ["#f1eadc", "#e8dece", "#67c7be", "#b96d36"] },
+  { id: "cardboard", name: "Cardboard", description: "Kraft board, ink and tape", swatches: ["#b88955", "#d1ad7b", "#5b412d", "#e8d3ad"] },
 ];
 
 function Toggle({
