@@ -10,6 +10,7 @@ import { QuestionView } from "@/components/quiz/question-view";
 import { QuizResults, type GradedMap } from "@/components/quiz/quiz-results";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
+import { useSettings } from "@/components/settings-provider";
 import { apiPost, apiPatch, mutateKey } from "@/lib/api-client";
 import { answersMatch, cn, difficultyColor, domainColor, formatTime, skillColor } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
@@ -29,6 +30,7 @@ export function PracticeRunner({
   sessionId: string;
   onExit: () => void;
 }) {
+  const { settings } = useSettings();
   const [pool, setPool] = React.useState(initialPool);
   const [sid, setSid] = React.useState(sessionId);
   const [idx, setIdx] = React.useState(0);
@@ -203,9 +205,11 @@ export function PracticeRunner({
           <div className="min-w-0 grow">
             <div className="flex items-center justify-between text-[12.5px] font-semibold text-[var(--ink-faint)]">
               <span className="truncate">{label}</span>
-              <span className="inline-flex items-center gap-1.5 font-mono">
-                <Timer className="h-3.5 w-3.5" /> {formatTime(elapsed)}
-              </span>
+              {settings.showTimer && (
+                <span className="inline-flex items-center gap-1.5 font-mono">
+                  <Timer className="h-3.5 w-3.5" /> {formatTime(elapsed)}
+                </span>
+              )}
             </div>
             <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-[#e2dcc9] bg-[#efe9db]">
               <div

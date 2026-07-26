@@ -14,16 +14,20 @@ import {
   CalendarClock,
   Trophy,
   BookOpenText,
+  BookMarked,
+  Settings2,
   Menu,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SettingsDialog } from "@/components/settings-dialog";
 
 const NAV_GROUPS = [
   {
     label: "Study",
     items: [
       { href: "/", label: "Study desk", icon: LayoutDashboard },
+      { href: "/study", label: "Study library", icon: BookMarked },
       { href: "/quiz", label: "Practice quiz", icon: PenSquare },
       { href: "/bank", label: "Question bank", icon: Library },
       { href: "/bluebook", label: "Practice tests", icon: MonitorSmartphone },
@@ -89,6 +93,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function NavShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   return (
     <div className="min-h-screen">
@@ -109,9 +114,17 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           <NavLinks />
         </div>
 
-        <div className="border-t border-[var(--line)] px-5 py-4">
-          <p className="text-[11px] leading-relaxed text-[var(--ink-faint)]">
-            Official question-bank practice, saved progress, and timed test sessions.
+        <div className="border-t border-[var(--line)] px-3 py-3">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+          >
+            <Settings2 className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+            Settings
+          </button>
+          <p className="mt-2 px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
+            Official question-bank practice with locally saved progress.
           </p>
         </div>
       </aside>
@@ -123,15 +136,25 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           </div>
           <span className="font-display text-[18px] font-bold text-[var(--ink)]">SAT Nexus</span>
         </Link>
-        <button
-          type="button"
-          onClick={() => setMobileOpen((open) => !open)}
-          className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
-          aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
+            aria-label="Open settings"
+          >
+            <Settings2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
+            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </div>
       </header>
 
       {mobileOpen && (
@@ -148,6 +171,8 @@ export function NavShell({ children }: { children: React.ReactNode }) {
       <main className="px-4 py-6 sm:px-6 md:ml-[236px] md:px-8 md:py-8">
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 }

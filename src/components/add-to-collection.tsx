@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useApi, apiPost, mutateKey } from "@/lib/api-client";
 import type { StudyCollection } from "@/lib/types";
+import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
 import { cn } from "@/lib/utils";
 
 /** The missing "add question to a collection" UI — available everywhere. */
@@ -25,6 +26,7 @@ export function AddToCollectionButton({
   );
   const [busyId, setBusyId] = React.useState<string | null>(null);
   const [newName, setNewName] = React.useState("");
+  const [newIcon, setNewIcon] = React.useState<CollectionIconId>("folder");
   const [creating, setCreating] = React.useState(false);
 
   const collections = data?.collections ?? [];
@@ -53,10 +55,11 @@ export function AddToCollectionButton({
     if (!name || creating) return;
     setCreating(true);
     try {
-      const res = await apiPost<{ collection: StudyCollection }>("/api/collections", { name });
+      const res = await apiPost<{ collection: StudyCollection }>("/api/collections", { name, icon: newIcon });
       mutateKey("collections");
       await apiPost(`/api/collections/${res.collection.id}/items`, { questionId });
       setNewName("");
+      setNewIcon("folder");
       await reload();
       toast.success(`Created “${name}” and added this question`);
     } catch (e) {
@@ -117,7 +120,8 @@ export function AddToCollectionButton({
                     : "border-[var(--line-soft)] bg-white hover:border-[#cfc5ae] hover:bg-[#faf7ee]",
                 )}
               >
-                <span className="min-w-0">
+                <CollectionIcon icon={c.icon} className="!h-8 !w-8" />
+                <span className="min-w-0 grow">
                   <span className="block truncate text-[14px] font-semibold text-[var(--ink)]">{c.name}</span>
                   {c.description && (
                     <span className="block truncate text-[12px] text-[var(--ink-faint)]">{c.description}</span>
@@ -139,7 +143,11 @@ export function AddToCollectionButton({
           })}
         </div>
 
-        <div className="mt-4 flex gap-2 border-t border-[#eee8d8] pt-4">
+        <div className="mt-4 border-t border-[var(--line-soft)] pt-4">
+          <label className="mb-2 block text-[11px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">New collection icon</label>
+          <CollectionIconPicker value={newIcon} onChange={setNewIcon} />
+        </div>
+        <div className="mt-3 flex gap-2">
           <input
             className="input grow"
             placeholder="New collection name…"

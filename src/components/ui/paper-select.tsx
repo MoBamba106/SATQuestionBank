@@ -62,8 +62,9 @@ export function PaperSelect({
     <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectPrimitive.Trigger
         aria-label={ariaLabel ?? placeholder}
+        data-tone={tone}
         className={cn(
-          "group inline-flex w-full items-center justify-between gap-2 rounded-[7px] border bg-[var(--paper-raised)] text-left shadow-[0_1px_2px_rgba(87,82,121,0.05)] transition-colors duration-150",
+          "paper-select-trigger group inline-flex w-full items-center justify-between gap-2 rounded-[7px] border bg-[var(--paper-raised)] text-left shadow-[0_1px_2px_rgba(87,82,121,0.05)] transition-colors duration-150",
           triggerTones[tone],
           "hover:brightness-[0.985] focus:outline-none focus:ring-2 focus:ring-[#286983]/20",
           "data-[state=open]:ring-2 data-[state=open]:ring-[#286983]/20",

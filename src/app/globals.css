@@ -93,7 +93,7 @@ a {
 
 .glass-subtle {
   color: var(--ink);
-  background: #faf8f2;
+  background: var(--paper-soft);
   border: 1px solid var(--line-soft);
   border-radius: 6px;
 }
@@ -107,7 +107,7 @@ input,
 select,
 textarea {
   color: var(--ink);
-  background-color: #fff;
+  background-color: var(--control-bg, var(--paper-raised));
   border-color: var(--line);
 }
 
@@ -129,7 +129,7 @@ textarea:focus-visible {
   padding: 9px 12px;
   color: var(--ink);
   font-size: 14px;
-  background: #fff;
+  background: var(--control-bg, var(--paper-raised));
   border: 1px solid var(--line);
   border-radius: 6px;
 }
@@ -176,7 +176,7 @@ textarea:focus-visible {
 
 .btn-soft {
   color: var(--ink);
-  background: #fff;
+  background: var(--control-bg, var(--paper-raised));
   border-color: var(--line);
 }
 
@@ -228,7 +228,7 @@ textarea:focus-visible {
   font-weight: 600;
   line-height: 1.25;
   white-space: nowrap;
-  background: #f5f2ea;
+  background: var(--paper-soft);
   border: 1px solid var(--line-soft);
   border-radius: 4px;
 }
@@ -281,7 +281,7 @@ textarea:focus-visible {
 }
 
 .sat-content p { margin: 0.7em 0; }
-.sat-content table { width: auto; margin: 1em 0; background: #fff; border-collapse: collapse; }
+.sat-content table { width: auto; margin: 1em 0; background: var(--paper-raised); border-collapse: collapse; }
 .sat-content td,
 .sat-content th { padding: 8px 14px; text-align: left; border: 1px solid var(--line); }
 .sat-content img { max-width: 100%; height: auto; margin: 0.8em 0; border-radius: 4px; }
@@ -311,6 +311,178 @@ textarea:focus-visible {
 @keyframes paper-fade {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ---------- User-selectable themes ---------- */
+html[data-theme="light"] {
+  --paper: #f5f8fc;
+  --paper-raised: #ffffff;
+  --paper-soft: #edf3f8;
+  --paper-deep: #dce8f2;
+  --control-bg: #ffffff;
+  --ink: #182437;
+  --ink-soft: #46566c;
+  --ink-faint: #718096;
+  --line: #cdd9e5;
+  --line-soft: #e2e9f0;
+  --accent: #2352b8;
+  --accent-dark: #193f91;
+  --accent-soft: #e0ebff;
+}
+
+html[data-theme="highlighter"] {
+  --paper: #fff9e8;
+  --paper-raised: #fffef9;
+  --paper-soft: #fff2d3;
+  --paper-deep: #f3e1b9;
+  --control-bg: #fffef9;
+  --ink: #292b2f;
+  --ink-soft: #54565b;
+  --ink-faint: #77766f;
+  --line: #e6d9b8;
+  --line-soft: #eee4cb;
+  --accent: #d96f78;
+  --accent-dark: #b9535d;
+  --accent-soft: #f8d8dc;
+  --sp-blue-wash: #dceefa;
+  --sp-green-wash: #e3efd9;
+  --sp-yellow-wash: #fff0ac;
+  --sp-rose-wash: #f8d8dc;
+  --sp-lavender-wash: #ede2f5;
+}
+
+html[data-theme="dark"] {
+  --paper: #0d1726;
+  --paper-raised: #152234;
+  --paper-soft: #111d2c;
+  --paper-deep: #213247;
+  --control-bg: #192a3d;
+  --ink: #e8eef5;
+  --ink-soft: #c2ceda;
+  --ink-faint: #8fa1b3;
+  --line: #32455b;
+  --line-soft: #26394e;
+  --accent: #31b7e8;
+  --accent-dark: #2194be;
+  --accent-soft: #193d55;
+  --good: #55bb85;
+  --bad: #e07b93;
+  --warn: #d5a85b;
+  --sp-blue-wash: #193b50;
+  --sp-teal-wash: #1b3b42;
+  --sp-green-wash: #1c3b2d;
+  --sp-yellow-wash: #44371f;
+  --sp-peach-wash: #482d29;
+  --sp-rose-wash: #472936;
+  --sp-pink-wash: #47283d;
+  --sp-lavender-wash: #332d4a;
+}
+
+html[data-theme="obsidian"] {
+  --paper: #07080c;
+  --paper-raised: #0e1016;
+  --paper-soft: #0a0c11;
+  --paper-deep: #191c25;
+  --control-bg: #131620;
+  --ink: #eee8dd;
+  --ink-soft: #cbc3b8;
+  --ink-faint: #8d8990;
+  --line: #30333e;
+  --line-soft: #22252e;
+  --accent: #5a42e8;
+  --accent-dark: #4630c7;
+  --accent-soft: #24204b;
+  --good: #2f8a58;
+  --bad: #b6576d;
+  --warn: #c59a59;
+  --sp-blue-wash: #182536;
+  --sp-teal-wash: #152c31;
+  --sp-green-wash: #142b20;
+  --sp-yellow-wash: #352b18;
+  --sp-peach-wash: #37231f;
+  --sp-rose-wash: #351d27;
+  --sp-pink-wash: #321c2c;
+  --sp-lavender-wash: #251d47;
+}
+
+html[data-theme="liquid-glass"] {
+  --paper: #d9e9fa;
+  --paper-raised: rgba(255,255,255,.58);
+  --paper-soft: rgba(244,249,255,.46);
+  --paper-deep: rgba(210,226,245,.56);
+  --control-bg: rgba(255,255,255,.64);
+  --ink: #172742;
+  --ink-soft: #40536f;
+  --ink-faint: #6f7f94;
+  --line: rgba(255,255,255,.68);
+  --line-soft: rgba(120,150,190,.22);
+  --accent: #3979df;
+  --accent-dark: #2863c1;
+  --accent-soft: rgba(213,230,255,.7);
+}
+
+html[data-theme="dark"] body,
+html[data-theme="obsidian"] body {
+  background-image: radial-gradient(circle at 70% 10%, rgba(49,183,232,.08), transparent 34%);
+}
+
+html[data-theme="obsidian"] body {
+  background-image:
+    radial-gradient(circle at 70% 15%, rgba(90,66,232,.10), transparent 30%),
+    radial-gradient(circle at 30% 80%, rgba(35,116,74,.08), transparent 28%);
+}
+
+html[data-theme="liquid-glass"] body {
+  background-image:
+    radial-gradient(circle at 12% 12%, rgba(104,178,255,.72), transparent 34%),
+    radial-gradient(circle at 86% 20%, rgba(175,132,255,.48), transparent 34%),
+    radial-gradient(circle at 55% 88%, rgba(96,220,202,.42), transparent 38%),
+    linear-gradient(145deg, #e8f4ff, #d8e7ff 48%, #e9e2ff);
+}
+
+html[data-theme="liquid-glass"] .glass,
+html[data-theme="liquid-glass"] .glass-subtle,
+html[data-theme="liquid-glass"] aside,
+html[data-theme="liquid-glass"] header {
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 12px 34px rgba(50,80,130,.12);
+}
+
+html[data-theme="dark"] .soft-tone,
+html[data-theme="obsidian"] .soft-tone {
+  color: var(--ink-soft);
+}
+html[data-theme="dark"] .badge,
+html[data-theme="obsidian"] .badge {
+  color: var(--ink-soft);
+}
+html[data-theme="dark"] .bg-white,
+html[data-theme="obsidian"] .bg-white {
+  background-color: var(--paper-raised) !important;
+}
+html[data-theme="dark"] .paper-select-trigger,
+html[data-theme="obsidian"] .paper-select-trigger {
+  color: var(--ink) !important;
+  background: var(--control-bg) !important;
+  border-color: var(--line) !important;
+}
+
+html[data-font-scale="small"] { font-size: 14px; }
+html[data-font-scale="default"] { font-size: 16px; }
+html[data-font-scale="large"] { font-size: 18px; }
+
+html[data-density="compact"] .glass { border-radius: 6px; }
+html[data-density="compact"] .btn { min-height: 34px; padding-top: 6px; padding-bottom: 6px; }
+html[data-density="compact"] main { padding-top: 1rem; padding-bottom: 1rem; }
+
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

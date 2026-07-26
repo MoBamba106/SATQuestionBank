@@ -154,6 +154,17 @@ test_history(id PK, user_id, test_name, test_date, total_score, rw_score, math_s
 
 ---
 
+## Current experience
+
+- Six saved appearance themes: Light, Dark, Obsidian, Highlighter, Liquid Glass, and Soft Paper
+- Accessibility and practice defaults in the bottom-left Settings panel
+- Local privacy controls for clearing analytics or erasing all personal study data
+- Adaptive full-length tests with estimated 400–1600 scoring and five-bar domain reports
+- Collection names, descriptions, and selectable icons
+- Study Library for vocabulary, grammar, formulas, and test strategy
+
+See `FUTURE_FEATURES.md` for ideas that are waiting for explicit approval and are not implemented.
+
 ## Run locally
 
 ```bash

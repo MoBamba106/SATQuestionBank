@@ -41,6 +41,7 @@ export interface StudyCollection {
   id: string;
   name: string;
   description: string | null;
+  icon: string;
   questionIds: string[];
   questionCount: number;
   createdAt: string;
@@ -77,6 +78,14 @@ export interface PracticeTestDetail extends PracticeTestInfo {
   };
 }
 
+export interface SkillBand {
+  domain: string;
+  section: "Reading & Writing" | "Math" | string;
+  correct: number;
+  total: number;
+  band: number;
+}
+
 export interface SessionSummary {
   id: string;
   mode: string;
@@ -86,6 +95,10 @@ export interface SessionSummary {
   correctCount: number | null;
   answeredCount: number | null;
   adaptivePath: AdaptivePath | null;
+  totalScore: number | null;
+  rwScore: number | null;
+  mathScore: number | null;
+  skillBands: SkillBand[] | null;
   startedAt: string;
   finishedAt: string | null;
   attempts: {

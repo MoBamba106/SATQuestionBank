@@ -12,8 +12,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     const body = await req.json();
     const name = body?.name != null ? String(body.name).trim() : null;
     const description = body?.description != null ? String(body.description).trim() : null;
+    const icon = body?.icon != null ? String(body.icon).trim() : null;
     if (name) await db.execute(sql`UPDATE collections SET name = ${name}, updated_at = now() WHERE id = ${id}`);
     if (description != null) await db.execute(sql`UPDATE collections SET description = ${description}, updated_at = now() WHERE id = ${id}`);
+    if (icon) await db.execute(sql`UPDATE collections SET icon = ${icon}, updated_at = now() WHERE id = ${id}`);
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to update collection" }, { status: 500 });

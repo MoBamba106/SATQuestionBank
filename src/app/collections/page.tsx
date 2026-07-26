@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
+import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
 import { useApi, apiPost, apiDelete, mutateKey } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
@@ -92,6 +93,7 @@ export default function CollectionsPage() {
   const [createOpen, setCreateOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [desc, setDesc] = React.useState("");
+  const [newIcon, setNewIcon] = React.useState<CollectionIconId>("folder");
   const [creating, setCreating] = React.useState(false);
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [favOpen, setFavOpen] = React.useState(false);
@@ -131,10 +133,10 @@ export default function CollectionsPage() {
     if (!name.trim() || creating) return;
     setCreating(true);
     try {
-      await apiPost("/api/collections", { name: name.trim(), description: desc.trim() || undefined });
+      await apiPost("/api/collections", { name: name.trim(), description: desc.trim() || undefined, icon: newIcon });
       mutateKey("collections");
       mutateKey("stats");
-      setName(""); setDesc(""); setCreateOpen(false);
+      setName(""); setDesc(""); setNewIcon("folder"); setCreateOpen(false);
       toast.success("Collection created");
       reload();
     } catch (e) {
@@ -257,9 +259,7 @@ export default function CollectionsPage() {
                   className="flex min-w-0 grow items-center gap-4 p-1 text-left"
                   aria-expanded={openId === c.id}
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] border border-[#d2cae4] bg-[#ece9f5] text-[#62548c]">
-                    <Folders className="h-5 w-5" />
-                  </div>
+                  <CollectionIcon icon={c.icon} />
                   <div className="min-w-0 grow">
                     <div className="truncate text-[16px] font-bold text-[var(--ink)]">{c.name}</div>
                     <div className="truncate text-[12.5px] text-[var(--ink-faint)]">
@@ -324,6 +324,10 @@ export default function CollectionsPage() {
               onChange={(e) => setDesc(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && create()}
             />
+          </div>
+          <div>
+            <label className="mb-2 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Icon</label>
+            <CollectionIconPicker value={newIcon} onChange={setNewIcon} />
           </div>
         </div>
         <div className="mt-5 flex gap-2.5">

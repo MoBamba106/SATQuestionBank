@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Check, FolderPlus, Loader2, Plus } from "lucide-react";
+import { Check, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiPost, mutateKey, useApi } from "@/lib/api-client";
 import type { StudyCollection } from "@/lib/types";
+import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
 
 export function BulkAddToCollectionDialog({
   open,
@@ -24,6 +25,7 @@ export function BulkAddToCollectionDialog({
   );
   const [busyId, setBusyId] = React.useState<string | null>(null);
   const [newName, setNewName] = React.useState("");
+  const [newIcon, setNewIcon] = React.useState<CollectionIconId>("folder");
   const [creating, setCreating] = React.useState(false);
   const collections = data?.collections ?? [];
 
@@ -57,7 +59,7 @@ export function BulkAddToCollectionDialog({
     if (!name || creating || questionIds.length === 0) return;
     setCreating(true);
     try {
-      const result = await apiPost<{ collection: StudyCollection }>("/api/collections", { name });
+      const result = await apiPost<{ collection: StudyCollection }>("/api/collections", { name, icon: newIcon });
       await apiPost(`/api/collections/${result.collection.id}/items`, { questionIds });
       mutateKey("collections");
       mutateKey("stats");
@@ -65,6 +67,7 @@ export function BulkAddToCollectionDialog({
         description: `${questionIds.length} selected question${questionIds.length === 1 ? "" : "s"} added.`,
       });
       setNewName("");
+      setNewIcon("folder");
       onAdded?.();
       onOpenChange(false);
     } catch (error) {
@@ -104,7 +107,7 @@ export function BulkAddToCollectionDialog({
               disabled={Boolean(busyId)}
               className="flex w-full items-center gap-3 rounded-[7px] border border-[var(--line)] bg-[var(--paper-raised)] px-4 py-3 text-left transition-colors hover:border-[var(--sp-blue)] hover:bg-[var(--sp-blue-wash)] disabled:opacity-50"
             >
-              <FolderPlus className="h-4.5 w-4.5 shrink-0 text-[var(--sp-blue)]" />
+              <CollectionIcon icon={collection.icon} className="!h-8 !w-8" />
               <span className="min-w-0 grow">
                 <span className="block truncate text-[14px] font-semibold text-[var(--ink)]">{collection.name}</span>
                 <span className="block text-[11.5px] text-[var(--ink-faint)]">
@@ -118,7 +121,11 @@ export function BulkAddToCollectionDialog({
         })}
       </div>
 
-      <div className="mt-4 flex gap-2 border-t border-[var(--line-soft)] pt-4">
+      <div className="mt-4 border-t border-[var(--line-soft)] pt-4">
+        <label className="mb-2 block text-[11px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">New collection icon</label>
+        <CollectionIconPicker value={newIcon} onChange={setNewIcon} />
+      </div>
+      <div className="mt-3 flex gap-2">
         <input
           className="input grow"
           placeholder="New collection name"

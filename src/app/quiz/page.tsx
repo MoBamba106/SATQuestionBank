@@ -8,6 +8,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { PaperSelect } from "@/components/ui/paper-select";
 import { PaperSlider } from "@/components/ui/paper-slider";
 import { PracticeRunner } from "@/components/quiz/practice-runner";
+import { useSettings } from "@/components/settings-provider";
 import { BluebookRunner } from "@/components/quiz/bluebook-runner";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { clearPool, readPool } from "@/lib/quiz-session";
@@ -29,6 +30,8 @@ type Phase =
 function QuizInner() {
   const router = useRouter();
   const sp = useSearchParams();
+  const { settings, ready: settingsReady } = useSettings();
+  const defaultsApplied = React.useRef(false);
   const [phase, setPhase] = React.useState<Phase>({ kind: "setup" });
   const [booting, setBooting] = React.useState(false);
   const [handoffError, setHandoffError] = React.useState<string | null>(null);
@@ -43,6 +46,13 @@ function QuizInner() {
   const [count, setCount] = React.useState(10);
   const [quizMode, setQuizMode] = React.useState<"practice" | "exam">("practice");
   const [available, setAvailable] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (!settingsReady || defaultsApplied.current) return;
+    defaultsApplied.current = true;
+    setCount(settings.defaultQuizSize);
+    setQuizMode(settings.defaultQuizMode);
+  }, [settings, settingsReady]);
 
   const skillOpts = React.useMemo(
     () => [

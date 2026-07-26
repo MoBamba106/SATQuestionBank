@@ -8,7 +8,7 @@ import type { StudyCollection } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 type RawRow = {
-  id: string; name: string; description: string | null;
+  id: string; name: string; description: string | null; icon: string;
   createdAt: string; updatedAt: string; ids: unknown;
 };
 
@@ -18,6 +18,7 @@ function mapCollection(r: RawRow): StudyCollection {
     id: r.id,
     name: r.name,
     description: r.description,
+    icon: r.icon || "folder",
     questionIds: ids,
     questionCount: ids.length,
     createdAt: new Date(r.createdAt).toISOString(),
@@ -29,7 +30,7 @@ export async function GET() {
   try {
     await ensureSeeded();
     const res = await db.execute(sql`
-      SELECT c.id, c.name, c.description,
+      SELECT c.id, c.name, c.description, c.icon,
              c.created_at AS "createdAt", c.updated_at AS "updatedAt",
              COALESCE(json_agg(ci.question_id ORDER BY ci.added_at)
                FILTER (WHERE ci.question_id IS NOT NULL), '[]') AS ids
@@ -52,13 +53,14 @@ export async function POST(req: Request) {
     const body = await req.json();
     const name = String(body?.name ?? "").trim();
     const description = body?.description ? String(body.description).trim() : null;
+    const icon = body?.icon ? String(body.icon).trim() : "folder";
     if (!name) return NextResponse.json({ error: "Collection name is required" }, { status: 400 });
     const id = uid("col");
     await db.execute(sql`
-      INSERT INTO collections (id, name, description) VALUES (${id}, ${name}, ${description})
+      INSERT INTO collections (id, name, description, icon) VALUES (${id}, ${name}, ${description}, ${icon})
     `);
     return NextResponse.json({
-      collection: { id, name, description, questionIds: [], questionCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      collection: { id, name, description, icon, questionIds: [], questionCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     });
   } catch (e) {
     console.error("[api/collections] POST failed:", e);

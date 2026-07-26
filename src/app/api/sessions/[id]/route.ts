@@ -13,6 +13,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       SELECT id, mode, label, test_id AS "testId", total_questions AS "totalQuestions",
              correct_count AS "correctCount", answered_count AS "answeredCount",
              adaptive_path AS "adaptivePath",
+             total_score AS "totalScore", rw_score AS "rwScore", math_score AS "mathScore",
+             skill_bands AS "skillBands",
              started_at AS "startedAt", finished_at AS "finishedAt"
       FROM quiz_sessions WHERE id = ${id} LIMIT 1
     `);
@@ -40,12 +42,20 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     const adaptivePath = path?.rw && path?.math
       ? JSON.stringify({ rw: String(path.rw), math: String(path.math) })
       : null;
+    const totalScore = body?.totalScore != null ? Number(body.totalScore) : null;
+    const rwScore = body?.rwScore != null ? Number(body.rwScore) : null;
+    const mathScore = body?.mathScore != null ? Number(body.mathScore) : null;
+    const skillBands = Array.isArray(body?.skillBands) ? JSON.stringify(body.skillBands) : null;
     const shouldFinish = body?.finish === true || correct != null || answered != null;
     await db.execute(sql`
       UPDATE quiz_sessions
       SET correct_count = COALESCE(${correct}, correct_count),
           answered_count = COALESCE(${answered}, answered_count),
           adaptive_path = COALESCE(${adaptivePath}::jsonb, adaptive_path),
+          total_score = COALESCE(${totalScore}, total_score),
+          rw_score = COALESCE(${rwScore}, rw_score),
+          math_score = COALESCE(${mathScore}, math_score),
+          skill_bands = COALESCE(${skillBands}::jsonb, skill_bands),
           finished_at = CASE WHEN ${shouldFinish} THEN COALESCE(finished_at, now()) ELSE finished_at END
       WHERE id = ${id}
     `);

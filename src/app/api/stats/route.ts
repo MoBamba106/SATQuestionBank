@@ -17,7 +17,7 @@ export async function GET() {
     const totals = rows<{ uniq: number; total: number; correct: number }>(
       await db.execute(sql`
         SELECT COUNT(DISTINCT question_id)::int AS uniq, COUNT(*)::int AS total,
-               SUM(CASE WHEN is_correct THEN 1 ELSE 0 END)::int AS correct
+               COALESCE(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END), 0)::int AS correct
         FROM attempts
       `),
     )[0] ?? { uniq: 0, total: 0, correct: 0 };
@@ -106,6 +106,8 @@ export async function GET() {
       await db.execute(sql`
         SELECT id, mode, label, test_id AS "testId", total_questions AS "totalQuestions",
                correct_count AS "correctCount", answered_count AS "answeredCount",
+               total_score AS "totalScore", rw_score AS "rwScore", math_score AS "mathScore",
+               adaptive_path AS "adaptivePath", skill_bands AS "skillBands",
                started_at AS "startedAt", finished_at AS "finishedAt"
         FROM quiz_sessions WHERE finished_at IS NOT NULL
         ORDER BY finished_at DESC LIMIT 5

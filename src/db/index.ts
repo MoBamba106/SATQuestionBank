@@ -82,9 +82,11 @@ const SCHEMA_STATEMENTS = [
     id text PRIMARY KEY,
     name text NOT NULL,
     description text,
+    icon text NOT NULL DEFAULT 'folder',
     created_at timestamp NOT NULL DEFAULT now(),
     updated_at timestamp NOT NULL DEFAULT now()
   )`,
+  `ALTER TABLE collections ADD COLUMN IF NOT EXISTS icon text NOT NULL DEFAULT 'folder'`,
   `CREATE TABLE IF NOT EXISTS collection_items (
     collection_id text NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
     question_id text NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
@@ -100,10 +102,18 @@ const SCHEMA_STATEMENTS = [
     correct_count integer,
     answered_count integer,
     adaptive_path jsonb,
+    total_score integer,
+    rw_score integer,
+    math_score integer,
+    skill_bands jsonb,
     started_at timestamp NOT NULL DEFAULT now(),
     finished_at timestamp
   )`,
   `ALTER TABLE quiz_sessions ADD COLUMN IF NOT EXISTS adaptive_path jsonb`,
+  `ALTER TABLE quiz_sessions ADD COLUMN IF NOT EXISTS total_score integer`,
+  `ALTER TABLE quiz_sessions ADD COLUMN IF NOT EXISTS rw_score integer`,
+  `ALTER TABLE quiz_sessions ADD COLUMN IF NOT EXISTS math_score integer`,
+  `ALTER TABLE quiz_sessions ADD COLUMN IF NOT EXISTS skill_bands jsonb`,
   `CREATE TABLE IF NOT EXISTS attempts (
     id serial PRIMARY KEY,
     session_id text NOT NULL REFERENCES quiz_sessions(id) ON DELETE CASCADE,

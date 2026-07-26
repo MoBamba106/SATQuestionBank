@@ -182,8 +182,8 @@ export default function DashboardPage() {
                       {session.finishedAt ? new Date(session.finishedAt).toLocaleDateString() : "In progress"} · {session.answeredCount ?? 0}/{session.totalQuestions} answered
                     </div>
                   </div>
-                  <span className="font-mono text-[13px] font-semibold text-[#315eaa]">
-                    {session.totalQuestions ? Math.round(((session.correctCount ?? 0) / session.totalQuestions) * 100) : 0}%
+                  <span className="font-mono text-[13px] font-semibold text-[var(--accent)]">
+                    {session.totalScore ?? `${session.totalQuestions ? Math.round(((session.correctCount ?? 0) / session.totalQuestions) * 100) : 0}%`}
                   </span>
                 </li>
               ))}

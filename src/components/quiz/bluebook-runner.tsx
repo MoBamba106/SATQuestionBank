@@ -16,9 +16,11 @@ import {
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
+import { SkillBands } from "@/components/quiz/skill-bands";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiPatch, apiPost, mutateKey } from "@/lib/api-client";
 import { scoreModule } from "@/lib/adaptive";
+import { estimateSatScore } from "@/lib/sat-score";
 import { answersMatch, cn, difficultyColor, domainColor, formatTime, skillColor } from "@/lib/utils";
 import type { AdaptivePath, AdaptiveRoute, PracticeTestDetail, SATQuestion } from "@/lib/types";
 
@@ -117,7 +119,8 @@ export function BluebookRunner({
     setFinishing(true);
     try {
       const adaptivePath: AdaptivePath = { rw: rwRoute, math: mathRoute };
-      const all = takenModules(adaptivePath).flat();
+      const [rw1, rw2, math1, math2] = takenModules(adaptivePath);
+      const all = [...rw1, ...rw2, ...math1, ...math2];
       const attempts = all
         .filter((question) => answers[question.id]?.trim())
         .map((question) => ({
@@ -133,10 +136,12 @@ export function BluebookRunner({
         gradeMap[attempt.questionId] = { correct: attempt.isCorrect, answer: attempt.answer };
       });
       setGraded(gradeMap);
+      const score = estimateSatScore({ rw1, rw2, math1, math2, grades: gradeMap, path: adaptivePath });
       await apiPatch(`/api/sessions/${sessionId}`, {
         correctCount: attempts.filter((attempt) => attempt.isCorrect).length,
         answeredCount: attempts.length,
         adaptivePath,
+        ...score,
         finish: true,
       });
       mutateKey("stats");
@@ -194,6 +199,9 @@ export function BluebookRunner({
     const mathCorrect = mathQuestions.filter((question) => graded[question.id]?.correct).length;
     const totalCorrect = rwCorrect + mathCorrect;
     const total = rwQuestions.length + mathQuestions.length;
+    const score = estimateSatScore({
+      rw1: modules[0], rw2: modules[1], math1: modules[2], math2: modules[3], grades: graded, path,
+    });
 
     return (
       <GlassCard hover={false} className="p-6 sm:p-10">
@@ -203,9 +211,11 @@ export function BluebookRunner({
           </div>
           <h2 className="font-display mt-4 text-3xl font-bold text-[var(--ink)]">{test.title} submitted</h2>
           <p className="mt-1 text-[15px] text-[var(--ink-faint)]">Your adaptive route and full review are ready.</p>
-          <p className="mt-4 text-[17px] font-semibold text-[var(--ink)]">
-            Raw score: <span className="hl-yellow px-1">{totalCorrect} / {total}</span>
-          </p>
+          <div className="mt-5 rounded-[10px] border border-[var(--line)] bg-[var(--paper-soft)] px-8 py-5">
+            <div className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Estimated SAT score</div>
+            <div className="font-display mt-1 text-5xl font-bold text-[var(--ink)]">{score.totalScore}</div>
+            <div className="mt-1 text-[11px] text-[var(--ink-faint)]">Practice estimate on the 400–1600 scale · raw {totalCorrect}/{total}</div>
+          </div>
 
           <div className="mt-5 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
             <div className="soft-tone soft-tone-lavender p-4 text-left">
@@ -213,7 +223,8 @@ export function BluebookRunner({
                 <span className="text-[12px] font-bold uppercase tracking-wide">Reading & Writing</span>
                 <span className="badge bg-white/50">{rwRoute} Module 2</span>
               </div>
-              <div className="font-display mt-2 text-2xl font-bold">{rwCorrect} / {rwQuestions.length}</div>
+              <div className="font-display mt-2 text-3xl font-bold">{score.rwScore}</div>
+              <div className="text-[11px]">{rwCorrect}/{rwQuestions.length} correct</div>
               <div className="mt-1 text-[11.5px]">Routing module: {rwRoutingScore?.correct ?? 0}/{rwRoutingScore?.total ?? test.modules.rw1.length}</div>
             </div>
             <div className="soft-tone soft-tone-teal p-4 text-left">
@@ -221,9 +232,18 @@ export function BluebookRunner({
                 <span className="text-[12px] font-bold uppercase tracking-wide">Math</span>
                 <span className="badge bg-white/50">{mathRoute} Module 2</span>
               </div>
-              <div className="font-display mt-2 text-2xl font-bold">{mathCorrect} / {mathQuestions.length}</div>
+              <div className="font-display mt-2 text-3xl font-bold">{score.mathScore}</div>
+              <div className="text-[11px]">{mathCorrect}/{mathQuestions.length} correct</div>
               <div className="mt-1 text-[11.5px]">Routing module: {mathRoutingScore?.correct ?? 0}/{mathRoutingScore?.total ?? test.modules.math1.length}</div>
             </div>
+          </div>
+
+          <div className="mt-6 w-full max-w-3xl text-left">
+            <h3 className="font-display mb-3 text-xl font-bold text-[var(--ink)]">Knowledge and skills</h3>
+            <SkillBands bands={score.skillBands} />
+            <p className="mt-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
+              These five-bar bands and section scores are practice estimates. Official digital SAT scores use College Board&apos;s equating and item-response model.
+            </p>
           </div>
 
           <div className="mt-7 flex flex-wrap justify-center gap-3">

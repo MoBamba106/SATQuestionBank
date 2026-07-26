@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
+import { SkillBands } from "@/components/quiz/skill-bands";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { cn, difficultyColor, skillColor } from "@/lib/utils";
 import type { PracticeTestDetail, SessionSummary, SATQuestion } from "@/lib/types";
@@ -99,6 +100,26 @@ function ReviewInner() {
           </p>
         </div>
       </div>
+
+      {session?.totalScore && (
+        <GlassCard hover={false} className="p-5 sm:p-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Estimated total</div>
+              <div className="font-display text-4xl font-bold text-[var(--ink)]">{session.totalScore}</div>
+            </div>
+            <div className="soft-tone soft-tone-lavender p-3">
+              <div className="text-[10px] font-bold uppercase">Reading & Writing</div>
+              <div className="font-display text-2xl font-bold">{session.rwScore}</div>
+            </div>
+            <div className="soft-tone soft-tone-teal p-3">
+              <div className="text-[10px] font-bold uppercase">Math</div>
+              <div className="font-display text-2xl font-bold">{session.mathScore}</div>
+            </div>
+          </div>
+          {session.skillBands && <div className="mt-5"><SkillBands bands={session.skillBands} /></div>}
+        </GlassCard>
+      )}
 
       <div className="space-y-4">
         {items.map(({ q, moduleLabel }, i) => {

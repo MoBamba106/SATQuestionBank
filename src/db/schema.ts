@@ -57,6 +57,7 @@ export const collections = pgTable("collections", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  icon: text("icon").notNull().default("folder"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -84,6 +85,10 @@ export const quizSessions = pgTable("quiz_sessions", {
   correctCount: integer("correct_count"),
   answeredCount: integer("answered_count"),
   adaptivePath: jsonb("adaptive_path"),
+  totalScore: integer("total_score"),
+  rwScore: integer("rw_score"),
+  mathScore: integer("math_score"),
+  skillBands: jsonb("skill_bands"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
   finishedAt: timestamp("finished_at"),
 });
