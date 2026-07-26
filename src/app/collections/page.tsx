@@ -11,31 +11,41 @@ import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { useApi, apiPost, apiDelete, mutateKey } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
-import { cn, difficultyColor, stripHtml } from "@/lib/utils";
+import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion, StudyCollection } from "@/lib/types";
 
 function CollectionItemsList({
   items,
   loading,
   collection,
+  error,
   onRemove,
 }: {
   items: SATQuestion[] | undefined;
   loading: boolean;
   collection?: StudyCollection;
+  error?: string;
   onRemove: (collection: StudyCollection, questionId: string) => void;
 }) {
   if (loading && !items) {
     return (
-      <div className="flex items-center gap-2 px-2 py-4 text-[13px] text-[#7b8085]">
+      <div className="flex items-center gap-2 px-2 py-4 text-[13px] text-[var(--ink-faint)]">
         <Loader2 className="h-4 w-4 animate-spin" /> Loading…
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <p className="soft-tone soft-tone-rose px-4 py-3 text-[13px]">
+        Could not load this collection: {error}
+      </p>
+    );
+  }
+
   if (!items || items.length === 0) {
     return (
-      <p className="rounded-[6px] bg-[#f1ede3] px-4 py-3 text-[13px] text-[#7b8085]">
+      <p className="rounded-[6px] bg-[var(--paper-soft)] px-4 py-3 text-[13px] text-[var(--ink-faint)]">
         No questions here yet. Use the <FolderOpen className="inline h-3.5 w-3.5" /> collection
         button on a question to add one.
       </p>
@@ -47,12 +57,12 @@ function CollectionItemsList({
       {items.map((question) => (
         <li key={question.id} className="glass-subtle flex items-center gap-3 px-4 py-3">
           <div className="min-w-0 grow">
-            <p className="truncate text-[13.5px] font-medium text-[#3f454b]">
+            <p className="truncate text-[13.5px] font-medium text-[var(--ink-soft)]">
               {stripHtml(question.questionHtml || question.questionText).slice(0, 120)}
             </p>
             <div className="mt-1 flex flex-wrap gap-1.5">
-              <span className="badge badge-blue !py-0.5 !text-[10.5px]">{question.domain}</span>
-              <span className="badge !py-0.5 !text-[10.5px]">{question.skill}</span>
+              <span className={cn("badge !py-0.5 !text-[10.5px]", domainColor(question.domain))}>{question.domain}</span>
+              <span className={cn("badge !py-0.5 !text-[10.5px]", skillColor(question.skill))}>{question.skill}</span>
               <span className={cn("badge border !py-0.5 !text-[10.5px]", difficultyColor(question.difficulty))}>
                 {question.difficulty}
               </span>
@@ -86,6 +96,7 @@ export default function CollectionsPage() {
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [favOpen, setFavOpen] = React.useState(false);
   const [itemCache, setItemCache] = React.useState<Record<string, SATQuestion[]>>({});
+  const [itemErrors, setItemErrors] = React.useState<Record<string, string>>({});
   const [itemsLoading, setItemsLoading] = React.useState(false);
 
   const collections = data?.collections ?? [];
@@ -96,11 +107,14 @@ export default function CollectionsPage() {
       return;
     }
     setItemsLoading(true);
+    setItemErrors((errors) => ({ ...errors, [key]: "" }));
     try {
       const d = await apiPost<{ questions: SATQuestion[] }>("/api/questions", { ids });
       setItemCache((c) => ({ ...c, [key]: d.questions }));
     } catch (e) {
-      toast.error("Couldn't load questions", { description: e instanceof Error ? e.message : undefined });
+      const message = e instanceof Error ? e.message : "Unknown error";
+      setItemErrors((errors) => ({ ...errors, [key]: message }));
+      toast.error("Couldn't load questions", { description: message });
     } finally {
       setItemsLoading(false);
     }
@@ -166,10 +180,10 @@ export default function CollectionsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+          <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
             <span className="hl-pink px-1">Collections</span>
           </h1>
-          <p className="mt-1 text-[15px] text-[#8a8680]">
+          <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
             Group saved questions by topic, test date, or study goal.
           </p>
         </div>
@@ -196,8 +210,8 @@ export default function CollectionsPage() {
               <Star className="h-5 w-5 fill-[#d7b55c]" />
             </div>
             <div className="min-w-0 grow">
-              <div className="text-[16px] font-bold text-[#25282c]">Favorites</div>
-              <div className="text-[12.5px] text-[#7b8085]">{favData?.count ?? 0} starred questions</div>
+              <div className="text-[16px] font-bold text-[var(--ink)]">Favorites</div>
+              <div className="text-[12.5px] text-[var(--ink-faint)]">{favData?.count ?? 0} starred questions</div>
             </div>
             <ChevronDown className={cn("h-4.5 w-4.5 shrink-0 text-[#8c8f92] transition-transform", favOpen && "rotate-180")} />
           </button>
@@ -210,22 +224,22 @@ export default function CollectionsPage() {
           </button>
         </div>
         {favOpen && (
-          <div className="border-t border-[#f0ead9] p-5 pt-4">
-            <CollectionItemsList items={itemCache.__fav} loading={itemsLoading} onRemove={removeItem} />
+          <div className="border-t border-[var(--line-soft)] p-5 pt-4">
+            <CollectionItemsList items={itemCache.__fav} loading={itemsLoading} error={itemErrors.__fav} onRemove={removeItem} />
           </div>
         )}
       </GlassCard>
 
       {/* User collections */}
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-[#8a8680]">
+        <div className="flex items-center justify-center gap-2 py-16 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading collections…
         </div>
       ) : collections.length === 0 ? (
         <GlassCard hover={false} className="p-10 text-center">
           <Folders className="mx-auto mb-3 h-10 w-10 text-[#d5cfc0]" />
-          <p className="font-display text-xl font-bold text-[#55524a]">No collections yet</p>
-          <p className="mx-auto mt-1 max-w-sm text-[13.5px] text-[#8a8680]">
+          <p className="font-display text-xl font-bold text-[var(--ink-soft)]">No collections yet</p>
+          <p className="mx-auto mt-1 max-w-sm text-[13.5px] text-[var(--ink-faint)]">
             Create one here, then add questions from the bank or mid-quiz with the folder-plus button.
           </p>
           <button className="btn btn-primary mt-4" onClick={() => setCreateOpen(true)}>
@@ -247,8 +261,8 @@ export default function CollectionsPage() {
                     <Folders className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 grow">
-                    <div className="truncate text-[16px] font-bold text-[#25282c]">{c.name}</div>
-                    <div className="truncate text-[12.5px] text-[#7b8085]">
+                    <div className="truncate text-[16px] font-bold text-[var(--ink)]">{c.name}</div>
+                    <div className="truncate text-[12.5px] text-[var(--ink-faint)]">
                       {c.questionCount} question{c.questionCount === 1 ? "" : "s"}
                       {c.description ? ` · ${c.description}` : ""}
                     </div>
@@ -272,8 +286,8 @@ export default function CollectionsPage() {
                 </button>
               </div>
               {openId === c.id && (
-                <div className="border-t border-[#f0ead9] p-5 pt-4">
-                  <CollectionItemsList items={itemCache[c.id]} loading={itemsLoading} collection={c} onRemove={removeItem} />
+                <div className="border-t border-[var(--line-soft)] p-5 pt-4">
+                  <CollectionItemsList items={itemCache[c.id]} loading={itemsLoading} collection={c} error={itemErrors[c.id]} onRemove={removeItem} />
                 </div>
               )}
             </GlassCard>
@@ -289,7 +303,7 @@ export default function CollectionsPage() {
       >
         <div className="mt-4 space-y-3">
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Name</label>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Name</label>
             <input
               className="input w-full"
               placeholder='e.g. "Hard geometry" or "Words in context"'
@@ -300,8 +314,8 @@ export default function CollectionsPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">
-              Description <span className="font-medium normal-case text-[#b0aa98]">(optional)</span>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+              Description <span className="font-medium normal-case text-[var(--ink-faint)]">(optional)</span>
             </label>
             <input
               className="input w-full"

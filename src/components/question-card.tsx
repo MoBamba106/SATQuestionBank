@@ -7,7 +7,7 @@ import { SafeHtml } from "@/components/ui/safe-html";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
-import { cn, difficultyColor, stripHtml } from "@/lib/utils";
+import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
 type QuestionCardProps = {
@@ -43,8 +43,8 @@ function QuestionCardInner({
         className={cn(
           "flex h-full flex-col p-5",
           selectable && "cursor-pointer select-none",
-          selected && "!border-[#315eaa] !bg-[#e8eef8] shadow-[inset_4px_0_0_#315eaa]",
-          selectable && !selected && "hover:!border-[#8fa9cf] hover:!bg-[#f5f8fc]",
+          selected && "!border-[#88aeb9] !bg-[#dce8ed] shadow-[inset_4px_0_0_#286983]",
+          selectable && !selected && "hover:!border-[#aac7cf] hover:!bg-[#edf2f1]",
         )}
         hover={!selectable && !selected}
         onClick={selectable ? activateSelection : undefined}
@@ -55,11 +55,11 @@ function QuestionCardInner({
         aria-label={selectable ? `${selected ? "Deselect" : "Select"} question ${question.id}` : undefined}
       >
         <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-          <span className="badge badge-blue">{question.domain}</span>
-          <span className="badge">{question.skill}</span>
+          <span className={cn("badge", domainColor(question.domain))}>{question.domain}</span>
+          <span className={cn("badge", skillColor(question.skill))}>{question.skill}</span>
           <span className={cn("badge border", difficultyColor(question.difficulty))}>{question.difficulty}</span>
           {selectable ? (
-            <span className={cn("ml-auto inline-flex items-center gap-1.5 text-[11px] font-bold", selected ? "text-[#244b8c]" : "text-[#7b8085]")}>
+            <span className={cn("ml-auto inline-flex items-center gap-1.5 text-[11px] font-bold", selected ? "text-[#245d73]" : "text-[var(--ink-faint)]")}>
               {selected ? <Check className="h-4 w-4" strokeWidth={3} /> : <Square className="h-3.5 w-3.5" />}
               {selected ? "Selected" : "Select"}
             </span>
@@ -70,23 +70,23 @@ function QuestionCardInner({
 
         {selectable ? (
           <div className="grow text-left">
-            <p className="line-clamp-3 text-[13.5px] leading-relaxed text-[#3f454b]">
+            <p className="line-clamp-3 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">
               {snippet || "View question"}
-              {question.passageHtml && <span className="ml-1 text-[#7b8085]">(with passage)</span>}
+              {question.passageHtml && <span className="ml-1 text-[var(--ink-faint)]">(with passage)</span>}
             </p>
           </div>
         ) : (
           <button type="button" onClick={() => setOpen(true)} className="grow text-left">
-            <p className="line-clamp-3 text-[13.5px] leading-relaxed text-[#3f454b]">
+            <p className="line-clamp-3 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">
               {snippet || "View question"}
-              {question.passageHtml && <span className="ml-1 text-[#7b8085]">(with passage)</span>}
+              {question.passageHtml && <span className="ml-1 text-[var(--ink-faint)]">(with passage)</span>}
             </p>
           </button>
         )}
 
-        <div className={cn("mt-4 flex min-h-9 items-center justify-between border-t pt-3", selected ? "border-[#c5d3e9]" : "border-[#e6e1d7]")}>
+        <div className={cn("mt-4 flex min-h-9 items-center justify-between border-t pt-3", selected ? "border-[#b3ccd3]" : "border-[var(--line-soft)]")}>
           {selectable ? (
-            <span className={cn("inline-flex items-center gap-1.5 text-[12px] font-semibold", selected ? "text-[#244b8c]" : "text-[#555b62]")}>
+            <span className={cn("inline-flex items-center gap-1.5 text-[12px] font-semibold", selected ? "text-[#245d73]" : "text-[var(--ink-soft)]")}>
               {selected ? <Check className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
               {selected ? "Included in quiz" : "Click card to include"}
             </span>
@@ -99,7 +99,7 @@ function QuestionCardInner({
           {!selectable && (
             <div className="flex items-center">
               {question.timesAnswered > 0 && (
-                <span className="mr-2 text-[11px] font-medium text-[#7b8085]">
+                <span className="mr-2 text-[11px] font-medium text-[var(--ink-faint)]">
                   {question.timesCorrect}/{question.timesAnswered} right
                 </span>
               )}
@@ -117,9 +117,9 @@ function QuestionCardInner({
           wide
           title={
             <span className="flex flex-wrap items-center gap-2 text-base">
-              <span className="badge badge-blue">{question.domain}</span>
-              <span className="badge">{question.skill}</span>
-              {question.subskill && <span className="badge">{question.subskill}</span>}
+              <span className={cn("badge", domainColor(question.domain))}>{question.domain}</span>
+              <span className={cn("badge", skillColor(question.skill))}>{question.skill}</span>
+              {question.subskill && <span className={cn("badge", skillColor(question.skill))}>{question.subskill}</span>}
               <span className={cn("badge border", difficultyColor(question.difficulty))}>{question.difficulty}</span>
             </span>
           }
@@ -143,7 +143,7 @@ function QuestionCardInner({
                         : "border-[#d4cfc3] bg-white",
                     )}
                   >
-                    <span className="mt-0.5 font-mono text-[13px] font-bold text-[#7b8085]">{choice.key})</span>
+                    <span className="mt-0.5 font-mono text-[13px] font-bold text-[var(--ink-faint)]">{choice.key})</span>
                     <SafeHtml html={choice.html || choice.text} className="sat-content grow text-[14.5px]" />
                   </div>
                 ))}

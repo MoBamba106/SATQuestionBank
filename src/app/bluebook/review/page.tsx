@@ -7,7 +7,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { apiGet, apiPost } from "@/lib/api-client";
-import { cn, difficultyColor } from "@/lib/utils";
+import { cn, difficultyColor, skillColor } from "@/lib/utils";
 import type { PracticeTestDetail, SessionSummary, SATQuestion } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -29,11 +29,18 @@ function ReviewInner() {
         setSession(s);
         if (s.testId) {
           const t = await apiGet<PracticeTestDetail>(`/api/practice-tests/${s.testId}`);
+          const attemptedIds = new Set(s.attempts.map((attempt) => attempt.questionId));
+          const path = s.adaptivePath ?? {
+            rw: t.modules.rw2Easy.some((question) => attemptedIds.has(question.id)) ? "easier" : "harder",
+            math: t.modules.math2Easy.some((question) => attemptedIds.has(question.id)) ? "easier" : "harder",
+          };
+          const rw2 = path.rw === "harder" ? t.modules.rw2Hard : t.modules.rw2Easy;
+          const math2 = path.math === "harder" ? t.modules.math2Hard : t.modules.math2Easy;
           const flat: FlatItem[] = [
             ...t.modules.rw1.map((q) => ({ q, moduleLabel: "R&W · Module 1" })),
-            ...t.modules.rw2.map((q) => ({ q, moduleLabel: "R&W · Module 2" })),
+            ...rw2.map((q) => ({ q, moduleLabel: `R&W · Module 2 (${path.rw})` })),
             ...t.modules.math1.map((q) => ({ q, moduleLabel: "Math · Module 1" })),
-            ...t.modules.math2.map((q) => ({ q, moduleLabel: "Math · Module 2" })),
+            ...math2.map((q) => ({ q, moduleLabel: `Math · Module 2 (${path.math})` })),
           ];
           setItems(flat);
         } else {
@@ -56,21 +63,21 @@ function ReviewInner() {
   if (!sessionId)
     return (
       <GlassCard hover={false} className="p-10 text-center">
-        <p className="font-display text-xl font-bold text-[#55524a]">No review session was specified.</p>
+        <p className="font-display text-xl font-bold text-[var(--ink-soft)]">No review session was specified.</p>
         <Link href="/bluebook" className="btn btn-primary mt-4">Back to tests</Link>
       </GlassCard>
     );
 
   if (loading)
     return (
-      <div className="flex items-center justify-center gap-2 py-24 text-[#8a8680]">
+      <div className="flex items-center justify-center gap-2 py-24 text-[var(--ink-faint)]">
         <Loader2 className="h-5 w-5 animate-spin" /> Loading review…
       </div>
     );
   if (error)
     return (
       <GlassCard hover={false} className="p-10 text-center">
-        <p className="font-display text-xl font-bold text-[#55524a]">{error}</p>
+        <p className="font-display text-xl font-bold text-[var(--ink-soft)]">{error}</p>
         <Link href="/bluebook" className="btn btn-primary mt-4">Back to tests</Link>
       </GlassCard>
     );
@@ -83,11 +90,11 @@ function ReviewInner() {
       <div className="flex flex-wrap items-center gap-3">
         <Link href="/bluebook" className="btn btn-ghost !px-2.5"><ArrowLeft className="h-4 w-4" /></Link>
         <div>
-          <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+          <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
             {session?.label ?? "Test"}: Review
           </h1>
-          <p className="mt-1 text-[15px] text-[#8a8680]">
-            Score: <span className="font-bold text-[#2b2b2a]">{correct} / {items.length}</span> correct
+          <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
+            Score: <span className="font-bold text-[var(--ink)]">{correct} / {items.length}</span> correct
             {session?.finishedAt && <> · finished {new Date(session.finishedAt).toLocaleString()}</>}
           </p>
         </div>
@@ -99,14 +106,14 @@ function ReviewInner() {
           return (
             <GlassCard key={q.id} hover={false} className="p-5 sm:p-6">
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[12px] font-bold text-[#8a8680]">Q{i + 1}</span>
+                <span className="font-mono text-[12px] font-bold text-[var(--ink-faint)]">Q{i + 1}</span>
                 {moduleLabel && <span className="badge badge-blue">{moduleLabel}</span>}
-                <span className="badge">{q.skill}</span>
+                <span className={cn("badge", skillColor(q.skill))}>{q.skill}</span>
                 <span className={cn("badge border", difficultyColor(q.difficulty))}>{q.difficulty}</span>
                 <span
                   className={cn(
                     "badge ml-auto",
-                    !a ? "bg-[#f6f2e8] text-[#8a8680]"
+                    !a ? "bg-[var(--paper-soft)] text-[var(--ink-faint)]"
                       : a.isCorrect ? "bg-[#ecf8f1] text-[#238a5e] border-[#bde5cf]"
                       : "bg-[#fdf0f2] text-[#a33046] border-[#f3ccd4]",
                   )}
@@ -134,7 +141,7 @@ export default function BluebookReviewPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="flex items-center justify-center gap-2 py-24 text-[#8a8680]">
+        <div className="flex items-center justify-center gap-2 py-24 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading review…
         </div>
       }

@@ -3,20 +3,40 @@
 
 :root {
   color-scheme: light;
-  --paper: #f7f4ed;
-  --paper-raised: #fffdfa;
-  --paper-soft: #f1ede3;
-  --ink: #25282c;
-  --ink-soft: #555b62;
-  --ink-faint: #7b8085;
-  --line: #d4cfc3;
-  --line-soft: #e6e1d7;
-  --accent: #315eaa;
-  --accent-dark: #244b8c;
-  --accent-soft: #e8eef8;
-  --good: #287a55;
-  --bad: #ae3d51;
-  --warn: #9a6725;
+  /* Rosé-paper palette inspired by Nick Milo's Soft Paper theme. */
+  --paper: #eee6dd;
+  --paper-raised: #f8f2eb;
+  --paper-soft: #e6dbd1;
+  --paper-deep: #ddd0c6;
+  --ink: #575279;
+  --ink-soft: #686377;
+  --ink-faint: #817c86;
+  --line: #cac1b9;
+  --line-soft: #ddd3ca;
+  --accent: #286983;
+  --accent-dark: #20566b;
+  --accent-soft: #dce9ed;
+  --good: #4f8b68;
+  --bad: #a85d72;
+  --warn: #a06f32;
+
+  --sp-rose: #bc708d;
+  --sp-pink: #d270a2;
+  --sp-red: #ba7184;
+  --sp-peach: #dd7f67;
+  --sp-yellow: #d19548;
+  --sp-green: #5ba57b;
+  --sp-teal: #669ea6;
+  --sp-blue: #286983;
+  --sp-lavender: #9a85ae;
+  --sp-rose-wash: #f0dfe5;
+  --sp-pink-wash: #f1ddea;
+  --sp-peach-wash: #f3dfd7;
+  --sp-yellow-wash: #f1e4cf;
+  --sp-green-wash: #dfece3;
+  --sp-teal-wash: #deeaeb;
+  --sp-blue-wash: #dce8ed;
+  --sp-lavender-wash: #e9e1ec;
 }
 
 * {
@@ -36,7 +56,9 @@ body {
   margin: 0;
   font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   background-color: var(--paper);
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 39.5h40' stroke='%23ded9ce' stroke-opacity='.38'/%3E%3C/svg%3E");
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='160' height='160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.78' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.018'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(87,82,121,.04) 32px);
   background-attachment: fixed;
 }
 
@@ -212,10 +234,24 @@ textarea:focus-visible {
 }
 
 .badge-blue {
-  color: #244b8c;
-  background: var(--accent-soft);
-  border-color: #c9d6eb;
+  color: var(--sp-blue);
+  background: var(--sp-blue-wash);
+  border-color: #afcbd3;
 }
+
+/* Reusable muted section colors from the Soft Paper palette. */
+.soft-tone {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.soft-tone-blue { color: #245d73; background: var(--sp-blue-wash); border-color: #acc7d0; }
+.soft-tone-teal { color: #4d7c83; background: var(--sp-teal-wash); border-color: #b3cccf; }
+.soft-tone-green { color: #477b5c; background: var(--sp-green-wash); border-color: #b5cdbd; }
+.soft-tone-yellow { color: #8b622f; background: var(--sp-yellow-wash); border-color: #d9bd91; }
+.soft-tone-peach { color: #9c5949; background: var(--sp-peach-wash); border-color: #dfb6a9; }
+.soft-tone-rose { color: #8e5264; background: var(--sp-rose-wash); border-color: #d2abb7; }
+.soft-tone-pink { color: #965378; background: var(--sp-pink-wash); border-color: #dab1ca; }
+.soft-tone-lavender { color: #6e5d7b; background: var(--sp-lavender-wash); border-color: #c9b9d1; }
 
 /* The old paper-marker detail, implemented as a solid rule. */
 .hl-yellow,

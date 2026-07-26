@@ -7,7 +7,7 @@ import {
 import { Trophy, RotateCcw, LayoutDashboard, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { SafeHtml } from "@/components/ui/safe-html";
-import { cn, difficultyColor, stripHtml } from "@/lib/utils";
+import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
 export type GradedMap = Record<string, { correct: boolean; answer: string }>;
@@ -61,12 +61,12 @@ export function QuizResults({
           <div className="flex h-14 w-14 items-center justify-center rounded-[7px] border border-[#dfc27c] bg-[#f8ecd0]">
             <Trophy className="h-7 w-7 text-[#8a5c1f]" />
           </div>
-          <h2 className="font-display mt-4 text-3xl font-bold text-[#2b2b2a]">
+          <h2 className="font-display mt-4 text-3xl font-bold text-[var(--ink)]">
             {pct >= 80 ? "Congratulations!" : pct >= 60 ? "Nice work!" : "Quiz complete"}
           </h2>
-          <p className="mt-1 text-[15px] text-[#8a8680]">{label}</p>
-          <p className="mt-3 text-[17px] font-semibold text-[#2b2b2a]">
-            You scored <span className="hl-yellow px-1 text-[#1f1e1c]">{correctCount} / {pool.length}</span>
+          <p className="mt-1 text-[15px] text-[var(--ink-faint)]">{label}</p>
+          <p className="mt-3 text-[17px] font-semibold text-[var(--ink)]">
+            You scored <span className="hl-yellow px-1 text-[var(--ink)]">{correctCount} / {pool.length}</span>
             {" "}({pct}%)
           </p>
         </div>
@@ -84,8 +84,8 @@ export function QuizResults({
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-display text-3xl font-bold text-[#2b2b2a]">{pct}%</span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8680]">score</span>
+              <span className="font-display text-3xl font-bold text-[var(--ink)]">{pct}%</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--ink-faint)]">score</span>
             </div>
           </div>
 
@@ -98,11 +98,11 @@ export function QuizResults({
               <XCircle className="h-5 w-5 text-[#d95670]" />
               <span className="text-[14px] font-semibold text-[#a33046]">{incorrectCount} incorrect</span>
             </div>
-            <div className="flex items-center gap-3 rounded-[6px] bg-[#f6f2e8] px-4 py-3">
-              <MinusCircle className="h-5 w-5 text-[#a8a294]" />
+            <div className="flex items-center gap-3 rounded-[6px] bg-[var(--paper-soft)] px-4 py-3">
+              <MinusCircle className="h-5 w-5 text-[var(--ink-faint)]" />
               <span className="text-[14px] font-semibold text-[#6d6759]">
                 {unanswered} unanswered
-                <span className="ml-1 font-normal text-[#8a8680]">(no answer entered)</span>
+                <span className="ml-1 font-normal text-[var(--ink-faint)]">(no answer entered)</span>
               </span>
             </div>
           </div>
@@ -110,7 +110,7 @@ export function QuizResults({
 
         {bySkill.length > 1 && (
           <div className="mt-6">
-            <p className="mb-2 text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Accuracy by category</p>
+            <p className="mb-2 text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Accuracy by category</p>
             <div className="h-[180px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={bySkill} margin={{ left: -22, right: 8, top: 4 }}>
@@ -153,18 +153,18 @@ export function QuizResults({
             return (
               <GlassCard key={q.id} hover={false} className="p-5">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[12px] font-bold text-[#8a8680]">Q{i + 1}</span>
-                  <span className="badge badge-blue">{q.domain}</span>
-                  <span className="badge">{q.skill}</span>
+                  <span className="font-mono text-[12px] font-bold text-[var(--ink-faint)]">Q{i + 1}</span>
+                  <span className={cn("badge", domainColor(q.domain))}>{q.domain}</span>
+                  <span className={cn("badge", skillColor(q.skill))}>{q.skill}</span>
                   <span className={cn("badge border", difficultyColor(q.difficulty))}>{q.difficulty}</span>
                   <span className={cn(
                     "badge ml-auto",
-                    !a ? "bg-[#f6f2e8] text-[#8a8680]" : g?.correct ? "bg-[#ecf8f1] text-[#238a5e] border-[#bde5cf]" : "bg-[#fdf0f2] text-[#a33046] border-[#f3ccd4]",
+                    !a ? "bg-[var(--paper-soft)] text-[var(--ink-faint)]" : g?.correct ? "bg-[#ecf8f1] text-[#238a5e] border-[#bde5cf]" : "bg-[#fdf0f2] text-[#a33046] border-[#f3ccd4]",
                   )}>
                     {!a ? "Unanswered" : g?.correct ? `Correct: ${g.answer}` : `You answered ${g?.answer ?? a} · Correct: ${q.correctAnswer}`}
                   </span>
                 </div>
-                <p className="mb-3 text-[13.5px] text-[#55524a]">{stripHtml(q.questionHtml || q.questionText).slice(0, 200)}</p>
+                <p className="mb-3 text-[13.5px] text-[var(--ink-soft)]">{stripHtml(q.questionHtml || q.questionText).slice(0, 200)}</p>
                 {q.explanation && (
                   <details className="rounded-[6px] bg-[#f8f5ec] px-4 py-3">
                     <summary className="cursor-pointer text-[12.5px] font-bold text-[#3a5fc8]">Show explanation</summary>

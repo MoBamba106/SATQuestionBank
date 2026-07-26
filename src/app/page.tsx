@@ -71,10 +71,10 @@ export default function DashboardPage() {
         </p>
         <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <h1 className="font-display text-[clamp(2rem,5vw,3rem)] font-bold leading-none text-[#25282c]">
+            <h1 className="font-display text-[clamp(2rem,5vw,3rem)] font-bold leading-none text-[var(--ink)]">
               Study desk
             </h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-[#555b62]">
+            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-[var(--ink-soft)]">
               Build a focused quiz, work through the official question bank, or return to the
               questions that need another attempt.
             </p>
@@ -99,14 +99,14 @@ export default function DashboardPage() {
       <GlassCard hover={false} className="grid grid-cols-2 divide-x divide-y divide-[#e6e1d7] lg:grid-cols-4 lg:divide-y-0">
         {metrics.map((metric) => (
           <div key={metric.label} className="p-4 sm:p-5">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#7b8085]">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink-faint)]">
               <metric.icon className={`h-4 w-4 ${metric.color}`} />
               {metric.label}
             </div>
-            <div className="font-display mt-2 text-[28px] font-bold leading-none text-[#25282c]">
+            <div className="font-display mt-2 text-[28px] font-bold leading-none text-[var(--ink)]">
               {loading ? "…" : metric.value}
             </div>
-            <div className="mt-1 text-[11.5px] text-[#7b8085]">{metric.detail}</div>
+            <div className="mt-1 text-[11.5px] text-[var(--ink-faint)]">{metric.detail}</div>
           </div>
         ))}
       </GlassCard>
@@ -115,8 +115,8 @@ export default function DashboardPage() {
         <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-3">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8085]">Activity</p>
-              <h2 className="font-display text-xl font-bold text-[#25282c]">Last 14 days</h2>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Activity</p>
+              <h2 className="font-display text-xl font-bold text-[var(--ink)]">Last 14 days</h2>
             </div>
             <Link href="/analytics" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#315eaa] hover:underline">
               View analytics <ArrowRight className="h-3.5 w-3.5" />
@@ -138,26 +138,26 @@ export default function DashboardPage() {
           ) : (
             <div className="flex h-[220px] flex-col items-center justify-center border border-dashed border-[#d4cfc3] bg-[#faf8f2] text-center">
               <BookOpenCheck className="mb-2 h-7 w-7 text-[#a9a398]" />
-              <p className="text-[13.5px] font-semibold text-[#555b62]">No activity recorded yet</p>
-              <p className="mt-0.5 text-[12px] text-[#7b8085]">Your graded quiz answers will appear here.</p>
+              <p className="text-[13.5px] font-semibold text-[var(--ink-soft)]">No activity recorded yet</p>
+              <p className="mt-0.5 text-[12px] text-[var(--ink-faint)]">Your graded quiz answers will appear here.</p>
             </div>
           )}
         </GlassCard>
 
         <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8085]">Quick start</p>
-          <h2 className="font-display text-xl font-bold text-[#25282c]">Choose a session</h2>
-          <div className="mt-4 divide-y divide-[#e6e1d7] border-y border-[#e6e1d7]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Quick start</p>
+          <h2 className="font-display text-xl font-bold text-[var(--ink)]">Choose a session</h2>
+          <div className="mt-4 divide-y divide-[#e6e1d7] border-y border-[var(--line-soft)]">
             {[
               { href: "/study-sessions", label: "Quick 10", detail: "10 random questions", icon: CalendarClock },
               { href: "/mistakes", label: "Mistake review", detail: `${stats?.mistakesCount ?? 0} open`, icon: RotateCcw },
               { href: "/bluebook", label: "Timed practice test", detail: "full digital SAT format", icon: MonitorSmartphone },
             ].map((item) => (
-              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[#25282c] hover:text-[#315eaa]">
-                <item.icon className="h-4 w-4 shrink-0 text-[#7b8085]" />
+              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[var(--ink)] hover:text-[#315eaa]">
+                <item.icon className="h-4 w-4 shrink-0 text-[var(--ink-faint)]" />
                 <div className="min-w-0 grow">
                   <div className="text-[13.5px] font-semibold">{item.label}</div>
-                  <div className="text-[11.5px] text-[#7b8085]">{item.detail}</div>
+                  <div className="text-[11.5px] text-[var(--ink-faint)]">{item.detail}</div>
                 </div>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -169,16 +169,16 @@ export default function DashboardPage() {
       <div className="grid gap-5 lg:grid-cols-2">
         <GlassCard hover={false} className="p-5 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-[#25282c]">Recent sessions</h2>
-            <BarChart3 className="h-4 w-4 text-[#7b8085]" />
+            <h2 className="font-display text-xl font-bold text-[var(--ink)]">Recent sessions</h2>
+            <BarChart3 className="h-4 w-4 text-[var(--ink-faint)]" />
           </div>
           {stats && stats.recentSessions.length > 0 ? (
-            <ul className="divide-y divide-[#e6e1d7] border-t border-[#e6e1d7]">
+            <ul className="divide-y divide-[#e6e1d7] border-t border-[var(--line-soft)]">
               {stats.recentSessions.slice(0, 5).map((session) => (
                 <li key={session.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 grow">
-                    <div className="truncate text-[13px] font-semibold text-[#25282c]">{session.label ?? session.mode}</div>
-                    <div className="text-[11px] text-[#7b8085]">
+                    <div className="truncate text-[13px] font-semibold text-[var(--ink)]">{session.label ?? session.mode}</div>
+                    <div className="text-[11px] text-[var(--ink-faint)]">
                       {session.finishedAt ? new Date(session.finishedAt).toLocaleDateString() : "In progress"} · {session.answeredCount ?? 0}/{session.totalQuestions} answered
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <p className="border border-dashed border-[#d4cfc3] bg-[#faf8f2] px-4 py-5 text-[13px] text-[#7b8085]">
+            <p className="border border-dashed border-[#d4cfc3] bg-[#faf8f2] px-4 py-5 text-[13px] text-[var(--ink-faint)]">
               Completed quizzes will be listed here with their scores.
             </p>
           )}
@@ -197,14 +197,14 @@ export default function DashboardPage() {
 
         <GlassCard hover={false} className="p-5 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-[#25282c]">Practice tests</h2>
+            <h2 className="font-display text-xl font-bold text-[var(--ink)]">Practice tests</h2>
             <Link href="/bluebook" className="text-[12.5px] font-semibold text-[#315eaa] hover:underline">See all</Link>
           </div>
-          <div className="grid grid-cols-3 border-l border-t border-[#e6e1d7] sm:grid-cols-5">
+          <div className="grid grid-cols-3 border-l border-t border-[var(--line-soft)] sm:grid-cols-5">
             {(tests?.tests ?? []).slice(0, 10).map((test) => (
-              <Link key={test.id} href="/bluebook" className="border-b border-r border-[#e6e1d7] bg-[#faf8f2] px-2 py-3 text-center hover:bg-[#e8eef8]">
+              <Link key={test.id} href="/bluebook" className="border-b border-r border-[var(--line-soft)] bg-[#faf8f2] px-2 py-3 text-center hover:bg-[#e8eef8]">
                 <span className="font-display block text-xl font-bold text-[#315eaa]">{test.testNumber}</span>
-                <span className="text-[9.5px] font-semibold uppercase tracking-wide text-[#7b8085]">{test.totalQuestions} Q</span>
+                <span className="text-[9.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">{test.totalQuestions} Q</span>
               </Link>
             ))}
           </div>

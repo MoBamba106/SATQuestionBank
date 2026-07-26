@@ -83,6 +83,7 @@ export const quizSessions = pgTable("quiz_sessions", {
   totalQuestions: integer("total_questions").notNull().default(0),
   correctCount: integer("correct_count"),
   answeredCount: integer("answered_count"),
+  adaptivePath: jsonb("adaptive_path"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
   finishedAt: timestamp("finished_at"),
 });

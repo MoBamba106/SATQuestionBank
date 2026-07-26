@@ -179,6 +179,14 @@ DATABASE_URL=postgresql://user:password@localhost:5432/sat_nexus
 Make sure that server is running before `npm run dev`. In production, a defined
 `DATABASE_URL` is used automatically.
 
+### Desktop/Tauri data boundary
+
+The React UI uses the shared `lib/api-client` boundary and standard WebView APIs,
+so selection, adaptive routing, and collection flows do not depend on a browser-
+only framework feature. The embedded database location can be redirected to a
+Tauri app-data directory by setting `SAT_NEXUS_DATA_DIR` for the packaged backend
+sidecar. This keeps user data outside the read-only application bundle.
+
 ---
 
 MIT – SAT Nexus v5 – WCAG AA • official CB taxonomy • no fake data

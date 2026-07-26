@@ -11,7 +11,7 @@ import { QuizResults, type GradedMap } from "@/components/quiz/quiz-results";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
 import { apiPost, apiPatch, mutateKey } from "@/lib/api-client";
-import { answersMatch, cn, difficultyColor, formatTime } from "@/lib/utils";
+import { answersMatch, cn, difficultyColor, domainColor, formatTime, skillColor } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
 type Mode = "practice" | "exam" | "mistakes" | "collection" | "favorites" | "session";
@@ -201,7 +201,7 @@ export function PracticeRunner({
             <LogOut className="h-4 w-4" />
           </button>
           <div className="min-w-0 grow">
-            <div className="flex items-center justify-between text-[12.5px] font-semibold text-[#8a8680]">
+            <div className="flex items-center justify-between text-[12.5px] font-semibold text-[var(--ink-faint)]">
               <span className="truncate">{label}</span>
               <span className="inline-flex items-center gap-1.5 font-mono">
                 <Timer className="h-3.5 w-3.5" /> {formatTime(elapsed)}
@@ -214,17 +214,17 @@ export function PracticeRunner({
               />
             </div>
           </div>
-          <span className="font-mono text-[13px] font-bold text-[#55524a]">
-            {idx + 1}<span className="text-[#b0aa98]">/{pool.length}</span>
+          <span className="font-mono text-[13px] font-bold text-[var(--ink-soft)]">
+            {idx + 1}<span className="text-[var(--ink-faint)]">/{pool.length}</span>
           </span>
         </div>
 
         {/* Question card */}
         <GlassCard hover={false} className="p-5 sm:p-7">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="badge badge-blue">{current.domain}</span>
-            <span className="badge">{current.skill}</span>
-            {current.subskill && <span className="badge hidden sm:inline-flex">{current.subskill}</span>}
+            <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
+            <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
+            {current.subskill && <span className={cn("badge hidden sm:inline-flex", skillColor(current.skill))}>{current.subskill}</span>}
             <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
             <div className="ml-auto flex items-center">
               <FavoriteButton questionId={current.id} favorite={current.favorite} />
@@ -276,7 +276,7 @@ export function PracticeRunner({
           )}
 
           {/* action bar */}
-          <div className="mt-6 flex flex-wrap items-center gap-2.5 border-t border-[#f0ead9] pt-5">
+          <div className="mt-6 flex flex-wrap items-center gap-2.5 border-t border-[var(--line-soft)] pt-5">
             <button className="btn btn-soft" disabled={idx === 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}>
               <ChevronLeft className="h-4 w-4" /> Back
             </button>
@@ -300,7 +300,7 @@ export function PracticeRunner({
                 Finish Quiz
               </button>
             )}
-            <div className="ml-auto hidden items-center gap-3 text-[12px] font-medium text-[#8a8680] sm:flex">
+            <div className="ml-auto hidden items-center gap-3 text-[12px] font-medium text-[var(--ink-faint)] sm:flex">
               <span>{answeredCount} answered</span>
               {!isExam && <span>{gradedCount} checked</span>}
             </div>
@@ -319,7 +319,7 @@ export function PracticeRunner({
 
       {/* Navigator */}
       <GlassCard hover={false} className="h-fit p-4 lg:sticky lg:top-6">
-        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a8680]">Navigator</p>
+        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--ink-faint)]">Navigator</p>
         <div className="grid grid-cols-8 gap-1.5 lg:grid-cols-5">
           {pool.map((q, i) => {
             const g = graded[q.id];
@@ -338,7 +338,7 @@ export function PracticeRunner({
                         : "border-[#f3ccd4] bg-[#fdf0f2] text-[#a33046]"
                       : a && a.trim() !== ""
                         ? "border-[#c9d6f5] bg-[#eef2fd] text-[#3053ad]"
-                        : "border-[#e7e0d0] bg-white text-[#8a8680] hover:border-[#cfc5ae]",
+                        : "border-[var(--line-soft)] bg-white text-[var(--ink-faint)] hover:border-[#cfc5ae]",
                 )}
               >
                 {i + 1}
@@ -347,7 +347,7 @@ export function PracticeRunner({
             );
           })}
         </div>
-        <div className="mt-3 space-y-1.5 border-t border-[#f0ead9] pt-3 text-[11px] text-[#8a8680]">
+        <div className="mt-3 space-y-1.5 border-t border-[var(--line-soft)] pt-3 text-[11px] text-[var(--ink-faint)]">
           <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#3a5fc8]" /> Current</div>
           <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#eef2fd] ring-1 ring-[#c9d6f5]" /> Answered</div>
           {!isExam && (

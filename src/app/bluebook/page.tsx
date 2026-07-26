@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { MonitorSmartphone, Clock, BookOpen, Calculator, Loader2, Play, Info } from "lucide-react";
+import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useApi } from "@/lib/api-client";
@@ -23,21 +23,22 @@ export default function BluebookPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
           Bluebook <span className="hl-blue px-1">Practice Tests</span>
         </h1>
-        <p className="mt-1 max-w-2xl text-[15px] text-[#8a8680]">
-          Timed digital SAT practice with two Reading &amp; Writing modules, two Math modules,
-          module-by-module timing, and results after submission.
+        <p className="mt-1 max-w-2xl text-[15px] text-[var(--ink-faint)]">
+          Timed digital SAT practice with adaptive Reading &amp; Writing and Math sections.
+          Your Module 1 performance routes you to an easier or harder Module 2.
         </p>
       </div>
 
       <div className="glass-subtle flex items-start gap-3 px-4 py-3.5">
         <Info className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#3a5fc8]" />
-        <p className="text-[13px] leading-relaxed text-[#55524a]">
-          Each test is assembled from official College Board question-bank items following the
-          published module blueprints (27 R&amp;W + 22 Math per module, rising difficulty inside each
-          module). Timing mirrors Bluebook: 32 minutes per R&amp;W module, 35 minutes per Math module.
+        <p className="text-[13px] leading-relaxed text-[var(--ink-soft)]">
+          Each test uses official College Board question-bank items and the digital SAT module
+          sizes: 27 Reading &amp; Writing questions and 22 Math questions per module. A score of at
+          least 60% on a section&apos;s first module selects its harder second module; otherwise the
+          easier route is used. Timing is 32 minutes per R&amp;W module and 35 minutes per Math module.
         </p>
       </div>
 
@@ -48,7 +49,7 @@ export default function BluebookPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-20 text-[#8a8680]">
+        <div className="flex items-center justify-center gap-2 py-20 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Preparing practice tests…
         </div>
       ) : (
@@ -57,7 +58,7 @@ export default function BluebookPage() {
             <GlassCard key={t.id} className="flex flex-col p-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-display text-[13px] font-semibold uppercase tracking-[0.14em] text-[#8a8680]">
+                  <div className="font-display text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-faint)]">
                     Practice Test
                   </div>
                   <div className="font-display mt-0.5 text-5xl font-bold text-[#315eaa]">
@@ -69,26 +70,29 @@ export default function BluebookPage() {
                 </div>
               </div>
 
-              <p className="mt-2 text-[12px] font-medium text-[#8a8680]">{t.releaseLabel}</p>
+              <p className="mt-2 text-[12px] font-medium text-[var(--ink-faint)]">{t.releaseLabel}</p>
+              <div className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-[5px] border border-[#c9b9d1] bg-[#e9e1ec] px-2.5 py-1 text-[10.5px] font-bold text-[#6e5d7b]">
+                <GitBranch className="h-3.5 w-3.5" /> Adaptive Module 2
+              </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2.5">
                 <div className="glass-subtle flex items-center gap-2.5 px-3 py-2.5">
                   <BookOpen className="h-4 w-4 shrink-0 text-[#3a5fc8]" />
                   <div>
-                    <div className="text-[14px] font-bold text-[#2b2b2a]">{t.rwQuestions}</div>
-                    <div className="text-[10.5px] font-semibold uppercase tracking-wide text-[#8a8680]">R&W · {t.rwMinutes}m</div>
+                    <div className="text-[14px] font-bold text-[var(--ink)]">{t.rwQuestions}</div>
+                    <div className="text-[10.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">R&W · {t.rwMinutes}m</div>
                   </div>
                 </div>
                 <div className="glass-subtle flex items-center gap-2.5 px-3 py-2.5">
                   <Calculator className="h-4 w-4 shrink-0 text-[#238a5e]" />
                   <div>
-                    <div className="text-[14px] font-bold text-[#2b2b2a]">{t.mathQuestions}</div>
-                    <div className="text-[10.5px] font-semibold uppercase tracking-wide text-[#8a8680]">Math · {t.mathMinutes}m</div>
+                    <div className="text-[14px] font-bold text-[var(--ink)]">{t.mathQuestions}</div>
+                    <div className="text-[10.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Math · {t.mathMinutes}m</div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-2.5 flex items-center gap-1.5 text-[12px] font-medium text-[#8a8680]">
+              <div className="mt-2.5 flex items-center gap-1.5 text-[12px] font-medium text-[var(--ink-faint)]">
                 <Clock className="h-3.5 w-3.5" />
                 {t.rwMinutes + t.mathMinutes} minutes total · {t.totalQuestions} questions
               </div>
@@ -105,14 +109,14 @@ export default function BluebookPage() {
         open={!!selected}
         onOpenChange={(o) => !o && setSelected(null)}
         title={selected ? `Start ${selected.title}?` : ""}
-        description="In test mode, answers and explanations stay hidden until you submit."
+        description="Answers stay hidden until submission. Module 1 performance selects the adaptive Module 2 route."
       >
         {selected && (
           <>
-            <div className="mt-4 space-y-2.5 rounded-[6px] bg-[#f6f2e8] p-4 text-[13.5px]">
-              <div className="flex justify-between"><span className="text-[#8a8680]">Reading & Writing</span><span className="font-semibold text-[#2b2b2a]">{selected.rwQuestions} questions · {selected.rwMinutes} min</span></div>
-              <div className="flex justify-between"><span className="text-[#8a8680]">Math</span><span className="font-semibold text-[#2b2b2a]">{selected.mathQuestions} questions · {selected.mathMinutes} min</span></div>
-              <div className="flex justify-between border-t border-[#e7ddc8] pt-2.5"><span className="text-[#8a8680]">Total</span><span className="font-bold text-[#2b2b2a]">{selected.totalQuestions} questions · {selected.rwMinutes + selected.mathMinutes} min</span></div>
+            <div className="mt-4 space-y-2.5 rounded-[6px] bg-[var(--paper-soft)] p-4 text-[13.5px]">
+              <div className="flex justify-between"><span className="text-[var(--ink-faint)]">Reading & Writing</span><span className="font-semibold text-[var(--ink)]">{selected.rwQuestions} questions · {selected.rwMinutes} min</span></div>
+              <div className="flex justify-between"><span className="text-[var(--ink-faint)]">Math</span><span className="font-semibold text-[var(--ink)]">{selected.mathQuestions} questions · {selected.mathMinutes} min</span></div>
+              <div className="flex justify-between border-t border-[#e7ddc8] pt-2.5"><span className="text-[var(--ink-faint)]">Total</span><span className="font-bold text-[var(--ink)]">{selected.totalQuestions} questions · {selected.rwMinutes + selected.mathMinutes} min</span></div>
             </div>
             <div className="mt-3 rounded-[6px] bg-[#fff8e6] px-4 py-3 text-[12.5px] leading-relaxed text-[#8a6100]">
               Modules lock when you leave them, and the timer keeps running. Set aside{" "}

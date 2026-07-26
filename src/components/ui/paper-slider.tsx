@@ -81,7 +81,7 @@ export function PaperSlider({
           {showBubble && (
             <span
               className={cn(
-                "pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[5px] border border-[#e2dbc9] bg-[#fffdf8] px-2.5 py-1 text-[12px] font-bold text-[#3053ad] shadow-[0_4px_12px_rgba(60,45,20,0.12)] transition-all duration-150",
+                "pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] px-2.5 py-1 text-[12px] font-bold text-[#3053ad] shadow-[0_4px_12px_rgba(60,45,20,0.12)] transition-all duration-150",
                 dragging ? "opacity-100" : "opacity-0",
               )}
             >
@@ -93,7 +93,7 @@ export function PaperSlider({
       </SliderPrimitive.Root>
 
       {/* min/max labels */}
-      <div className="mt-1 flex justify-between text-[10.5px] font-medium tracking-wide text-[#8a8680]">
+      <div className="mt-1 flex justify-between text-[10.5px] font-medium tracking-wide text-[var(--ink-faint)]">
         <span>{formatValue(min)}</span>
         <span>{formatValue(max)}</span>
       </div>

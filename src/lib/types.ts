@@ -59,12 +59,21 @@ export interface PracticeTestInfo {
   mathQuestions: number;
 }
 
+export type AdaptiveRoute = "easier" | "harder";
+
+export interface AdaptivePath {
+  rw: AdaptiveRoute;
+  math: AdaptiveRoute;
+}
+
 export interface PracticeTestDetail extends PracticeTestInfo {
   modules: {
     rw1: SATQuestion[];
-    rw2: SATQuestion[];
+    rw2Easy: SATQuestion[];
+    rw2Hard: SATQuestion[];
     math1: SATQuestion[];
-    math2: SATQuestion[];
+    math2Easy: SATQuestion[];
+    math2Hard: SATQuestion[];
   };
 }
 
@@ -76,6 +85,7 @@ export interface SessionSummary {
   totalQuestions: number;
   correctCount: number | null;
   answeredCount: number | null;
+  adaptivePath: AdaptivePath | null;
   startedAt: string;
   finishedAt: string | null;
   attempts: {

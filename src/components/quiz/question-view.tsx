@@ -29,7 +29,7 @@ export function QuestionView({
     <div className="space-y-4">
       {question.passageHtml && (
         <div className="glass-subtle max-h-[380px] overflow-y-auto p-4 sm:p-5 scrollbar-thin">
-          <SafeHtml html={question.passageHtml} className="sat-content text-[14.5px] text-[#3a3833]" />
+          <SafeHtml html={question.passageHtml} className="sat-content text-[14.5px] text-[var(--ink-soft)]" />
         </div>
       )}
 
@@ -48,22 +48,22 @@ export function QuestionView({
                 onClick={() => onSelect(c.key)}
                 className={cn(
                   "flex w-full items-start gap-3.5 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
-                  !graded && !isSel && "border-[#e7e0d0] bg-white hover:border-[#b9c9f2] hover:bg-[#f7f9fe]",
+                  !graded && !isSel && "border-[var(--line-soft)] bg-white hover:border-[#b9c9f2] hover:bg-[#f7f9fe]",
                   !graded && isSel && "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]",
                   graded && isAnswer && "border-[#2ca974] bg-[#ecf8f1]",
                   wasCheckedWrong && "border-[#d95670] bg-[#fdf0f2]",
-                  graded && !isAnswer && !isSel && "border-[#e7e0d0] bg-white opacity-70",
+                  graded && !isAnswer && !isSel && "border-[var(--line-soft)] bg-white opacity-70",
                   lockSelection && "cursor-default",
                 )}
               >
                 <span
                   className={cn(
                     "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-[1.5px] font-mono text-[12.5px] font-bold transition-colors",
-                    !graded && !isSel && "border-[#d5cfc0] bg-[#faf8f3] text-[#8a8680]",
+                    !graded && !isSel && "border-[var(--line)] bg-[#faf8f3] text-[var(--ink-faint)]",
                     !graded && isSel && "border-[#3a5fc8] bg-[#3a5fc8] text-white",
                     graded && isAnswer && "border-[#2ca974] bg-[#2ca974] text-white",
                     wasCheckedWrong && "border-[#d95670] bg-[#d95670] text-white",
-                    graded && !isAnswer && !isSel && "border-[#e0d9c8] bg-white text-[#b0aa98]",
+                    graded && !isAnswer && !isSel && "border-[#e0d9c8] bg-white text-[var(--ink-faint)]",
                   )}
                 >
                   {c.key}
@@ -80,7 +80,7 @@ export function QuestionView({
       ) : (
         // free response (student-produced response)
         <div className="pt-1">
-          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">
+          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
             Your answer
           </label>
           <div className="flex max-w-sm items-center gap-3">

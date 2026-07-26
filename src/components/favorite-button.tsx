@@ -60,7 +60,7 @@ export function FavoriteButton({
       aria-label={fav ? "Remove from favorites" : "Add to favorites"}
       title={fav ? "Remove from favorites" : "Add to favorites"}
       className={cn(
-        "rounded-[4px] transition-colors duration-150 hover:bg-[#f1ede3]",
+        "rounded-[4px] transition-colors duration-150 hover:bg-[var(--paper-soft)]",
         size === "md" ? "p-2" : "p-1.5",
         className,
       )}

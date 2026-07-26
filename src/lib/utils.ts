@@ -62,11 +62,49 @@ export function uid(prefix = "id"): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function difficultyColor(d: string): string {
-  switch (d) {
-    case "Easy": return "bg-emerald-100 text-emerald-800 border-emerald-200";
-    case "Medium": return "bg-amber-100 text-amber-800 border-amber-200";
-    case "Hard": return "bg-rose-100 text-rose-800 border-rose-200";
-    default: return "bg-stone-100 text-stone-700 border-stone-200";
+export type SoftTone = "blue" | "teal" | "green" | "yellow" | "peach" | "rose" | "pink" | "lavender" | "paper";
+
+export function difficultyColor(difficulty: string): string {
+  switch (difficulty) {
+    case "Easy": return "bg-[#dfece3] text-[#477b5c] border-[#b5cdbd]";
+    case "Medium": return "bg-[#f1e4cf] text-[#8b622f] border-[#d9bd91]";
+    case "Hard": return "bg-[#f0dfe5] text-[#8e5264] border-[#d2abb7]";
+    default: return "bg-[#e6dbd1] text-[#686377] border-[#cac1b9]";
   }
+}
+
+export function domainColor(domain: string): string {
+  if (domain === "Math") return "bg-[#deeaeb] text-[#4d7c83] border-[#b3cccf]";
+  if (domain === "Reading & Writing") return "bg-[#e9e1ec] text-[#6e5d7b] border-[#c9b9d1]";
+  return "bg-[#e6dbd1] text-[#686377] border-[#cac1b9]";
+}
+
+export function skillTone(skill: string): SoftTone {
+  switch (skill) {
+    case "Algebra": return "blue";
+    case "Advanced Math": return "lavender";
+    case "Problem-Solving and Data Analysis": return "green";
+    case "Geometry and Trigonometry": return "yellow";
+    case "Information and Ideas": return "teal";
+    case "Craft and Structure": return "blue";
+    case "Expression of Ideas": return "peach";
+    case "Standard English Conventions": return "pink";
+    default: return "paper";
+  }
+}
+
+export function skillColor(skill: string): string {
+  const tone = skillTone(skill);
+  const colors: Record<SoftTone, string> = {
+    blue: "bg-[#dce8ed] text-[#245d73] border-[#acc7d0]",
+    teal: "bg-[#deeaeb] text-[#4d7c83] border-[#b3cccf]",
+    green: "bg-[#dfece3] text-[#477b5c] border-[#b5cdbd]",
+    yellow: "bg-[#f1e4cf] text-[#8b622f] border-[#d9bd91]",
+    peach: "bg-[#f3dfd7] text-[#9c5949] border-[#dfb6a9]",
+    rose: "bg-[#f0dfe5] text-[#8e5264] border-[#d2abb7]",
+    pink: "bg-[#f1ddea] text-[#965378] border-[#dab1ca]",
+    lavender: "bg-[#e9e1ec] text-[#6e5d7b] border-[#c9b9d1]",
+    paper: "bg-[#e6dbd1] text-[#686377] border-[#cac1b9]",
+  };
+  return colors[tone];
 }

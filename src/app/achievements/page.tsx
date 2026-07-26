@@ -101,16 +101,16 @@ export default function AchievementsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
           <span className="hl-yellow px-1">Achievements</span>
         </h1>
-        <p className="mt-1 text-[15px] text-[#8a8680]">
+        <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
           {loading ? "…" : `${unlockedCount} of ${ACHIEVEMENTS.length} unlocked from completed practice.`}
         </p>
       </div>
 
       {loading || !s ? (
-        <div className="flex items-center justify-center gap-2 py-20 text-[#8a8680]">
+        <div className="flex items-center justify-center gap-2 py-20 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading…
         </div>
       ) : (
@@ -129,23 +129,23 @@ export default function AchievementsPage() {
                   <div
                     className={cn(
                       "flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] border",
-                      un ? "border-[#dfc27c] bg-[#f8ecd0] text-[#8a5c1f]" : "border-[#d4cfc3] bg-[#f1ede3] text-[#8c8f92]",
+                      un ? "border-[#dfc27c] bg-[#f8ecd0] text-[#8a5c1f]" : "border-[#d4cfc3] bg-[var(--paper-soft)] text-[#8c8f92]",
                     )}
                   >
                     {un ? <a.icon className="h-5 w-5" /> : <Lock className="h-4.5 w-4.5" />}
                   </div>
                   <div className="min-w-0 grow">
                     <div className="flex items-center gap-2">
-                      <h2 className="font-display text-[16px] font-bold text-[#2b2b2a]">{a.title}</h2>
+                      <h2 className="font-display text-[16px] font-bold text-[var(--ink)]">{a.title}</h2>
                       {un && <span className="badge bg-[#fff8e6] text-[#8a6100] border-[#f0dcae]">Unlocked</span>}
                     </div>
-                    <p className="mt-0.5 text-[12.5px] leading-snug text-[#8a8680]">{a.desc}</p>
+                    <p className="mt-0.5 text-[12.5px] leading-snug text-[var(--ink-faint)]">{a.desc}</p>
                     {!un && (
                       <div className="mt-2.5">
                         <div className="h-2 overflow-hidden rounded-full bg-[#efe9db]">
                           <div className="h-full rounded-full bg-[#b88131]" style={{ width: `${pct}%` }} />
                         </div>
-                        <p className="mt-1 font-mono text-[11px] font-bold text-[#a8a294]">{p.cur}/{p.goal}</p>
+                        <p className="mt-1 font-mono text-[11px] font-bold text-[var(--ink-faint)]">{p.cur}/{p.goal}</p>
                       </div>
                     )}
                   </div>

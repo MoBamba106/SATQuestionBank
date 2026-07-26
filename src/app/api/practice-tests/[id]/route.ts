@@ -30,18 +30,34 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     `);
     const rows = (qRes as unknown as { rows: Record<string, unknown>[] }).rows ?? [];
 
-    const modules: PracticeTestDetail["modules"] = { rw1: [], rw2: [], math1: [], math2: [] };
-    for (const r of rows) {
-      const mod = String(r.module) as keyof PracticeTestDetail["modules"];
-      if (modules[mod]) modules[mod].push(mapRow(r));
+    const modules: PracticeTestDetail["modules"] = {
+      rw1: [],
+      rw2Easy: [],
+      rw2Hard: [],
+      math1: [],
+      math2Easy: [],
+      math2Hard: [],
+    };
+    const moduleMap: Record<string, keyof PracticeTestDetail["modules"]> = {
+      rw1: "rw1",
+      rw2_easy: "rw2Easy",
+      rw2_hard: "rw2Hard",
+      math1: "math1",
+      math2_easy: "math2Easy",
+      math2_hard: "math2Hard",
+    };
+    for (const row of rows) {
+      const key = moduleMap[String(row.module)];
+      if (key) modules[key].push(mapRow(row));
     }
-    const flat = [...modules.rw1, ...modules.rw2, ...modules.math1, ...modules.math2];
+    const rwQuestions = modules.rw1.length + modules.rw2Hard.length;
+    const mathQuestions = modules.math1.length + modules.math2Hard.length;
     const detail: PracticeTestDetail = {
       ...(meta as unknown as Omit<PracticeTestDetail, "modules" | "totalQuestions" | "rwQuestions" | "mathQuestions">),
       modules,
-      totalQuestions: flat.length,
-      rwQuestions: modules.rw1.length + modules.rw2.length,
-      mathQuestions: modules.math1.length + modules.math2.length,
+      totalQuestions: rwQuestions + mathQuestions,
+      rwQuestions,
+      mathQuestions,
     } as PracticeTestDetail & { modules: Record<string, SATQuestion[]> };
     return NextResponse.json(detail);
   } catch (e) {

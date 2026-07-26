@@ -57,10 +57,10 @@ export default function MistakesPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
           Mistake <span className="hl-yellow px-1">Bank</span>
         </h1>
-        <p className="mt-1 text-[15px] text-[#8a8680]">
+        <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
           Questions whose latest answer was wrong. Answer one correctly and it leaves the bank automatically.
         </p>
       </div>
@@ -69,24 +69,26 @@ export default function MistakesPage() {
       <GlassCard hover={false} className="p-4 sm:p-5">
         <div className="grid gap-3 sm:grid-cols-3">
           <PaperSelect
-            ariaLabel="Domain"
+            ariaLabel="Section"
+            tone="lavender"
             value={domain}
             onValueChange={setDomain}
             options={[
-              { value: "All", label: "All domains" },
-              { value: "Math", label: "Math" },
-              { value: "Reading & Writing", label: "Reading & Writing" },
+              { value: "All", label: "All sections", tone: "lavender" },
+              { value: "Math", label: "Math", tone: "teal" },
+              { value: "Reading & Writing", label: "Reading & Writing", tone: "lavender" },
             ]}
           />
           <PaperSelect
             ariaLabel="Time period"
+            tone="yellow"
             value={daysBack}
             onValueChange={setDaysBack}
             options={[
-              { value: "0", label: "All time" },
-              { value: "7", label: "Last 7 days" },
-              { value: "30", label: "Last 30 days" },
-              { value: "90", label: "Last 90 days" },
+              { value: "0", label: "All time", tone: "yellow" },
+              { value: "7", label: "Last 7 days", tone: "peach" },
+              { value: "30", label: "Last 30 days", tone: "yellow" },
+              { value: "90", label: "Last 90 days", tone: "green" },
             ]}
           />
           <button
@@ -94,17 +96,17 @@ export default function MistakesPage() {
             className={cn(
               "flex items-center justify-between gap-3 rounded-[6px] border-[1.5px] px-3.5 py-2.5 text-left text-sm transition-all",
               neverCorrected
-                ? "border-[#3a5fc8] bg-[#eef2fd]"
-                : "border-[#d5cfc0] bg-white hover:border-[#c0b8a2]",
+                ? "border-[#b5cdbd] bg-[#dfece3]"
+                : "border-[var(--line)] bg-[var(--paper-raised)] hover:border-[#b5cdbd]",
             )}
           >
-            <span className={cn("text-[14px]", neverCorrected ? "font-semibold text-[#3053ad]" : "text-[#55524a]")}>
+            <span className={cn("text-[14px]", neverCorrected ? "font-semibold text-[#477b5c]" : "text-[var(--ink-soft)]")}>
               Never corrected only
             </span>
             <span
               className={cn(
                 "relative h-[22px] w-[40px] rounded-full transition-colors",
-                neverCorrected ? "bg-[#3a5fc8]" : "bg-[#e0d9c8]",
+                neverCorrected ? "bg-[#5ba57b]" : "bg-[#d4c8bd]",
               )}
             >
               <span
@@ -122,15 +124,15 @@ export default function MistakesPage() {
       <div className="grid grid-cols-3 gap-4">
         <GlassCard hover={false} className="p-5 text-center">
           <div className="font-display text-3xl font-bold text-[#d95670]">{loading ? "…" : mistakes.length}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[#8a8680]">Open mistakes</div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Open mistakes</div>
         </GlassCard>
         <GlassCard hover={false} className="p-5 text-center">
           <div className="font-display text-3xl font-bold text-[#d9922e]">{loading ? "…" : `${avgMastery}%`}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[#8a8680]">Avg mastery</div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Avg mastery</div>
         </GlassCard>
         <GlassCard hover={false} className="p-5 text-center">
           <div className="font-display text-3xl font-bold text-[#3a5fc8]">{loading ? "…" : neverCount}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[#8a8680]">Never corrected</div>
+          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Never corrected</div>
         </GlassCard>
       </div>
 
@@ -153,14 +155,14 @@ export default function MistakesPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-20 text-[#8a8680]">
+        <div className="flex items-center justify-center gap-2 py-20 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading mistakes…
         </div>
       ) : mistakes.length === 0 ? (
         <GlassCard hover={false} className="p-12 text-center">
           <PartyPopper className="mx-auto mb-3 h-10 w-10 text-[#2ca974]" />
-          <p className="font-display text-2xl font-bold text-[#2b2b2a]">No open mistakes!</p>
-          <p className="mx-auto mt-1 max-w-sm text-[13.5px] text-[#8a8680]">
+          <p className="font-display text-2xl font-bold text-[var(--ink)]">No open mistakes!</p>
+          <p className="mx-auto mt-1 max-w-sm text-[13.5px] text-[var(--ink-faint)]">
             Either you haven&apos;t missed anything yet or you&apos;ve corrected it all. Keep it up.
           </p>
         </GlassCard>

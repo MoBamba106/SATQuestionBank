@@ -108,16 +108,22 @@ export function buildQuestionFilters(p: {
 }
 
 export async function fetchQuestionsByIds(ids: string[]): Promise<SATQuestion[]> {
-  if (ids.length === 0) return [];
+  const requestedIds = ids.slice(0, 500).map(String).filter(Boolean);
+  if (requestedIds.length === 0) return [];
   await ensureSeeded();
-  // preserve requested order
+
+  // Bind each ID separately. Passing a JavaScript array to Postgres' unnest()
+  // is driver-dependent and failed under the embedded PGlite database used by
+  // local/Tauri builds. A parameterized IN list works with both database modes.
+  const uniqueIds = Array.from(new Set(requestedIds));
+  const idParams = sql.join(uniqueIds.map((id) => sql`${id}`), sql`, `);
   const res = await db.execute(sql`
     SELECT ${QUESTION_SELECT}
     FROM questions q
     ${QUESTION_JOINS}
-    WHERE q.id IN ${sql`(SELECT unnest(${ids}::text[]))`}
+    WHERE q.id IN (${idParams})
   `);
   const rows = ((res as unknown as { rows: Row[] }).rows ?? []).map(mapRow);
-  const byId = new Map(rows.map((q) => [q.id, q]));
-  return ids.map((id) => byId.get(id)).filter((q): q is SATQuestion => !!q);
+  const byId = new Map(rows.map((question) => [question.id, question]));
+  return requestedIds.map((id) => byId.get(id)).filter((question): question is SATQuestion => !!question);
 }

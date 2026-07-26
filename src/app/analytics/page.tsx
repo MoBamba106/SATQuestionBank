@@ -19,7 +19,7 @@ export default function AnalyticsPage() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center gap-2 py-24 text-[#8a8680]">
+      <div className="flex items-center justify-center gap-2 py-24 text-[var(--ink-faint)]">
         <Loader2 className="h-5 w-5 animate-spin" /> Crunching your data…
       </div>
     );
@@ -33,17 +33,17 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
           <span className="hl-blue px-1">Analytics</span>
         </h1>
-        <p className="mt-1 text-[15px] text-[#8a8680]">Results from your graded practice attempts.</p>
+        <p className="mt-1 text-[15px] text-[var(--ink-faint)]">Results from your graded practice attempts.</p>
       </div>
 
       {noData ? (
         <GlassCard hover={false} className="p-12 text-center">
           <BarChart3 className="mx-auto mb-3 h-10 w-10 text-[#d5cfc0]" />
-          <p className="font-display text-xl font-bold text-[#55524a]">No data yet</p>
-          <p className="text-[13.5px] text-[#8a8680]">Check some answers in a quiz and your analytics appear here.</p>
+          <p className="font-display text-xl font-bold text-[var(--ink-soft)]">No data yet</p>
+          <p className="text-[13.5px] text-[var(--ink-faint)]">Check some answers in a quiz and your analytics appear here.</p>
         </GlassCard>
       ) : (
         <>
@@ -55,8 +55,8 @@ export default function AnalyticsPage() {
               { label: "Accuracy", value: `${s!.accuracy}%` },
             ].map((c) => (
               <GlassCard key={c.label} hover={false} className="p-5 text-center">
-                <div className="font-display text-3xl font-bold text-[#2b2b2a]">{c.value}</div>
-                <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[#8a8680]">{c.label}</div>
+                <div className="font-display text-3xl font-bold text-[var(--ink)]">{c.value}</div>
+                <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">{c.label}</div>
               </GlassCard>
             ))}
           </div>
@@ -90,7 +90,7 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                   <span className="font-display text-3xl font-bold">{s!.accuracy}%</span>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8a8680]">accuracy</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--ink-faint)]">accuracy</span>
                 </div>
               </div>
             </GlassCard>
@@ -134,14 +134,14 @@ export default function AnalyticsPage() {
                 const pct = k.total ? Math.round((k.correct / k.total) * 100) : 0;
                 return (
                   <div key={k.skill} className="flex items-center gap-3">
-                    <span className="w-52 shrink-0 truncate text-[13px] font-semibold text-[#55524a]">{k.skill}</span>
+                    <span className="w-52 shrink-0 truncate text-[13px] font-semibold text-[var(--ink-soft)]">{k.skill}</span>
                     <div className="h-3 grow overflow-hidden rounded-full bg-[#efe9db]">
                       <div
                         className="h-full rounded-full bg-[#315eaa]"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="w-20 shrink-0 text-right font-mono text-[12px] font-bold text-[#55524a]">
+                    <span className="w-20 shrink-0 text-right font-mono text-[12px] font-bold text-[var(--ink-soft)]">
                       {pct}% · {k.correct}/{k.total}
                     </span>
                   </div>

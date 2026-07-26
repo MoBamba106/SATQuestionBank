@@ -118,10 +118,10 @@ export default function StudySessionsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
           Study <span className="hl-mint px-1">Sessions</span>
         </h1>
-        <p className="mt-1 text-[15px] text-[#8a8680]">
+        <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
           Focused drills built from the current question bank.
         </p>
       </div>
@@ -135,8 +135,8 @@ export default function StudySessionsPage() {
               </div>
               <span className="badge">{d.duration}</span>
             </div>
-            <h2 className="font-display mt-4 text-xl font-bold text-[#2b2b2a]">{d.name}</h2>
-            <p className="mt-1 grow text-[13.5px] leading-relaxed text-[#8a8680]">{d.desc}</p>
+            <h2 className="font-display mt-4 text-xl font-bold text-[var(--ink)]">{d.name}</h2>
+            <p className="mt-1 grow text-[13.5px] leading-relaxed text-[var(--ink-faint)]">{d.desc}</p>
             <button className="btn btn-primary mt-4 w-full" onClick={() => start(d)} disabled={busy !== null}>
               {busy === d.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
               Start
@@ -146,28 +146,28 @@ export default function StudySessionsPage() {
       </div>
 
       <GlassCard hover={false} className="p-6">
-        <h2 className="font-display mb-3 flex items-center gap-2 text-lg font-bold text-[#2b2b2a]">
-          <History className="h-5 w-5 text-[#8a8680]" /> Session history
+        <h2 className="font-display mb-3 flex items-center gap-2 text-lg font-bold text-[var(--ink)]">
+          <History className="h-5 w-5 text-[var(--ink-faint)]" /> Session history
         </h2>
         {stats && stats.recentSessions.length > 0 ? (
           <ul className="space-y-2">
             {stats.recentSessions.map((s) => (
               <li key={s.id} className="glass-subtle flex items-center gap-3 px-4 py-3">
-                <CalendarClock className="h-4 w-4 shrink-0 text-[#8a8680]" />
+                <CalendarClock className="h-4 w-4 shrink-0 text-[var(--ink-faint)]" />
                 <div className="min-w-0 grow">
-                  <div className="truncate text-[13.5px] font-semibold text-[#2b2b2a]">{s.label ?? s.mode}</div>
-                  <div className="text-[11.5px] text-[#8a8680]">
+                  <div className="truncate text-[13.5px] font-semibold text-[var(--ink)]">{s.label ?? s.mode}</div>
+                  <div className="text-[11.5px] text-[var(--ink-faint)]">
                     {s.finishedAt ? new Date(s.finishedAt).toLocaleString() : ""}
                   </div>
                 </div>
-                <span className="text-[13px] font-bold text-[#55524a]">
+                <span className="text-[13px] font-bold text-[var(--ink-soft)]">
                   {s.correctCount ?? 0}/{s.totalQuestions} correct
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="rounded-[6px] bg-[#f6f2e8] px-4 py-3 text-[13px] text-[#8a8680]">
+          <p className="rounded-[6px] bg-[var(--paper-soft)] px-4 py-3 text-[13px] text-[var(--ink-faint)]">
             Finished quizzes will land here with their scores.
           </p>
         )}

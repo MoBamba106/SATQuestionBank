@@ -77,7 +77,7 @@ export function AddToCollectionButton({
         aria-label="Add to collection"
         title="Add to collection"
         className={cn(
-          "rounded-[4px] text-[#8c8f92] transition-colors duration-150 hover:bg-[#f1ede3] hover:text-[#315eaa]",
+          "rounded-[4px] text-[#8c8f92] transition-colors duration-150 hover:bg-[var(--paper-soft)] hover:text-[#315eaa]",
           size === "md" ? "p-2" : "p-1.5",
           containing.size > 0 && "text-[#3a5fc8]",
           className,
@@ -94,12 +94,12 @@ export function AddToCollectionButton({
       >
         <div className="mt-4 space-y-2">
           {loading && (
-            <div className="flex items-center justify-center gap-2 py-6 text-sm text-[#8a8680]">
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-[var(--ink-faint)]">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading collections…
             </div>
           )}
           {!loading && collections.length === 0 && (
-            <p className="rounded-[6px] bg-[#f1ede3] px-4 py-3 text-[13px] text-[#7b8085]">
+            <p className="rounded-[6px] bg-[var(--paper-soft)] px-4 py-3 text-[13px] text-[var(--ink-faint)]">
               No collections yet. Create your first one below.
             </p>
           )}
@@ -114,24 +114,24 @@ export function AddToCollectionButton({
                   "flex w-full items-center justify-between gap-3 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
                   inCol
                     ? "border-[#b9c9f2] bg-[#eef2fd] hover:bg-[#e4ebfc]"
-                    : "border-[#e7e0d0] bg-white hover:border-[#cfc5ae] hover:bg-[#faf7ee]",
+                    : "border-[var(--line-soft)] bg-white hover:border-[#cfc5ae] hover:bg-[#faf7ee]",
                 )}
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-[14px] font-semibold text-[#2b2b2a]">{c.name}</span>
+                  <span className="block truncate text-[14px] font-semibold text-[var(--ink)]">{c.name}</span>
                   {c.description && (
-                    <span className="block truncate text-[12px] text-[#8a8680]">{c.description}</span>
+                    <span className="block truncate text-[12px] text-[var(--ink-faint)]">{c.description}</span>
                   )}
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span className="text-[11.5px] font-medium text-[#8a8680]">{c.questionCount} q</span>
+                  <span className="text-[11.5px] font-medium text-[var(--ink-faint)]">{c.questionCount} q</span>
                   <span
                     className={cn(
                       "flex h-6 w-6 items-center justify-center rounded-full border transition-all",
-                      inCol ? "border-[#3a5fc8] bg-[#3a5fc8] text-white" : "border-[#d5cfc0] bg-white text-transparent",
+                      inCol ? "border-[#3a5fc8] bg-[#3a5fc8] text-white" : "border-[var(--line)] bg-white text-transparent",
                     )}
                   >
-                    {busyId === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#8a8680]" /> : <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                    {busyId === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--ink-faint)]" /> : <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                   </span>
                 </span>
               </button>

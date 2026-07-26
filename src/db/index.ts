@@ -22,13 +22,17 @@ const globalForDb = globalThis as typeof globalThis & {
   __satNexusSchemaPromise?: Promise<void>;
 };
 
+const embeddedDataDir = process.env.SAT_NEXUS_DATA_DIR?.trim()
+  ? path.resolve(process.env.SAT_NEXUS_DATA_DIR)
+  : path.resolve(process.cwd(), ".sat-nexus-db");
+
 const client = useExternalPostgres
   ? globalForDb.__satNexusPgPool ??
     new Pool({
       connectionString: databaseUrl,
     })
   : globalForDb.__satNexusPGlite ??
-    new PGlite(path.resolve(process.cwd(), ".sat-nexus-db"));
+    new PGlite(embeddedDataDir);
 
 if (process.env.NODE_ENV !== "production") {
   if (client instanceof Pool) globalForDb.__satNexusPgPool = client;
@@ -95,9 +99,11 @@ const SCHEMA_STATEMENTS = [
     total_questions integer NOT NULL DEFAULT 0,
     correct_count integer,
     answered_count integer,
+    adaptive_path jsonb,
     started_at timestamp NOT NULL DEFAULT now(),
     finished_at timestamp
   )`,
+  `ALTER TABLE quiz_sessions ADD COLUMN IF NOT EXISTS adaptive_path jsonb`,
   `CREATE TABLE IF NOT EXISTS attempts (
     id serial PRIMARY KEY,
     session_id text NOT NULL REFERENCES quiz_sessions(id) ON DELETE CASCADE,

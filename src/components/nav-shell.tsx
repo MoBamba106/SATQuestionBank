@@ -68,12 +68,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                   className={cn(
                     "relative flex min-h-10 items-center gap-3 border-l-[3px] px-3 py-2 text-[13.5px] font-semibold transition-colors",
                     active
-                      ? "border-[#315eaa] bg-[#e8eef8] text-[#244b8c]"
-                      : "border-transparent text-[#555b62] hover:bg-[#efebe2] hover:text-[#25282c]",
+                      ? "border-[#286983] bg-[#dce8ed] text-[#245d73]"
+                      : "border-transparent text-[var(--ink-soft)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
                   )}
                 >
                   <Icon
-                    className={cn("h-[17px] w-[17px] shrink-0", active ? "text-[#315eaa]" : "text-[#7b8085]")}
+                    className={cn("h-[17px] w-[17px] shrink-0", active ? "text-[#286983]" : "text-[var(--ink-faint)]")}
                     strokeWidth={active ? 2.3 : 2}
                   />
                   {label}
@@ -92,14 +92,14 @@ export function NavShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[236px] flex-col border-r border-[#d4cfc3] bg-[#f8f5ee] md:flex">
-        <Link href="/" className="flex items-center gap-3 border-b border-[#e1dbcf] px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-[#315eaa]">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[236px] flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex">
+        <Link href="/" className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-[#286983]">
             <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
           </div>
           <div>
-            <div className="font-display text-[19px] font-bold leading-none text-[#25282c]">SAT Nexus</div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[#7b8085]">
+            <div className="font-display text-[19px] font-bold leading-none text-[var(--ink)]">SAT Nexus</div>
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--ink-faint)]">
               Practice desk
             </div>
           </div>
@@ -109,24 +109,24 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           <NavLinks />
         </div>
 
-        <div className="border-t border-[#e1dbcf] px-5 py-4">
-          <p className="text-[11px] leading-relaxed text-[#7b8085]">
+        <div className="border-t border-[var(--line)] px-5 py-4">
+          <p className="text-[11px] leading-relaxed text-[var(--ink-faint)]">
             Official question-bank practice, saved progress, and timed test sessions.
           </p>
         </div>
       </aside>
 
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[#d4cfc3] bg-[#f8f5ee] px-4 md:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-[5px] bg-[#315eaa]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-[5px] bg-[#286983]">
             <BookOpenText className="h-4 w-4 text-white" />
           </div>
-          <span className="font-display text-[18px] font-bold text-[#25282c]">SAT Nexus</span>
+          <span className="font-display text-[18px] font-bold text-[var(--ink)]">SAT Nexus</span>
         </Link>
         <button
           type="button"
           onClick={() => setMobileOpen((open) => !open)}
-          className="rounded-[5px] border border-[#d4cfc3] bg-white p-2 text-[#555b62]"
+          className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
           aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
           aria-expanded={mobileOpen}
         >
@@ -137,7 +137,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
       {mobileOpen && (
         <div className="fixed inset-0 top-14 z-30 bg-[rgba(37,40,44,0.28)] md:hidden" onClick={() => setMobileOpen(false)}>
           <div
-            className="absolute inset-x-0 top-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-[#d4cfc3] bg-[#f8f5ee] p-4 shadow-[0_10px_24px_rgba(37,40,44,0.16)]"
+            className="absolute inset-x-0 top-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-[var(--line)] bg-[var(--paper-soft)] p-4 shadow-[0_10px_24px_rgba(37,40,44,0.16)]"
             onClick={(event) => event.stopPropagation()}
           >
             <NavLinks onNavigate={() => setMobileOpen(false)} />
