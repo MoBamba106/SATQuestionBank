@@ -14,6 +14,67 @@ import { launchPoolQuiz } from "@/lib/quiz-session";
 import { cn, difficultyColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion, StudyCollection } from "@/lib/types";
 
+function CollectionItemsList({
+  items,
+  loading,
+  collection,
+  onRemove,
+}: {
+  items: SATQuestion[] | undefined;
+  loading: boolean;
+  collection?: StudyCollection;
+  onRemove: (collection: StudyCollection, questionId: string) => void;
+}) {
+  if (loading && !items) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-4 text-[13px] text-[#7b8085]">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+      </div>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <p className="rounded-[6px] bg-[#f1ede3] px-4 py-3 text-[13px] text-[#7b8085]">
+        No questions here yet. Use the <FolderOpen className="inline h-3.5 w-3.5" /> collection
+        button on a question to add one.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="space-y-2">
+      {items.map((question) => (
+        <li key={question.id} className="glass-subtle flex items-center gap-3 px-4 py-3">
+          <div className="min-w-0 grow">
+            <p className="truncate text-[13.5px] font-medium text-[#3f454b]">
+              {stripHtml(question.questionHtml || question.questionText).slice(0, 120)}
+            </p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              <span className="badge badge-blue !py-0.5 !text-[10.5px]">{question.domain}</span>
+              <span className="badge !py-0.5 !text-[10.5px]">{question.skill}</span>
+              <span className={cn("badge border !py-0.5 !text-[10.5px]", difficultyColor(question.difficulty))}>
+                {question.difficulty}
+              </span>
+            </div>
+          </div>
+          <FavoriteButton questionId={question.id} favorite={question.favorite} size="sm" />
+          {collection && (
+            <button
+              type="button"
+              onClick={() => onRemove(collection, question.id)}
+              title="Remove from collection"
+              className="rounded-[5px] p-1.5 text-[#8c8f92] transition-colors hover:bg-[#f9e9ec] hover:text-[#ae3d51]"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function CollectionsPage() {
   const router = useRouter();
   const { data, loading, reload } = useApi<{ collections: StudyCollection[] }>("/api/collections", "collections");
@@ -99,45 +160,7 @@ export default function CollectionsPage() {
     launchPoolQuiz(router, { label, ids, mode });
   };
 
-  const ItemsList = ({ cacheKey, col }: { cacheKey: string; col?: StudyCollection }) => {
-    const items = itemCache[cacheKey];
-    if (itemsLoading && !items)
-      return <div className="flex items-center gap-2 px-2 py-4 text-[13px] text-[#8a8680]"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>;
-    if (!items || items.length === 0)
-      return (
-        <p className="rounded-xl bg-[#f6f2e8] px-4 py-3 text-[13px] text-[#8a8680]">
-          No questions here yet. Use the <FolderOpen className="inline h-3.5 w-3.5" /> folder-plus button on any question (quiz or bank) to add some.
-        </p>
-      );
-    return (
-      <ul className="space-y-2">
-        {items.map((q) => (
-          <li key={q.id} className="glass-subtle flex items-center gap-3 px-4 py-3">
-            <div className="min-w-0 grow">
-              <p className="truncate text-[13.5px] font-medium text-[#44413a]">
-                {stripHtml(q.questionHtml || q.questionText).slice(0, 120)}
-              </p>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                <span className="badge badge-blue !py-0.5 !text-[10.5px]">{q.domain}</span>
-                <span className="badge !py-0.5 !text-[10.5px]">{q.skill}</span>
-                <span className={cn("badge border !py-0.5 !text-[10.5px]", difficultyColor(q.difficulty))}>{q.difficulty}</span>
-              </div>
-            </div>
-            <FavoriteButton questionId={q.id} favorite={q.favorite} size="sm" />
-            {col && (
-              <button
-                onClick={() => removeItem(col, q.id)}
-                title="Remove from collection"
-                className="rounded-lg p-1.5 text-[#a8a294] transition-colors hover:bg-[#fbe4e9] hover:text-[#b23a52]"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
-    );
-  };
+
 
   return (
     <div className="space-y-5">
@@ -147,7 +170,7 @@ export default function CollectionsPage() {
             <span className="hl-pink px-1">Collections</span>
           </h1>
           <p className="mt-1 text-[15px] text-[#8a8680]">
-            Saved to the database — they survive refreshes, forever.
+            Group saved questions by topic, test date, or study goal.
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => setCreateOpen(true)}>
@@ -157,36 +180,38 @@ export default function CollectionsPage() {
 
       {/* Favorites (live, database-backed) */}
       <GlassCard hover={false} className="overflow-visible p-0">
-        <button
-          onClick={() => {
-            const next = !favOpen;
-            setFavOpen(next);
-            setOpenId(null);
-            if (next && !itemCache.__fav && (favData?.ids ?? []).length > 0) loadItems("__fav", favData!.ids);
-          }}
-          className="flex w-full items-center gap-4 p-5 text-left"
-        >
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffd27a] to-[#d9922e] shadow-md">
-            <Star className="h-5 w-5 fill-white text-white" />
-          </div>
-          <div className="grow">
-            <div className="text-[16px] font-bold text-[#2b2b2a]">Favorites</div>
-            <div className="text-[12.5px] text-[#8a8680]">{favData?.count ?? 0} starred questions</div>
-          </div>
+        <div className="flex items-center gap-2 p-3 sm:p-4">
           <button
-            className="btn btn-soft !py-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              practice("Favorites", favData?.ids ?? [], "favorites");
+            type="button"
+            onClick={() => {
+              const next = !favOpen;
+              setFavOpen(next);
+              setOpenId(null);
+              if (next && !itemCache.__fav && (favData?.ids ?? []).length > 0) loadItems("__fav", favData!.ids);
             }}
+            className="flex min-w-0 grow items-center gap-4 p-1 text-left"
+            aria-expanded={favOpen}
           >
-            <Play className="h-3.5 w-3.5" /> Practice
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] border border-[#dfc27c] bg-[#f8ecd0] text-[#8a5c1f]">
+              <Star className="h-5 w-5 fill-[#d7b55c]" />
+            </div>
+            <div className="min-w-0 grow">
+              <div className="text-[16px] font-bold text-[#25282c]">Favorites</div>
+              <div className="text-[12.5px] text-[#7b8085]">{favData?.count ?? 0} starred questions</div>
+            </div>
+            <ChevronDown className={cn("h-4.5 w-4.5 shrink-0 text-[#8c8f92] transition-transform", favOpen && "rotate-180")} />
           </button>
-          <ChevronDown className={cn("h-4.5 w-4.5 text-[#a8a294] transition-transform", favOpen && "rotate-180")} />
-        </button>
+          <button
+            type="button"
+            className="btn btn-soft !py-2"
+            onClick={() => practice("Favorites", favData?.ids ?? [], "favorites")}
+          >
+            <Play className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Practice</span>
+          </button>
+        </div>
         {favOpen && (
           <div className="border-t border-[#f0ead9] p-5 pt-4">
-            <ItemsList cacheKey="__fav" />
+            <CollectionItemsList items={itemCache.__fav} loading={itemsLoading} onRemove={removeItem} />
           </div>
         )}
       </GlassCard>
@@ -211,38 +236,44 @@ export default function CollectionsPage() {
         <div className="space-y-3">
           {collections.map((c) => (
             <GlassCard key={c.id} hover={false} className="overflow-visible p-0">
-              <button onClick={() => toggleOpen(c)} className="flex w-full items-center gap-4 p-5 text-left">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#b8a7ee] to-[#7c5cd6] shadow-md">
-                  <Folders className="h-5 w-5 text-white" />
-                </div>
-                <div className="min-w-0 grow">
-                  <div className="truncate text-[16px] font-bold text-[#2b2b2a]">{c.name}</div>
-                  <div className="truncate text-[12.5px] text-[#8a8680]">
-                    {c.questionCount} question{c.questionCount === 1 ? "" : "s"}
-                    {c.description ? ` · ${c.description}` : ""}
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 p-3 sm:p-4">
                 <button
-                  className="btn btn-soft !py-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    practice(c.name, c.questionIds, "collection");
-                  }}
+                  type="button"
+                  onClick={() => toggleOpen(c)}
+                  className="flex min-w-0 grow items-center gap-4 p-1 text-left"
+                  aria-expanded={openId === c.id}
                 >
-                  <Play className="h-3.5 w-3.5" /> Practice
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] border border-[#d2cae4] bg-[#ece9f5] text-[#62548c]">
+                    <Folders className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 grow">
+                    <div className="truncate text-[16px] font-bold text-[#25282c]">{c.name}</div>
+                    <div className="truncate text-[12.5px] text-[#7b8085]">
+                      {c.questionCount} question{c.questionCount === 1 ? "" : "s"}
+                      {c.description ? ` · ${c.description}` : ""}
+                    </div>
+                  </div>
+                  <ChevronDown className={cn("h-4.5 w-4.5 shrink-0 text-[#8c8f92] transition-transform", openId === c.id && "rotate-180")} />
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); removeCollection(c); }}
+                  type="button"
+                  className="btn btn-soft !py-2"
+                  onClick={() => practice(c.name, c.questionIds, "collection")}
+                >
+                  <Play className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Practice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeCollection(c)}
                   title="Delete collection"
-                  className="rounded-lg p-2 text-[#a8a294] transition-colors hover:bg-[#fbe4e9] hover:text-[#b23a52]"
+                  className="rounded-[5px] p-2 text-[#8c8f92] transition-colors hover:bg-[#f9e9ec] hover:text-[#ae3d51]"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
-                <ChevronDown className={cn("h-4.5 w-4.5 text-[#a8a294] transition-transform", openId === c.id && "rotate-180")} />
-              </button>
+              </div>
               {openId === c.id && (
                 <div className="border-t border-[#f0ead9] p-5 pt-4">
-                  <ItemsList cacheKey={c.id} col={c} />
+                  <CollectionItemsList items={itemCache[c.id]} loading={itemsLoading} collection={c} onRemove={removeItem} />
                 </div>
               )}
             </GlassCard>
@@ -254,7 +285,7 @@ export default function CollectionsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="New collection"
-        description="Group questions however you like — by topic, test date, or vibe."
+        description="Group questions by topic, test date, or study goal."
       >
         <div className="mt-4 space-y-3">
           <div>

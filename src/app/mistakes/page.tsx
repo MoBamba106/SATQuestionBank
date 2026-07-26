@@ -92,7 +92,7 @@ export default function MistakesPage() {
           <button
             onClick={() => setNeverCorrected((v) => !v)}
             className={cn(
-              "flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-3.5 py-2.5 text-left text-sm transition-all",
+              "flex items-center justify-between gap-3 rounded-[6px] border-[1.5px] px-3.5 py-2.5 text-left text-sm transition-all",
               neverCorrected
                 ? "border-[#3a5fc8] bg-[#eef2fd]"
                 : "border-[#d5cfc0] bg-white hover:border-[#c0b8a2]",
@@ -147,7 +147,7 @@ export default function MistakesPage() {
       )}
 
       {error && (
-        <div className="rounded-xl border border-[#f3ccd4] bg-[#fdf0f2] px-4 py-3 text-[13.5px] font-semibold text-[#a33046]">
+        <div className="rounded-[6px] border border-[#f3ccd4] bg-[#fdf0f2] px-4 py-3 text-[13.5px] font-semibold text-[#a33046]">
           {error}
         </div>
       )}

@@ -27,7 +27,10 @@ export function FavoriteButton({
   const [fav, setFav] = React.useState(favorite);
   const [busy, setBusy] = React.useState(false);
 
-  React.useEffect(() => setFav(favorite), [favorite]);
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => setFav(favorite), 0);
+    return () => window.clearTimeout(timer);
+  }, [favorite]);
 
   const toggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -57,16 +60,16 @@ export function FavoriteButton({
       aria-label={fav ? "Remove from favorites" : "Add to favorites"}
       title={fav ? "Remove from favorites" : "Add to favorites"}
       className={cn(
-        "rounded-lg transition-all duration-150 hover:bg-[#f2ecdd] active:scale-90",
+        "rounded-[4px] transition-colors duration-150 hover:bg-[#f1ede3]",
         size === "md" ? "p-2" : "p-1.5",
         className,
       )}
     >
       <Star
         className={cn(
-          "transition-all duration-200",
+          "transition-colors duration-150",
           size === "md" ? "h-[18px] w-[18px]" : "h-4 w-4",
-          fav ? "fill-[#f2b73c] stroke-[#d9922e] drop-shadow-[0_1px_2px_rgba(217,146,46,0.4)]" : "stroke-[#a8a294]",
+          fav ? "fill-[#d7b55c] stroke-[#9a6725]" : "stroke-[#a8a294]",
         )}
         strokeWidth={2}
       />

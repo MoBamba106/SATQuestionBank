@@ -27,9 +27,8 @@ export default function BluebookPage() {
           Bluebook <span className="hl-blue px-1">Practice Tests</span>
         </h1>
         <p className="mt-1 max-w-2xl text-[15px] text-[#8a8680]">
-          Full-length digital SAT simulations matching every practice test in the official Bluebook
-          app — Tests 3 through 11, each with the real structure: two Reading &amp; Writing modules
-          and two Math modules, module-by-module timing, and no feedback until you submit.
+          Timed digital SAT practice with two Reading &amp; Writing modules, two Math modules,
+          module-by-module timing, and results after submission.
         </p>
       </div>
 
@@ -43,7 +42,7 @@ export default function BluebookPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[#f3ccd4] bg-[#fdf0f2] px-4 py-3 text-[13.5px] font-semibold text-[#a33046]">
+        <div className="rounded-[6px] border border-[#f3ccd4] bg-[#fdf0f2] px-4 py-3 text-[13.5px] font-semibold text-[#a33046]">
           {error}
         </div>
       )}
@@ -61,12 +60,12 @@ export default function BluebookPage() {
                   <div className="font-display text-[13px] font-semibold uppercase tracking-[0.14em] text-[#8a8680]">
                     Practice Test
                   </div>
-                  <div className="font-display mt-0.5 bg-gradient-to-br from-[#3a5fc8] to-[#7aa5f2] bg-clip-text text-5xl font-bold text-transparent">
+                  <div className="font-display mt-0.5 text-5xl font-bold text-[#315eaa]">
                     {t.testNumber}
                   </div>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7aa5f2] to-[#3a5fc8] shadow-[0_4px_12px_rgba(58,95,200,0.35)]">
-                  <MonitorSmartphone className="h-5.5 w-5.5 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-[6px] border border-[#c9d6eb] bg-[#e8eef8] text-[#315eaa]">
+                  <MonitorSmartphone className="h-5 w-5" />
                 </div>
               </div>
 
@@ -106,16 +105,16 @@ export default function BluebookPage() {
         open={!!selected}
         onOpenChange={(o) => !o && setSelected(null)}
         title={selected ? `Start ${selected.title}?` : ""}
-        description="Bluebook mode: no answer checking, no explanations, locked modules — exactly like test day."
+        description="In test mode, answers and explanations stay hidden until you submit."
       >
         {selected && (
           <>
-            <div className="mt-4 space-y-2.5 rounded-xl bg-[#f6f2e8] p-4 text-[13.5px]">
+            <div className="mt-4 space-y-2.5 rounded-[6px] bg-[#f6f2e8] p-4 text-[13.5px]">
               <div className="flex justify-between"><span className="text-[#8a8680]">Reading & Writing</span><span className="font-semibold text-[#2b2b2a]">{selected.rwQuestions} questions · {selected.rwMinutes} min</span></div>
               <div className="flex justify-between"><span className="text-[#8a8680]">Math</span><span className="font-semibold text-[#2b2b2a]">{selected.mathQuestions} questions · {selected.mathMinutes} min</span></div>
               <div className="flex justify-between border-t border-[#e7ddc8] pt-2.5"><span className="text-[#8a8680]">Total</span><span className="font-bold text-[#2b2b2a]">{selected.totalQuestions} questions · {selected.rwMinutes + selected.mathMinutes} min</span></div>
             </div>
-            <div className="mt-3 rounded-xl bg-[#fff8e6] px-4 py-3 text-[12.5px] leading-relaxed text-[#8a6100]">
+            <div className="mt-3 rounded-[6px] bg-[#fff8e6] px-4 py-3 text-[12.5px] leading-relaxed text-[#8a6100]">
               Modules lock when you leave them, and the timer keeps running. Set aside{" "}
               {selected.rwMinutes + selected.mathMinutes} uninterrupted minutes.
             </div>

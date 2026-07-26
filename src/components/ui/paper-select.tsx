@@ -43,12 +43,12 @@ export function PaperSelect({
       <SelectPrimitive.Trigger
         aria-label={ariaLabel ?? placeholder}
         className={cn(
-          "group inline-flex w-full items-center justify-between gap-2 rounded-xl border-[1.5px] border-[#d5cfc0] bg-white text-left text-[#2b2b2a] shadow-[0_1px_3px_rgba(60,45,20,0.05)] transition-all duration-150",
+          "group inline-flex w-full items-center justify-between gap-2 rounded-[6px] border-[1.5px] border-[#d5cfc0] bg-white text-left text-[#2b2b2a] shadow-[0_1px_3px_rgba(60,45,20,0.05)] transition-all duration-150",
           "hover:border-[#c0b8a2] hover:shadow-[0_2px_8px_rgba(60,45,20,0.08)]",
           "focus:outline-none focus:border-[#5b8def] focus:shadow-[0_0_0_3px_rgba(91,141,239,0.15)]",
           "data-[state=open]:border-[#5b8def] data-[state=open]:shadow-[0_0_0_3px_rgba(91,141,239,0.15)]",
           "disabled:opacity-50 disabled:cursor-not-allowed",
-          size === "md" ? "px-3.5 py-2.5 text-sm" : "px-2.5 py-1.5 text-[13px] rounded-lg",
+          size === "md" ? "px-3.5 py-2.5 text-sm" : "px-2.5 py-1.5 text-[13px] rounded-[5px]",
           className,
         )}
       >
@@ -63,7 +63,7 @@ export function PaperSelect({
           position="popper"
           sideOffset={6}
           className={cn(
-            "paper-pop z-[999] max-h-[320px] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl border border-[#e2dbc9] bg-[#fffdf8]",
+            "paper-pop z-[999] max-h-[320px] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[6px] border border-[#e2dbc9] bg-[#fffdf8]",
             "shadow-[0_16px_40px_rgba(60,45,20,0.16),0_2px_8px_rgba(60,45,20,0.08)]",
           )}
         >
@@ -76,7 +76,7 @@ export function PaperSelect({
                 key={opt.value}
                 value={opt.value}
                 className={cn(
-                  "relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-2 pl-3 pr-8 text-[13.5px] text-[#2b2b2a] outline-none transition-colors",
+                  "relative flex cursor-pointer select-none items-center gap-2 rounded-[4px] py-2 pl-3 pr-8 text-[13.5px] text-[#25282c] outline-none transition-colors",
                   "data-[highlighted]:bg-[#f2ecdd] data-[highlighted]:text-[#1f1e1c]",
                   "data-[state=checked]:bg-[#e9effc] data-[state=checked]:text-[#3053ad] data-[state=checked]:font-semibold",
                   "data-[disabled]:opacity-40 data-[disabled]:pointer-events-none",

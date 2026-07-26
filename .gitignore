@@ -6,3 +6,4 @@ dist
 *.db
 *.sqlite
 prisma/dev.db
+*.tsbuildinfo

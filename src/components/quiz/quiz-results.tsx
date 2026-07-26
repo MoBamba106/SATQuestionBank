@@ -58,8 +58,8 @@ export function QuizResults({
     <div className="space-y-5">
       <GlassCard hover={false} className="p-6 sm:p-8">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#ffe9a8] to-[#f2b73c] shadow-[0_8px_24px_rgba(242,183,60,0.4)]">
-            <Trophy className="h-8 w-8 text-[#8a6100]" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-[7px] border border-[#dfc27c] bg-[#f8ecd0]">
+            <Trophy className="h-7 w-7 text-[#8a5c1f]" />
           </div>
           <h2 className="font-display mt-4 text-3xl font-bold text-[#2b2b2a]">
             {pct >= 80 ? "Congratulations!" : pct >= 60 ? "Nice work!" : "Quiz complete"}
@@ -90,15 +90,15 @@ export function QuizResults({
           </div>
 
           <div className="space-y-3 self-center">
-            <div className="flex items-center gap-3 rounded-xl bg-[#ecf8f1] px-4 py-3">
+            <div className="flex items-center gap-3 rounded-[6px] bg-[#ecf8f1] px-4 py-3">
               <CheckCircle2 className="h-5 w-5 text-[#2ca974]" />
               <span className="text-[14px] font-semibold text-[#1f7a55]">{correctCount} correct</span>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-[#fdf0f2] px-4 py-3">
+            <div className="flex items-center gap-3 rounded-[6px] bg-[#fdf0f2] px-4 py-3">
               <XCircle className="h-5 w-5 text-[#d95670]" />
               <span className="text-[14px] font-semibold text-[#a33046]">{incorrectCount} incorrect</span>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-[#f6f2e8] px-4 py-3">
+            <div className="flex items-center gap-3 rounded-[6px] bg-[#f6f2e8] px-4 py-3">
               <MinusCircle className="h-5 w-5 text-[#a8a294]" />
               <span className="text-[14px] font-semibold text-[#6d6759]">
                 {unanswered} unanswered
@@ -161,12 +161,12 @@ export function QuizResults({
                     "badge ml-auto",
                     !a ? "bg-[#f6f2e8] text-[#8a8680]" : g?.correct ? "bg-[#ecf8f1] text-[#238a5e] border-[#bde5cf]" : "bg-[#fdf0f2] text-[#a33046] border-[#f3ccd4]",
                   )}>
-                    {!a ? "Unanswered" : g?.correct ? `Correct — ${g.answer}` : `You answered ${g?.answer ?? a} · Correct: ${q.correctAnswer}`}
+                    {!a ? "Unanswered" : g?.correct ? `Correct: ${g.answer}` : `You answered ${g?.answer ?? a} · Correct: ${q.correctAnswer}`}
                   </span>
                 </div>
                 <p className="mb-3 text-[13.5px] text-[#55524a]">{stripHtml(q.questionHtml || q.questionText).slice(0, 200)}</p>
                 {q.explanation && (
-                  <details className="rounded-xl bg-[#f8f5ec] px-4 py-3">
+                  <details className="rounded-[6px] bg-[#f8f5ec] px-4 py-3">
                     <summary className="cursor-pointer text-[12.5px] font-bold text-[#3a5fc8]">Show explanation</summary>
                     <SafeHtml html={q.explanation} className="sat-content mt-2 text-[13.5px]" />
                   </details>

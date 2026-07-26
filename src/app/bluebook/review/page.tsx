@@ -22,11 +22,7 @@ function ReviewInner() {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (!sessionId) {
-      setError("No session specified.");
-      setLoading(false);
-      return;
-    }
+    if (!sessionId) return;
     (async () => {
       try {
         const s = await apiGet<SessionSummary>(`/api/sessions/${sessionId}`);
@@ -57,6 +53,14 @@ function ReviewInner() {
     })();
   }, [sessionId]);
 
+  if (!sessionId)
+    return (
+      <GlassCard hover={false} className="p-10 text-center">
+        <p className="font-display text-xl font-bold text-[#55524a]">No review session was specified.</p>
+        <Link href="/bluebook" className="btn btn-primary mt-4">Back to tests</Link>
+      </GlassCard>
+    );
+
   if (loading)
     return (
       <div className="flex items-center justify-center gap-2 py-24 text-[#8a8680]">
@@ -80,7 +84,7 @@ function ReviewInner() {
         <Link href="/bluebook" className="btn btn-ghost !px-2.5"><ArrowLeft className="h-4 w-4" /></Link>
         <div>
           <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
-            {session?.label ?? "Test"} — Review
+            {session?.label ?? "Test"}: Review
           </h1>
           <p className="mt-1 text-[15px] text-[#8a8680]">
             Score: <span className="font-bold text-[#2b2b2a]">{correct} / {items.length}</span> correct
@@ -107,7 +111,7 @@ function ReviewInner() {
                       : "bg-[#fdf0f2] text-[#a33046] border-[#f3ccd4]",
                   )}
                 >
-                  {!a ? "Unanswered" : a.isCorrect ? `Correct — ${a.answer}` : `You answered ${a.answer}`}
+                  {!a ? "Unanswered" : a.isCorrect ? `Correct: ${a.answer}` : `You answered ${a.answer}`}
                 </span>
               </div>
               <QuestionView

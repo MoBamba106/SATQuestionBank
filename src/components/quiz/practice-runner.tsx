@@ -40,7 +40,8 @@ export function PracticeRunner({
   const [done, setDone] = React.useState(false);
   const [elapsed, setElapsed] = React.useState(0);
   const [noteOpen, setNoteOpen] = React.useState(false);
-  const [noteDraft, setNoteDraft] = React.useState("");
+  const [noteDrafts, setNoteDrafts] = React.useState<Record<string, string>>({});
+  const noteSaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isExam = mode === "exam";
   const current = pool[idx];
@@ -54,23 +55,21 @@ export function PracticeRunner({
     return () => clearInterval(t);
   }, [done]);
 
-  // notes
-  React.useEffect(() => {
-    setNoteDraft(current?.note ?? "");
-  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const noteDraft = current ? (noteDrafts[current.id] ?? current.note ?? "") : "";
 
-  const saveNote = React.useMemo(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    return (qid: string, note: string) => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(async () => {
-        try {
-          await apiPost("/api/notes", { questionId: qid, note });
-        } catch (e) {
-          toast.error("Couldn't save note", { description: e instanceof Error ? e.message : undefined });
-        }
-      }, 600);
-    };
+  React.useEffect(() => () => {
+    if (noteSaveTimer.current) clearTimeout(noteSaveTimer.current);
+  }, []);
+
+  const saveNote = React.useCallback((questionId: string, note: string) => {
+    if (noteSaveTimer.current) clearTimeout(noteSaveTimer.current);
+    noteSaveTimer.current = setTimeout(async () => {
+      try {
+        await apiPost("/api/notes", { questionId, note });
+      } catch (error) {
+        toast.error("Couldn't save note", { description: error instanceof Error ? error.message : undefined });
+      }
+    }, 600);
   }, []);
 
   const setAnswer = (value: string) => {
@@ -142,7 +141,7 @@ export function PracticeRunner({
     if (missed.length === 0) return;
     try {
       const res = await apiPost<{ id: string }>("/api/sessions", {
-        mode, label: `Retry missed — ${label}`, totalQuestions: missed.length,
+        mode, label: `Retry missed: ${label}`, totalQuestions: missed.length,
       });
       setPool(missed);
       setSid(res.id);
@@ -210,7 +209,7 @@ export function PracticeRunner({
             </div>
             <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-[#e2dcc9] bg-[#efe9db]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#7aa5f2] to-[#3a5fc8] transition-all duration-300"
+                className="h-full rounded-full bg-[#315eaa] transition-[width] duration-300"
                 style={{ width: `${pool.length ? ((idx + 1) / pool.length) * 100 : 0}%` }}
               />
             </div>
@@ -234,7 +233,7 @@ export function PracticeRunner({
                 onClick={() => setFlags((f) => ({ ...f, [current.id]: !f[current.id] }))}
                 title={flags[current.id] ? "Unflag" : "Flag for review"}
                 aria-label="Flag question"
-                className="rounded-lg p-2 transition-colors hover:bg-[#f2ecdd]"
+                className="rounded-[5px] p-2 transition-colors hover:bg-[#f2ecdd]"
               >
                 <Flag className={cn("h-[18px] w-[18px]", flags[current.id] ? "fill-[#ffb74a] stroke-[#d9922e]" : "stroke-[#a8a294]")} />
               </button>
@@ -242,7 +241,7 @@ export function PracticeRunner({
                 onClick={() => setNoteOpen((o) => !o)}
                 title="Question note"
                 aria-label="Question note"
-                className="rounded-lg p-2 transition-colors hover:bg-[#f2ecdd]"
+                className="rounded-[5px] p-2 transition-colors hover:bg-[#f2ecdd]"
               >
                 <NotebookPen className={cn("h-[18px] w-[18px]", noteOpen || current.note ? "stroke-[#3a5fc8]" : "stroke-[#a8a294]")} />
               </button>
@@ -259,7 +258,7 @@ export function PracticeRunner({
           />
 
           {noteOpen && (
-            <div className="mt-4 rounded-2xl border border-[#f0e2b8] bg-[#fffdf2] p-4">
+            <div className="mt-4 rounded-[6px] border border-[#e2c982] bg-[#fffaf0] p-4">
               <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[#a08b3c]">
                 Your note for this question
               </label>
@@ -268,8 +267,9 @@ export function PracticeRunner({
                 placeholder="Jot down what tripped you up…"
                 value={noteDraft}
                 onChange={(e) => {
-                  setNoteDraft(e.target.value);
-                  saveNote(current.id, e.target.value);
+                  const note = e.target.value;
+                  setNoteDrafts((drafts) => ({ ...drafts, [current.id]: note }));
+                  saveNote(current.id, note);
                 }}
               />
             </div>
@@ -329,7 +329,7 @@ export function PracticeRunner({
                 key={q.id}
                 onClick={() => setIdx(i)}
                 className={cn(
-                  "relative flex h-8 items-center justify-center rounded-lg border text-[11.5px] font-bold transition-all",
+                  "relative flex h-8 items-center justify-center rounded-[5px] border text-[11.5px] font-bold transition-all",
                   i === idx
                     ? "border-[#3a5fc8] bg-[#3a5fc8] text-white shadow-[0_2px_6px_rgba(58,95,200,0.4)]"
                     : g

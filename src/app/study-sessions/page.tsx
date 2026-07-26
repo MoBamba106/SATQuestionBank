@@ -17,7 +17,7 @@ type Drill = {
   desc: string;
   duration: string;
   icon: React.ComponentType<{ className?: string }>;
-  tint: string;
+  tone: string;
   build: () => Promise<{ label: string; ids: string[] }>;
 };
 
@@ -33,7 +33,7 @@ export default function StudySessionsPage() {
       desc: "Ten random questions from the whole bank.",
       duration: "~10 min",
       icon: Zap,
-      tint: "from-[#ffd27a] to-[#d9922e]",
+      tone: "bg-[#f8ecd0] text-[#8a5c1f] border-[#e6d09f]",
       build: async () => {
         const d = await apiGet<QuestionSummary>("/api/questions?random=1&limit=10");
         return { label: "Quick 10", ids: d.questions.map((q) => q.id) };
@@ -45,7 +45,7 @@ export default function StudySessionsPage() {
       desc: "Ten random Math questions to get the gears turning.",
       duration: "~12 min",
       icon: Calculator,
-      tint: "from-[#5fce9b] to-[#2ca974]",
+      tone: "bg-[#e5f2e9] text-[#287a55] border-[#bad6c7]",
       build: async () => {
         const d = await apiGet<QuestionSummary>("/api/questions?domain=Math&random=1&limit=10");
         return { label: "Math Warmup", ids: d.questions.map((q) => q.id) };
@@ -54,10 +54,10 @@ export default function StudySessionsPage() {
     {
       id: "hard-practice",
       name: "Hard Practice",
-      desc: "Fifteen Hard-difficulty questions. No mercy.",
+      desc: "Fifteen hard questions for targeted practice.",
       duration: "~25 min",
       icon: Flame,
-      tint: "from-[#f2a5b6] to-[#d95670]",
+      tone: "bg-[#f8e8eb] text-[#ae3d51] border-[#e9c6cc]",
       build: async () => {
         const d = await apiGet<QuestionSummary>("/api/questions?difficulty=Hard&random=1&limit=15");
         return { label: "Hard Practice", ids: d.questions.map((q) => q.id) };
@@ -69,7 +69,7 @@ export default function StudySessionsPage() {
       desc: "Twenty questions across every domain and category.",
       duration: "~25 min",
       icon: Shuffle,
-      tint: "from-[#b8a7ee] to-[#7c5cd6]",
+      tone: "bg-[#ece9f5] text-[#62548c] border-[#d2cae4]",
       build: async () => {
         const d = await apiGet<QuestionSummary>("/api/questions?random=1&limit=20");
         return { label: "Mixed Review", ids: d.questions.map((q) => q.id) };
@@ -81,7 +81,7 @@ export default function StudySessionsPage() {
       desc: "Twelve Reading & Writing questions, back to back.",
       duration: "~15 min",
       icon: BookOpen,
-      tint: "from-[#7aa5f2] to-[#3a5fc8]",
+      tone: "bg-[#e8eef8] text-[#315eaa] border-[#c9d6eb]",
       build: async () => {
         const d = await apiGet<QuestionSummary>("/api/questions?domain=Reading%20%26%20Writing&random=1&limit=12");
         return { label: "Reading Sprint", ids: d.questions.map((q) => q.id) };
@@ -93,10 +93,10 @@ export default function StudySessionsPage() {
       desc: "Every question currently sitting in your mistake bank.",
       duration: "varies",
       icon: RotateCcw,
-      tint: "from-[#f7c873] to-[#e07b39]",
+      tone: "bg-[#f7ebdf] text-[#965629] border-[#e5c8ad]",
       build: async () => {
         const d = await apiGet<{ questions: SATQuestion[] }>("/api/mistakes");
-        if (d.questions.length === 0) throw new Error("Your mistake bank is empty — nice work!");
+        if (d.questions.length === 0) throw new Error("Your mistake bank is empty.");
         return { label: "Review Mistakes", ids: d.questions.map((q) => q.id) };
       },
     },
@@ -122,16 +122,16 @@ export default function StudySessionsPage() {
           Study <span className="hl-mint px-1">Sessions</span>
         </h1>
         <p className="mt-1 text-[15px] text-[#8a8680]">
-          One-tap drills built from the live bank. Pick a card and go.
+          Focused drills built from the current question bank.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {drills.map((d) => (
-          <GlassCard key={d.id} className="flex flex-col p-6">
+          <GlassCard key={d.id} hover={false} className="flex flex-col p-6">
             <div className="flex items-center justify-between">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${d.tint} shadow-md`}>
-                <d.icon className="h-5 w-5 text-white" />
+              <div className={`flex h-10 w-10 items-center justify-center rounded-[6px] border ${d.tone}`}>
+                <d.icon className="h-5 w-5" />
               </div>
               <span className="badge">{d.duration}</span>
             </div>
@@ -167,7 +167,7 @@ export default function StudySessionsPage() {
             ))}
           </ul>
         ) : (
-          <p className="rounded-xl bg-[#f6f2e8] px-4 py-3 text-[13px] text-[#8a8680]">
+          <p className="rounded-[6px] bg-[#f6f2e8] px-4 py-3 text-[13px] text-[#8a8680]">
             Finished quizzes will land here with their scores.
           </p>
         )}

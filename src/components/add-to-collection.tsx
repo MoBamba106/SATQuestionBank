@@ -77,7 +77,7 @@ export function AddToCollectionButton({
         aria-label="Add to collection"
         title="Add to collection"
         className={cn(
-          "rounded-lg text-[#a8a294] transition-all duration-150 hover:bg-[#f2ecdd] hover:text-[#3a5fc8] active:scale-90",
+          "rounded-[4px] text-[#8c8f92] transition-colors duration-150 hover:bg-[#f1ede3] hover:text-[#315eaa]",
           size === "md" ? "p-2" : "p-1.5",
           containing.size > 0 && "text-[#3a5fc8]",
           className,
@@ -99,8 +99,8 @@ export function AddToCollectionButton({
             </div>
           )}
           {!loading && collections.length === 0 && (
-            <p className="rounded-xl bg-[#f6f2e8] px-4 py-3 text-[13px] text-[#8a8680]">
-              No collections yet — create your first one below.
+            <p className="rounded-[6px] bg-[#f1ede3] px-4 py-3 text-[13px] text-[#7b8085]">
+              No collections yet. Create your first one below.
             </p>
           )}
           {collections.map((c) => {
@@ -111,7 +111,7 @@ export function AddToCollectionButton({
                 onClick={() => toggle(c)}
                 disabled={busyId === c.id}
                 className={cn(
-                  "flex w-full items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-3 text-left transition-all duration-150",
+                  "flex w-full items-center justify-between gap-3 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
                   inCol
                     ? "border-[#b9c9f2] bg-[#eef2fd] hover:bg-[#e4ebfc]"
                     : "border-[#e7e0d0] bg-white hover:border-[#cfc5ae] hover:bg-[#faf7ee]",

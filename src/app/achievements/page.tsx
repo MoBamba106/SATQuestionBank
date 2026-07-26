@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import {
-  Trophy, Footprints, Flame, Target, Star, Folders, Crown, Sparkles, Loader2, Lock, Medal,
+  Trophy, Footprints, Flame, Target, Star, Folders, Crown, CircleCheckBig, Loader2, Lock, Medal,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useApi } from "@/lib/api-client";
@@ -27,7 +27,7 @@ const ACHIEVEMENTS: Ach[] = [
   },
   {
     id: "warm", title: "Warming Up", desc: "Grade 25 answers",
-    icon: Sparkles,
+    icon: CircleCheckBig,
     unlocked: (s) => s.totalAttempts >= 25,
     progress: (s) => ({ cur: s.totalAttempts, goal: 25 }),
   },
@@ -105,7 +105,7 @@ export default function AchievementsPage() {
           <span className="hl-yellow px-1">Achievements</span>
         </h1>
         <p className="mt-1 text-[15px] text-[#8a8680]">
-          {loading ? "…" : `${unlockedCount} of ${ACHIEVEMENTS.length} unlocked — all earned from real activity.`}
+          {loading ? "…" : `${unlockedCount} of ${ACHIEVEMENTS.length} unlocked from completed practice.`}
         </p>
       </div>
 
@@ -128,11 +128,11 @@ export default function AchievementsPage() {
                 <div className="flex items-start gap-3.5">
                   <div
                     className={cn(
-                      "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-md",
-                      un ? "bg-gradient-to-br from-[#ffd27a] to-[#d9922e]" : "bg-[#ece5d4] shadow-none",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] border",
+                      un ? "border-[#dfc27c] bg-[#f8ecd0] text-[#8a5c1f]" : "border-[#d4cfc3] bg-[#f1ede3] text-[#8c8f92]",
                     )}
                   >
-                    {un ? <a.icon className="h-5 w-5 text-white" /> : <Lock className="h-4.5 w-4.5 text-[#b0aa98]" />}
+                    {un ? <a.icon className="h-5 w-5" /> : <Lock className="h-4.5 w-4.5" />}
                   </div>
                   <div className="min-w-0 grow">
                     <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function AchievementsPage() {
                     {!un && (
                       <div className="mt-2.5">
                         <div className="h-2 overflow-hidden rounded-full bg-[#efe9db]">
-                          <div className="h-full rounded-full bg-gradient-to-r from-[#ffd27a] to-[#d9922e]" style={{ width: `${pct}%` }} />
+                          <div className="h-full rounded-full bg-[#b88131]" style={{ width: `${pct}%` }} />
                         </div>
                         <p className="mt-1 font-mono text-[11px] font-bold text-[#a8a294]">{p.cur}/{p.goal}</p>
                       </div>

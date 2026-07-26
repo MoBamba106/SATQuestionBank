@@ -113,7 +113,10 @@ export function BluebookRunner({
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [isLastModule, finishTest, modules]);
-  advanceRef.current = advance;
+
+  React.useEffect(() => {
+    advanceRef.current = advance;
+  }, [advance]);
 
   if (done) {
     const rwQs = [...modules[0].questions, ...(modules[1]?.questions ?? [])];
@@ -125,11 +128,11 @@ export function BluebookRunner({
     return (
       <GlassCard hover={false} className="p-6 sm:p-10">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#7aa5f2] to-[#3a5fc8] shadow-[0_8px_24px_rgba(58,95,200,0.4)]">
-            <BookOpenCheck className="h-8 w-8 text-white" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-[7px] border border-[#c9d6eb] bg-[#e8eef8]">
+            <BookOpenCheck className="h-7 w-7 text-[#315eaa]" />
           </div>
           <h2 className="font-display mt-4 text-3xl font-bold text-[#2b2b2a]">{test.title} submitted</h2>
-          <p className="mt-1 text-[15px] text-[#8a8680]">Bluebook mode — full review now unlocked</p>
+          <p className="mt-1 text-[15px] text-[#8a8680]">Your complete answer review is ready.</p>
           <p className="mt-4 text-[17px] font-semibold">
             Raw score: <span className="hl-yellow px-1">{totalCorrect} / {total}</span>
           </p>
@@ -160,14 +163,14 @@ export function BluebookRunner({
     <div className="grid gap-5 lg:grid-cols-[1fr_240px]">
       <div className="space-y-4">
         {/* Bluebook header */}
-        <GlassCard hover={false} className="flex flex-wrap items-center gap-3 !rounded-2xl px-4 py-3">
+        <GlassCard hover={false} className="flex flex-wrap items-center gap-3 px-4 py-3">
           <button className="btn btn-ghost !px-2" onClick={onExit} title="Exit test"><LogOut className="h-4 w-4" /></button>
           <div className="min-w-0 grow">
             <div className="truncate text-[13px] font-bold text-[#2b2b2a]">{test.title}</div>
             <div className="text-[11.5px] font-medium text-[#8a8680]">{mod.title} · Question {qIdx + 1} of {mod.questions.length}</div>
           </div>
           <div className={cn(
-            "inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 font-mono text-[15px] font-bold",
+            "inline-flex items-center gap-2 rounded-[6px] border px-3.5 py-2 font-mono text-[15px] font-bold",
             lowTime ? "border-[#f3ccd4] bg-[#fdf0f2] text-[#a33046] gentle-pulse" : "border-[#e2dbc9] bg-[#f8f5ec] text-[#2b2b2a]",
           )}>
             <AlarmClock className="h-4 w-4" />
@@ -186,7 +189,7 @@ export function BluebookRunner({
                 onClick={() => setFlags((f) => ({ ...f, [current.id]: !f[current.id] }))}
                 title={flags[current.id] ? "Unflag" : "Flag for review"}
                 aria-label="Flag question"
-                className="rounded-lg p-2 transition-colors hover:bg-[#f2ecdd]"
+                className="rounded-[5px] p-2 transition-colors hover:bg-[#f2ecdd]"
               >
                 <Flag className={cn("h-[18px] w-[18px]", flags[current.id] ? "fill-[#ffb74a] stroke-[#d9922e]" : "stroke-[#a8a294]")} />
               </button>
@@ -232,7 +235,7 @@ export function BluebookRunner({
                 key={q.id}
                 onClick={() => setQIdx(i)}
                 className={cn(
-                  "relative flex h-8 items-center justify-center rounded-lg border text-[11.5px] font-bold transition-all",
+                  "relative flex h-8 items-center justify-center rounded-[5px] border text-[11.5px] font-bold transition-all",
                   i === qIdx
                     ? "border-[#3a5fc8] bg-[#3a5fc8] text-white shadow-[0_2px_6px_rgba(58,95,200,0.4)]"
                     : a && a.trim() !== ""
@@ -250,7 +253,7 @@ export function BluebookRunner({
           {isLastModule ? "Submit test" : "End module early"}
         </button>
         <div className="mt-3 border-t border-[#f0ead9] pt-3 text-[10.5px] leading-relaxed text-[#8a8680]">
-          Module {moduleIdx + 1} of {modules.length}. You cannot return to a completed module — just like the real Bluebook app.
+          Module {moduleIdx + 1} of {modules.length}. You cannot return to a completed module.
         </div>
       </GlassCard>
 
@@ -261,7 +264,7 @@ export function BluebookRunner({
         title={isLastModule ? "Submit the test?" : `End ${mod.title}?`}
         description="You won't be able to come back to this module once it's closed."
       >
-        <div className="mt-3 rounded-xl bg-[#fff8e6] px-4 py-3 text-[13px] text-[#8a6100]">
+        <div className="mt-3 rounded-[6px] bg-[#fff8e6] px-4 py-3 text-[13px] text-[#8a6100]">
           {mod.questions.filter((q) => !answers[q.id] || answers[q.id].trim() === "").length} question(s) in this module still have no answer.
         </div>
         <div className="mt-5 flex gap-2.5">

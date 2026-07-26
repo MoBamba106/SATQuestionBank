@@ -3,195 +3,213 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  Flame, Target, RotateCcw, Star, Folders, PenSquare, MonitorSmartphone,
-  Library, TrendingUp, ChevronRight, BookOpenCheck,
+  ArrowRight,
+  BarChart3,
+  BookOpenCheck,
+  CalendarClock,
+  Flame,
+  Library,
+  MonitorSmartphone,
+  PenSquare,
+  RotateCcw,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
 } from "recharts";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useApi } from "@/lib/api-client";
 import type { PracticeTestInfo, StatsPayload } from "@/lib/types";
 
 export default function DashboardPage() {
-  const { data: stats, loading } = useApi<StatsPayload>("/api/stats", "stats");
+  const { data: stats, loading, error } = useApi<StatsPayload>("/api/stats", "stats");
   const { data: tests } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
 
-  const cards = [
+  const metrics = [
     {
-      label: "Questions practiced",
+      label: "Practiced",
       value: stats?.uniqueQuestions ?? 0,
-      sub: `${stats?.totalAttempts ?? 0} total graded checks`,
+      detail: `${stats?.totalAttempts ?? 0} graded answers`,
       icon: Target,
-      tint: "from-[#7aa5f2] to-[#3a5fc8]",
-      href: "/bank",
+      color: "text-[#315eaa]",
     },
     {
       label: "Accuracy",
       value: `${stats?.accuracy ?? 0}%`,
-      sub: `${stats?.totalCorrect ?? 0} correct so far`,
+      detail: `${stats?.totalCorrect ?? 0} correct`,
       icon: TrendingUp,
-      tint: "from-[#5fce9b] to-[#2ca974]",
-      href: "/analytics",
+      color: "text-[#287a55]",
     },
     {
       label: "Open mistakes",
       value: stats?.mistakesCount ?? 0,
-      sub: "waiting to be corrected",
+      detail: "ready to review",
       icon: RotateCcw,
-      tint: "from-[#f2a5b6] to-[#d95670]",
-      href: "/mistakes",
+      color: "text-[#ae3d51]",
     },
     {
       label: "Study streak",
       value: stats?.streak.current ?? 0,
-      sub: `best ${stats?.streak.longest ?? 0} days`,
+      detail: `best: ${stats?.streak.longest ?? 0} days`,
       icon: Flame,
-      tint: "from-[#ffd27a] to-[#d9922e]",
-      href: "/achievements",
+      color: "text-[#9a6725]",
     },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <div className="glass relative overflow-hidden rounded-[24px] p-7 sm:p-9">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(122,165,242,0.28),transparent_65%)]" />
-        <div className="pointer-events-none absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(255,227,138,0.35),transparent_65%)]" />
-        <div className="relative">
-          <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-[#8a8680]">Soft Paper · Official content</p>
-          <h1 className="font-display mt-2 max-w-xl text-[clamp(1.9rem,4.5vw,2.9rem)] font-bold leading-[1.08] text-[#2b2b2a]">
-            Every official SAT question.{" "}
-            <span className="hl-yellow whitespace-nowrap px-1">Zero fluff.</span>
-          </h1>
-          <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-[#55524a]">
-            3,444 real College Board questions, full-length Bluebook practice tests 3–11, a mistake
-            bank that tracks what you miss, and collections that actually remember everything.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/quiz" className="btn btn-primary !px-5 !py-3">
+    <div className="space-y-5">
+      <section className="glass border-l-[4px] border-l-[#315eaa] p-6 sm:p-8">
+        <p className="text-[10.5px] font-bold uppercase tracking-[0.17em] text-[#315eaa]">
+          SAT study workspace
+        </p>
+        <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <h1 className="font-display text-[clamp(2rem,5vw,3rem)] font-bold leading-none text-[#25282c]">
+              Study desk
+            </h1>
+            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-[#555b62]">
+              Build a focused quiz, work through the official question bank, or return to the
+              questions that need another attempt.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            <Link href="/quiz" className="btn btn-primary">
               <PenSquare className="h-4 w-4" /> Start a quiz
             </Link>
-            <Link href="/bluebook" className="btn btn-soft !px-5 !py-3">
-              <MonitorSmartphone className="h-4 w-4" /> Bluebook tests 3–11
-            </Link>
-            <Link href="/bank" className="btn btn-ghost !px-4 !py-3">
-              <Library className="h-4 w-4" /> Browse bank
+            <Link href="/bank" className="btn btn-soft">
+              <Library className="h-4 w-4" /> Question bank
             </Link>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {cards.map((c) => (
-          <Link key={c.label} href={c.href}>
-            <GlassCard className="h-full p-5">
-              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${c.tint} shadow-md`}>
-                <c.icon className="h-5 w-5 text-white" strokeWidth={2.2} />
-              </div>
-              <div className="font-display text-[27px] font-bold leading-none text-[#2b2b2a]">
-                {loading ? "…" : c.value}
-              </div>
-              <div className="mt-1.5 text-[13px] font-semibold text-[#55524a]">{c.label}</div>
-              <div className="text-[11.5px] text-[#8a8680]">{c.sub}</div>
-            </GlassCard>
-          </Link>
+      {error && (
+        <div className="rounded-[6px] border border-[#e9c6cc] bg-[#fff7f7] px-4 py-3 text-[13px] font-semibold text-[#ae3d51]">
+          Progress data could not be loaded: {error}
+        </div>
+      )}
+
+      <GlassCard hover={false} className="grid grid-cols-2 divide-x divide-y divide-[#e6e1d7] lg:grid-cols-4 lg:divide-y-0">
+        {metrics.map((metric) => (
+          <div key={metric.label} className="p-4 sm:p-5">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#7b8085]">
+              <metric.icon className={`h-4 w-4 ${metric.color}`} />
+              {metric.label}
+            </div>
+            <div className="font-display mt-2 text-[28px] font-bold leading-none text-[#25282c]">
+              {loading ? "…" : metric.value}
+            </div>
+            <div className="mt-1 text-[11.5px] text-[#7b8085]">{metric.detail}</div>
+          </div>
         ))}
-      </div>
+      </GlassCard>
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        {/* Activity chart */}
+      <div className="grid gap-5 lg:grid-cols-5">
         <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-3">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-lg font-bold text-[#2b2b2a]">Last 14 days</h2>
-            <Link href="/analytics" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#3a5fc8] hover:underline">
-              Full analytics <ChevronRight className="h-3.5 w-3.5" />
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8085]">Activity</p>
+              <h2 className="font-display text-xl font-bold text-[#25282c]">Last 14 days</h2>
+            </div>
+            <Link href="/analytics" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#315eaa] hover:underline">
+              View analytics <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
           {stats && stats.activity.length > 0 ? (
-            <div className="h-[210px]">
+            <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.activity} margin={{ left: -24, right: 4, top: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ece5d4" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#8a8680" }} tickFormatter={(d: string) => d.slice(5)} />
-                  <YAxis tick={{ fontSize: 10.5, fill: "#8a8680" }} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ background: "#fffdf8", border: "1px solid #e2dbc9", borderRadius: 12, fontSize: 13 }}
-                  />
-                  <Bar dataKey="attempts" fill="#5b8def" radius={[5, 5, 0, 0]} maxBarSize={26} name="Checked" />
-                  <Bar dataKey="correct" fill="#2ca974" radius={[5, 5, 0, 0]} maxBarSize={26} name="Correct" />
+                  <CartesianGrid stroke="#e6e1d7" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#7b8085" }} tickFormatter={(date: string) => date.slice(5)} />
+                  <YAxis tick={{ fontSize: 10.5, fill: "#7b8085" }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "#fffdfa", border: "1px solid #d4cfc3", borderRadius: 6, fontSize: 13 }} />
+                  <Bar dataKey="attempts" fill="#91add6" maxBarSize={24} name="Checked" />
+                  <Bar dataKey="correct" fill="#287a55" maxBarSize={24} name="Correct" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex h-[210px] flex-col items-center justify-center text-center">
-              <BookOpenCheck className="mb-2 h-8 w-8 text-[#d5cfc0]" />
-              <p className="text-[13.5px] font-semibold text-[#55524a]">No activity yet</p>
-              <p className="text-[12px] text-[#8a8680]">Finish your first quiz and this chart comes alive.</p>
+            <div className="flex h-[220px] flex-col items-center justify-center border border-dashed border-[#d4cfc3] bg-[#faf8f2] text-center">
+              <BookOpenCheck className="mb-2 h-7 w-7 text-[#a9a398]" />
+              <p className="text-[13.5px] font-semibold text-[#555b62]">No activity recorded yet</p>
+              <p className="mt-0.5 text-[12px] text-[#7b8085]">Your graded quiz answers will appear here.</p>
             </div>
           )}
         </GlassCard>
 
-        {/* Recent sessions + quick links */}
         <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-2">
-          <h2 className="font-display mb-3 text-lg font-bold text-[#2b2b2a]">Recent sessions</h2>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7b8085]">Quick start</p>
+          <h2 className="font-display text-xl font-bold text-[#25282c]">Choose a session</h2>
+          <div className="mt-4 divide-y divide-[#e6e1d7] border-y border-[#e6e1d7]">
+            {[
+              { href: "/study-sessions", label: "Quick 10", detail: "10 random questions", icon: CalendarClock },
+              { href: "/mistakes", label: "Mistake review", detail: `${stats?.mistakesCount ?? 0} open`, icon: RotateCcw },
+              { href: "/bluebook", label: "Timed practice test", detail: "full digital SAT format", icon: MonitorSmartphone },
+            ].map((item) => (
+              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[#25282c] hover:text-[#315eaa]">
+                <item.icon className="h-4 w-4 shrink-0 text-[#7b8085]" />
+                <div className="min-w-0 grow">
+                  <div className="text-[13.5px] font-semibold">{item.label}</div>
+                  <div className="text-[11.5px] text-[#7b8085]">{item.detail}</div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ))}
+          </div>
+        </GlassCard>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <GlassCard hover={false} className="p-5 sm:p-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-xl font-bold text-[#25282c]">Recent sessions</h2>
+            <BarChart3 className="h-4 w-4 text-[#7b8085]" />
+          </div>
           {stats && stats.recentSessions.length > 0 ? (
-            <ul className="space-y-2">
-              {stats.recentSessions.map((s) => (
-                <li key={s.id} className="glass-subtle flex items-center gap-3 px-3.5 py-2.5">
+            <ul className="divide-y divide-[#e6e1d7] border-t border-[#e6e1d7]">
+              {stats.recentSessions.slice(0, 5).map((session) => (
+                <li key={session.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 grow">
-                    <div className="truncate text-[13px] font-semibold text-[#2b2b2a]">{s.label ?? s.mode}</div>
-                    <div className="text-[11px] text-[#8a8680]">
-                      {s.finishedAt ? new Date(s.finishedAt).toLocaleDateString() : ""} · {s.answeredCount ?? 0}/{s.totalQuestions} answered
+                    <div className="truncate text-[13px] font-semibold text-[#25282c]">{session.label ?? session.mode}</div>
+                    <div className="text-[11px] text-[#7b8085]">
+                      {session.finishedAt ? new Date(session.finishedAt).toLocaleDateString() : "In progress"} · {session.answeredCount ?? 0}/{session.totalQuestions} answered
                     </div>
                   </div>
-                  <span className="font-display text-lg font-bold text-[#3a5fc8]">
-                    {s.totalQuestions ? Math.round(((s.correctCount ?? 0) / s.totalQuestions) * 100) : 0}%
+                  <span className="font-mono text-[13px] font-semibold text-[#315eaa]">
+                    {session.totalQuestions ? Math.round(((session.correctCount ?? 0) / session.totalQuestions) * 100) : 0}%
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="rounded-xl bg-[#f6f2e8] px-4 py-3 text-[13px] text-[#8a8680]">
-              Nothing here yet — your finished quizzes will show up with scores.
+            <p className="border border-dashed border-[#d4cfc3] bg-[#faf8f2] px-4 py-5 text-[13px] text-[#7b8085]">
+              Completed quizzes will be listed here with their scores.
             </p>
           )}
-          <div className="mt-4 flex gap-2 border-t border-[#f0ead9] pt-4 text-[12.5px] font-semibold">
-            <Link href="/collections" className="inline-flex items-center gap-1.5 text-[#3a5fc8] hover:underline">
-              <Star className="h-3.5 w-3.5" /> {stats?.favoritesCount ?? 0} favorites
-            </Link>
-            <span className="text-[#d5cfc0]">·</span>
-            <Link href="/collections" className="inline-flex items-center gap-1.5 text-[#3a5fc8] hover:underline">
-              <Folders className="h-3.5 w-3.5" /> {stats?.collectionsCount ?? 0} collections
-            </Link>
+        </GlassCard>
+
+        <GlassCard hover={false} className="p-5 sm:p-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-display text-xl font-bold text-[#25282c]">Practice tests</h2>
+            <Link href="/bluebook" className="text-[12.5px] font-semibold text-[#315eaa] hover:underline">See all</Link>
+          </div>
+          <div className="grid grid-cols-3 border-l border-t border-[#e6e1d7] sm:grid-cols-5">
+            {(tests?.tests ?? []).slice(0, 10).map((test) => (
+              <Link key={test.id} href="/bluebook" className="border-b border-r border-[#e6e1d7] bg-[#faf8f2] px-2 py-3 text-center hover:bg-[#e8eef8]">
+                <span className="font-display block text-xl font-bold text-[#315eaa]">{test.testNumber}</span>
+                <span className="text-[9.5px] font-semibold uppercase tracking-wide text-[#7b8085]">{test.totalQuestions} Q</span>
+              </Link>
+            ))}
           </div>
         </GlassCard>
       </div>
-
-      {/* Practice tests preview */}
-      <GlassCard hover={false} className="p-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-[#2b2b2a]">Bluebook practice tests</h2>
-          <Link href="/bluebook" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#3a5fc8] hover:underline">
-            All tests <ChevronRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-9">
-          {(tests?.tests ?? []).map((t) => (
-            <Link
-              key={t.id}
-              href="/bluebook"
-              className="glass-subtle group flex flex-col items-center px-2 py-3.5 text-center transition-all hover:-translate-y-0.5 hover:border-[#b9c9f2] hover:bg-[#f7f9fe]"
-            >
-              <span className="font-display text-2xl font-bold text-[#3a5fc8]">{t.testNumber}</span>
-              <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#8a8680]">
-                {t.totalQuestions} Q
-              </span>
-            </Link>
-          ))}
-        </div>
-      </GlassCard>
     </div>
   );
 }

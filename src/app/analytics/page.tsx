@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
         <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
           <span className="hl-blue px-1">Analytics</span>
         </h1>
-        <p className="mt-1 text-[15px] text-[#8a8680]">Real numbers from your graded attempts — never fake stats.</p>
+        <p className="mt-1 text-[15px] text-[#8a8680]">Results from your graded practice attempts.</p>
       </div>
 
       {noData ? (
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
                     <span className="w-52 shrink-0 truncate text-[13px] font-semibold text-[#55524a]">{k.skill}</span>
                     <div className="h-3 grow overflow-hidden rounded-full bg-[#efe9db]">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#7aa5f2] to-[#3a5fc8]"
+                        className="h-full rounded-full bg-[#315eaa]"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

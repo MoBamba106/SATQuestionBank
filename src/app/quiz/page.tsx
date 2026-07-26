@@ -91,7 +91,7 @@ function QuizInner() {
         }
         const launch = consumePool();
         if (!launch) {
-          toast.error("That question pool expired — build it again from its page.");
+          toast.error("That question pool expired. Build it again from its page.");
           return;
         }
         const s = await apiPost<{ id: string }>("/api/sessions", {
@@ -109,7 +109,6 @@ function QuizInner() {
         setBooting(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
 
   const startCustom = async () => {
@@ -124,7 +123,7 @@ function QuizInner() {
       const label = `${quizMode === "exam" ? "Exam" : "Practice"} · ${labelParts.join(" · ")}`;
       const d = await apiGet<QuestionSummary>(`/api/questions?${filterQS}&random=1&limit=${count}`);
       if (d.questions.length === 0) {
-        toast.error("No questions match those filters — widen them and try again.");
+        toast.error("No questions match those filters. Widen them and try again.");
         return;
       }
       const s = await apiPost<{ id: string }>("/api/sessions", {
@@ -233,7 +232,7 @@ function QuizInner() {
           {available != null && (
             <p className={cn("mt-1 text-[12.5px] font-medium", available === 0 ? "text-[#a33046]" : "text-[#8a8680]")}>
               {available.toLocaleString()} question{available === 1 ? "" : "s"} match your filters
-              {available > 0 && available < count ? ` — quiz will use all ${available}` : ""}
+              {available > 0 && available < count ? `. The quiz will use all ${available}.` : ""}
             </p>
           )}
         </div>
@@ -244,7 +243,7 @@ function QuizInner() {
             <button
               onClick={() => setQuizMode("practice")}
               className={cn(
-                "flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-all",
+                "flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors",
                 quizMode === "practice"
                   ? "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]"
                   : "border-[#e7e0d0] bg-white hover:border-[#cfc5ae]",
@@ -259,7 +258,7 @@ function QuizInner() {
             <button
               onClick={() => setQuizMode("exam")}
               className={cn(
-                "flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-all",
+                "flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors",
                 quizMode === "exam"
                   ? "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]"
                   : "border-[#e7e0d0] bg-white hover:border-[#cfc5ae]",
@@ -268,7 +267,7 @@ function QuizInner() {
               <PenLine className={cn("mt-0.5 h-5 w-5", quizMode === "exam" ? "text-[#3a5fc8]" : "text-[#a8a294]")} />
               <span>
                 <span className="block text-[14px] font-bold text-[#2b2b2a]">Exam</span>
-                <span className="block text-[12px] text-[#8a8680]">No feedback until you finish — graded at the end</span>
+                <span className="block text-[12px] text-[#8a8680]">No feedback until you finish; graded at the end</span>
               </span>
             </button>
           </div>

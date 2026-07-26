@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
 import { cn } from "@/lib/utils";
@@ -26,9 +25,6 @@ export function QuestionView({
   lockSelection?: boolean;
   showExplanation?: boolean;
 }) {
-  const [draft, setDraft] = React.useState(selected ?? "");
-  React.useEffect(() => setDraft(selected ?? ""), [selected, question.id]);
-
   return (
     <div className="space-y-4">
       {question.passageHtml && (
@@ -51,7 +47,7 @@ export function QuestionView({
                 disabled={lockSelection}
                 onClick={() => onSelect(c.key)}
                 className={cn(
-                  "flex w-full items-start gap-3.5 rounded-2xl border-[1.5px] px-4 py-3 text-left transition-all duration-150",
+                  "flex w-full items-start gap-3.5 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
                   !graded && !isSel && "border-[#e7e0d0] bg-white hover:border-[#b9c9f2] hover:bg-[#f7f9fe]",
                   !graded && isSel && "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]",
                   graded && isAnswer && "border-[#2ca974] bg-[#ecf8f1]",
@@ -97,13 +93,10 @@ export function QuestionView({
                     ? "border-[#d95670] bg-[#fdf0f2]"
                     : "",
               )}
-              value={draft}
+              value={selected ?? ""}
               disabled={lockSelection}
               placeholder="Type your answer…"
-              onChange={(e) => {
-                setDraft(e.target.value);
-                onSelect(e.target.value);
-              }}
+              onChange={(e) => onSelect(e.target.value)}
             />
             {graded && (
               <span className="text-[13px] font-semibold text-[#238a5e]">Answer: {question.correctAnswer}</span>
@@ -113,7 +106,7 @@ export function QuestionView({
       )}
 
       {graded && showExplanation && question.explanation && (
-        <div className="rounded-2xl border border-[#cfe5d8] bg-[#f2faf5] p-4 sm:p-5">
+        <div className="rounded-[6px] border border-[#bad6c7] bg-[#f2faf5] p-4 sm:p-5">
           <p className="mb-2 text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#238a5e]">Explanation</p>
           <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
         </div>

@@ -10,8 +10,8 @@ export function GlassCard({ className, children, hover = true, ...props }: DivPr
     <div
       {...props}
       className={cn(
-        "glass rounded-[20px] relative overflow-hidden transition-all duration-200",
-        hover && "hover:-translate-y-[2px] hover:shadow-paper-lg",
+        "glass relative overflow-hidden transition-colors duration-150",
+        hover && "hover:border-[#b7afa1]",
         className,
       )}
     >
