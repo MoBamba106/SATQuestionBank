@@ -41,7 +41,7 @@ function QuestionCardInner({
     <>
       <GlassCard
         className={cn(
-          "flex h-full flex-col p-5",
+          "question-card flex h-full flex-col p-5",
           selectable && "cursor-pointer select-none",
           selected && "!border-[#88aeb9] !bg-[#dce8ed] shadow-[inset_4px_0_0_#286983]",
           selectable && !selected && "hover:!border-[#aac7cf] hover:!bg-[#edf2f1]",

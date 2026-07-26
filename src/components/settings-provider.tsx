@@ -12,6 +12,7 @@ export type AppSettings = {
   reducedMotion: boolean;
   compactMode: boolean;
   showTimer: boolean;
+  soundEffects: boolean;
   defaultQuizSize: number;
   defaultQuizMode: QuizModeSetting;
 };
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   reducedMotion: false,
   compactMode: false,
   showTimer: true,
+  soundEffects: false,
   defaultQuizSize: 10,
   defaultQuizMode: "practice",
 };
@@ -77,6 +79,33 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [settings, ready]);
 
+  React.useEffect(() => {
+    if (!settings.soundEffects) return;
+    let audioContext: AudioContext | null = null;
+    const playClick = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      const interactive = target?.closest("button, a, [role='button'], [role='switch'], [role='option']");
+      if (!interactive || interactive.hasAttribute("disabled")) return;
+      audioContext ??= new AudioContext();
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(430, now);
+      oscillator.frequency.exponentialRampToValueAtTime(560, now + 0.035);
+      gain.gain.setValueAtTime(0.018, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.045);
+    };
+    document.addEventListener("pointerdown", playClick, { capture: true });
+    return () => {
+      document.removeEventListener("pointerdown", playClick, { capture: true });
+      void audioContext?.close();
+    };
+  }, [settings.soundEffects]);
+
   const updateSettings = React.useCallback((patch: Partial<AppSettings>) => {
     setSettings((current) => ({ ...current, ...patch }));
   }, []);
@@ -90,8 +119,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const contextValue = React.useMemo(
+    () => ({ settings, ready, updateSettings, resetSettings }),
+    [settings, ready, updateSettings, resetSettings],
+  );
+
   return (
-    <SettingsContext.Provider value={{ settings, ready, updateSettings, resetSettings }}>
+    <SettingsContext.Provider value={contextValue}>
       {children}
     </SettingsContext.Provider>
   );

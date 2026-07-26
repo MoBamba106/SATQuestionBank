@@ -50,8 +50,8 @@ export function PaperSlider({
         step={step}
         aria-label={ariaLabel ?? "slider"}
       >
-        <SliderPrimitive.Track className="relative h-[10px] grow overflow-hidden rounded-full border border-[#ddd5c2] bg-[#eee8d8] shadow-[inset_0_1px_3px_rgba(60,45,20,0.10)]">
-          <SliderPrimitive.Range className="absolute h-full rounded-full bg-[#315eaa]" />
+        <SliderPrimitive.Track className="relative h-[10px] grow overflow-hidden rounded-full border border-[var(--line)] bg-[var(--paper-deep)] shadow-[inset_0_1px_3px_rgba(20,24,34,0.12)]">
+          <SliderPrimitive.Range className="absolute h-full rounded-full bg-[var(--accent)]" />
         </SliderPrimitive.Track>
 
         {/* tick marks */}
@@ -62,7 +62,7 @@ export function PaperSlider({
                 key={t}
                 className={cn(
                   "h-[4px] w-[2px] rounded-full",
-                  ((t - min) / (max - min)) * 100 <= pct ? "bg-white/70" : "bg-[#cfc6b0]",
+                  ((t - min) / (max - min)) * 100 <= pct ? "bg-white/70" : "bg-[var(--ink-faint)]/50",
                 )}
               />
             ))}
@@ -71,17 +71,17 @@ export function PaperSlider({
 
         <SliderPrimitive.Thumb
           className={cn(
-            "relative block h-[22px] w-[22px] cursor-grab rounded-full border-[2.5px] border-[#3a5fc8] bg-white",
-            "shadow-[0_2px_6px_rgba(58,95,200,0.35),0_1px_2px_rgba(60,45,20,0.15)]",
-            "focus:outline-none focus:shadow-[0_0_0_4px_rgba(49,94,170,0.20)]",
+            "relative block h-[22px] w-[22px] cursor-grab rounded-full border-[2.5px] border-[var(--accent)] bg-[var(--paper-raised)]",
+            "shadow-md",
+            "focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/20",
             "active:cursor-grabbing",
           )}
         >
-          <span className="absolute inset-[5px] rounded-full bg-[#315eaa]" />
+          <span className="absolute inset-[5px] rounded-full bg-[var(--accent)]" />
           {showBubble && (
             <span
               className={cn(
-                "pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] px-2.5 py-1 text-[12px] font-bold text-[#3053ad] shadow-[0_4px_12px_rgba(60,45,20,0.12)] transition-all duration-150",
+                "pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] px-2.5 py-1 text-[12px] font-bold text-[var(--accent)] shadow-[0_4px_12px_rgba(60,45,20,0.12)] transition-all duration-150",
                 dragging ? "opacity-100" : "opacity-0",
               )}
             >

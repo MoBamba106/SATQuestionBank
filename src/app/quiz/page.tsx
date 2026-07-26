@@ -304,7 +304,7 @@ function QuizInner() {
         <div className="mt-7">
           <div className="mb-1 flex items-baseline justify-between">
             <label className="text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Questions</label>
-            <span className="font-display text-2xl font-bold text-[#3a5fc8]">{count}</span>
+            <span className="font-display text-2xl font-bold text-[var(--accent)]">{count}</span>
           </div>
           <PaperSlider
             value={count}
@@ -329,14 +329,10 @@ function QuizInner() {
           <div className="grid grid-cols-2 gap-2.5">
             <button
               onClick={() => setQuizMode("practice")}
-              className={cn(
-                "flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors",
-                quizMode === "practice"
-                  ? "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]"
-                  : "border-[var(--line-soft)] bg-white hover:border-[#cfc5ae]",
-              )}
+              data-active={quizMode === "practice"}
+              className="quiz-mode-card flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors"
             >
-              <FlaskConical className={cn("mt-0.5 h-5 w-5", quizMode === "practice" ? "text-[#3a5fc8]" : "text-[var(--ink-faint)]")} />
+              <FlaskConical className="quiz-mode-icon mt-0.5 h-5 w-5" />
               <span>
                 <span className="block text-[14px] font-bold text-[var(--ink)]">Practice</span>
                 <span className="block text-[12px] text-[var(--ink-faint)]">Check answers as you go with explanations</span>
@@ -344,14 +340,10 @@ function QuizInner() {
             </button>
             <button
               onClick={() => setQuizMode("exam")}
-              className={cn(
-                "flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors",
-                quizMode === "exam"
-                  ? "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]"
-                  : "border-[var(--line-soft)] bg-white hover:border-[#cfc5ae]",
-              )}
+              data-active={quizMode === "exam"}
+              className="quiz-mode-card flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors"
             >
-              <PenLine className={cn("mt-0.5 h-5 w-5", quizMode === "exam" ? "text-[#3a5fc8]" : "text-[var(--ink-faint)]")} />
+              <PenLine className="quiz-mode-icon mt-0.5 h-5 w-5" />
               <span>
                 <span className="block text-[14px] font-bold text-[var(--ink)]">Exam</span>
                 <span className="block text-[12px] text-[var(--ink-faint)]">No feedback until you finish; graded at the end</span>

@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Trash2,
   Type,
+  Volume2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
@@ -180,6 +181,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.reducedMotion} onChange={(reducedMotion) => updateSettings({ reducedMotion })} label="Reduce motion" description="Stops decorative motion and follows accessibility guidance." icon={RotateCcw} />
             <Toggle checked={settings.compactMode} onChange={(compactMode) => updateSettings({ compactMode })} label="Compact layout" description="Fits more questions and controls on screen." icon={LayoutGrid} />
             <Toggle checked={settings.showTimer} onChange={(showTimer) => updateSettings({ showTimer })} label="Show practice timers" description="Hide elapsed time during ordinary quizzes to reduce pressure." icon={Clock3} />
+            <Toggle checked={settings.soundEffects} onChange={(soundEffects) => updateSettings({ soundEffects })} label="Subtle interface sounds" description="Quiet tactile cues for buttons and toggles. Muted by default." icon={Volume2} />
           </div>
         </section>
 

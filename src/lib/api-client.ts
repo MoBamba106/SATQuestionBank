@@ -18,16 +18,50 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-export const apiGet = <T>(url: string) => request<T>(url);
-export const apiPost = <T>(url: string, body?: unknown) =>
-  request<T>(url, { method: "POST", body: JSON.stringify(body ?? {}) });
-export const apiPatch = <T>(url: string, body?: unknown) =>
-  request<T>(url, { method: "PATCH", body: JSON.stringify(body ?? {}) });
-export const apiDelete = <T>(url: string) => request<T>(url, { method: "DELETE" });
+const GET_CACHE = new Map<string, { value: unknown; expires: number }>();
+const GET_IN_FLIGHT = new Map<string, Promise<unknown>>();
+const GET_TTL_MS = 12_000;
+
+function clearGetCache() {
+  GET_CACHE.clear();
+  GET_IN_FLIGHT.clear();
+}
+
+export function apiGet<T>(url: string): Promise<T> {
+  const cached = GET_CACHE.get(url);
+  if (cached && cached.expires > Date.now()) return Promise.resolve(cached.value as T);
+  const running = GET_IN_FLIGHT.get(url);
+  if (running) return running as Promise<T>;
+  const promise = request<T>(url)
+    .then((value) => {
+      GET_CACHE.set(url, { value, expires: Date.now() + GET_TTL_MS });
+      return value;
+    })
+    .finally(() => GET_IN_FLIGHT.delete(url));
+  GET_IN_FLIGHT.set(url, promise);
+  return promise;
+}
+
+export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
+  const value = await request<T>(url, { method: "POST", body: JSON.stringify(body ?? {}) });
+  clearGetCache();
+  return value;
+}
+export async function apiPatch<T>(url: string, body?: unknown): Promise<T> {
+  const value = await request<T>(url, { method: "PATCH", body: JSON.stringify(body ?? {}) });
+  clearGetCache();
+  return value;
+}
+export async function apiDelete<T>(url: string): Promise<T> {
+  const value = await request<T>(url, { method: "DELETE" });
+  clearGetCache();
+  return value;
+}
 
 // ------- tiny cross-component revalidation bus -------
 const BUS_EVENT = "sat-api-mutate";
 export function mutateKey(key: string) {
+  clearGetCache();
   if (typeof window !== "undefined")
     window.dispatchEvent(new CustomEvent(BUS_EVENT, { detail: key }));
 }

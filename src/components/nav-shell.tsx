@@ -57,7 +57,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
     <nav aria-label="Primary navigation" className="space-y-5">
       {NAV_GROUPS.map((group) => (
         <div key={group.label}>
-          <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[#8b877f]">
+          <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">
             {group.label}
           </div>
           <div className="space-y-0.5">
@@ -72,12 +72,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                   className={cn(
                     "relative flex min-h-10 items-center gap-3 border-l-[3px] px-3 py-2 text-[13.5px] font-semibold transition-colors",
                     active
-                      ? "border-[#286983] bg-[#dce8ed] text-[#245d73]"
+                      ? "nav-link-active"
                       : "border-transparent text-[var(--ink-soft)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
                   )}
                 >
                   <Icon
-                    className={cn("h-[17px] w-[17px] shrink-0", active ? "text-[#286983]" : "text-[var(--ink-faint)]")}
+                    className={cn("nav-item-icon h-[17px] w-[17px] shrink-0", active ? "text-[var(--accent)]" : "text-[var(--ink-faint)]")}
                     strokeWidth={active ? 2.3 : 2}
                   />
                   {label}
@@ -99,7 +99,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[236px] flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex">
         <Link href="/" className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-[#286983]">
+          <div className="brand-mark flex h-9 w-9 items-center justify-center rounded-[6px]">
             <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
           </div>
           <div>
@@ -131,7 +131,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
 
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-[5px] bg-[#286983]">
+          <div className="brand-mark flex h-8 w-8 items-center justify-center rounded-[5px]">
             <BookOpenText className="h-4 w-4 text-white" />
           </div>
           <span className="font-display text-[18px] font-bold text-[var(--ink)]">SAT Nexus</span>

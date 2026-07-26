@@ -11,7 +11,7 @@ export function GlassCard({ className, children, hover = true, ...props }: DivPr
       {...props}
       className={cn(
         "glass relative overflow-hidden transition-colors duration-150",
-        hover && "hover:border-[#b7afa1]",
+        hover && "hover:border-[var(--accent)]",
         className,
       )}
     >

@@ -38,7 +38,7 @@ export default function DashboardPage() {
       value: stats?.uniqueQuestions ?? 0,
       detail: `${stats?.totalAttempts ?? 0} graded answers`,
       icon: Target,
-      color: "text-[#315eaa]",
+      color: "text-[var(--accent)]",
     },
     {
       label: "Accuracy",
@@ -65,8 +65,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      <section className="glass border-l-[4px] border-l-[#315eaa] p-6 sm:p-8">
-        <p className="text-[10.5px] font-bold uppercase tracking-[0.17em] text-[#315eaa]">
+      <section className="glass border-l-[4px] border-l-[var(--accent)] p-6 sm:p-8">
+        <p className="text-[10.5px] font-bold uppercase tracking-[0.17em] text-[var(--accent)]">
           SAT study workspace
         </p>
         <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -118,7 +118,7 @@ export default function DashboardPage() {
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Activity</p>
               <h2 className="font-display text-xl font-bold text-[var(--ink)]">Last 14 days</h2>
             </div>
-            <Link href="/analytics" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[#315eaa] hover:underline">
+            <Link href="/analytics" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[var(--accent)] hover:underline">
               View analytics <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -130,8 +130,8 @@ export default function DashboardPage() {
                   <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#7b8085" }} tickFormatter={(date: string) => date.slice(5)} />
                   <YAxis tick={{ fontSize: 10.5, fill: "#7b8085" }} allowDecimals={false} />
                   <Tooltip contentStyle={{ background: "#fffdfa", border: "1px solid #d4cfc3", borderRadius: 6, fontSize: 13 }} />
-                  <Bar dataKey="attempts" fill="#91add6" maxBarSize={24} name="Checked" />
-                  <Bar dataKey="correct" fill="#287a55" maxBarSize={24} name="Correct" />
+                  <Bar dataKey="attempts" fill="var(--accent)" maxBarSize={24} name="Checked" />
+                  <Bar dataKey="correct" fill="var(--good)" maxBarSize={24} name="Correct" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -153,7 +153,7 @@ export default function DashboardPage() {
               { href: "/mistakes", label: "Mistake review", detail: `${stats?.mistakesCount ?? 0} open`, icon: RotateCcw },
               { href: "/bluebook", label: "Timed practice test", detail: "full digital SAT format", icon: MonitorSmartphone },
             ].map((item) => (
-              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[var(--ink)] hover:text-[#315eaa]">
+              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[var(--ink)] hover:text-[var(--accent)]">
                 <item.icon className="h-4 w-4 shrink-0 text-[var(--ink-faint)]" />
                 <div className="min-w-0 grow">
                   <div className="text-[13.5px] font-semibold">{item.label}</div>
@@ -198,12 +198,12 @@ export default function DashboardPage() {
         <GlassCard hover={false} className="p-5 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-xl font-bold text-[var(--ink)]">Practice tests</h2>
-            <Link href="/bluebook" className="text-[12.5px] font-semibold text-[#315eaa] hover:underline">See all</Link>
+            <Link href="/bluebook" className="text-[12.5px] font-semibold text-[var(--accent)] hover:underline">See all</Link>
           </div>
           <div className="grid grid-cols-3 border-l border-t border-[var(--line-soft)] sm:grid-cols-5">
             {(tests?.tests ?? []).slice(0, 10).map((test) => (
               <Link key={test.id} href="/bluebook" className="border-b border-r border-[var(--line-soft)] bg-[var(--paper-soft)] px-2 py-3 text-center hover:bg-[var(--accent-soft)]">
-                <span className="font-display block text-xl font-bold text-[#315eaa]">{test.testNumber}</span>
+                <span className="font-display block text-xl font-bold text-[var(--accent)]">{test.testNumber}</span>
                 <span className="text-[9.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">{test.totalQuestions} Q</span>
               </Link>
             ))}
