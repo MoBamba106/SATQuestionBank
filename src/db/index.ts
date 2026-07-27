@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
@@ -13,8 +14,11 @@ import { Pool } from "pg";
  *   DATABASE_MODE=postgres
  *   DATABASE_URL=postgresql://user:pass@host:5432/db
  *
- * SQLite-style URLs like `file:./dev.db` are ignored — this app never uses
- * SQLite, and treating them as Postgres produced the CREATE TABLE failures.
+ * SQLite-style URLs like `file:./dev.db` are ignored.
+ *
+ * If the embedded store is corrupt or locked (common after a hard kill of
+ * `next dev`), ensureDatabaseReady() automatically rebuilds it once so you
+ * never have to manually delete `.sat-nexus-db`.
  */
 const rawUrl = process.env.DATABASE_URL?.trim() || "";
 const isPostgresUrl =
@@ -25,8 +29,6 @@ const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
 const forceEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
 const forcePostgres = mode === "postgres" || mode === "pg";
 
-// Default: embedded. Only talk to external Postgres when explicitly asked, or
-// when production has a real postgres:// URL.
 const shouldUsePostgres =
   !forceEmbedded &&
   isPostgresUrl &&
@@ -34,9 +36,12 @@ const shouldUsePostgres =
 
 const databaseUrl = isPostgresUrl ? rawUrl : undefined;
 
+type DbInstance = ReturnType<typeof drizzlePostgres>;
+
 const globalForDb = globalThis as typeof globalThis & {
   __satNexusPgPool?: Pool;
   __satNexusPGlite?: PGlite;
+  __satNexusDb?: DbInstance;
   __satNexusSchemaPromise?: Promise<void>;
 };
 
@@ -44,21 +49,57 @@ const embeddedDataDir = process.env.SAT_NEXUS_DATA_DIR?.trim()
   ? path.resolve(process.env.SAT_NEXUS_DATA_DIR)
   : path.resolve(process.cwd(), ".sat-nexus-db");
 
-const client = shouldUsePostgres
-  ? globalForDb.__satNexusPgPool ??
+function rmDirSafe(dir: string) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 40 });
+  } catch (error) {
+    console.warn("[db] could not remove embedded data dir:", dir, error);
+  }
+}
+
+function buildDb(client: Pool | PGlite): DbInstance {
+  return (client instanceof Pool ? drizzlePostgres(client) : drizzlePglite(client)) as DbInstance;
+}
+
+function openEmbedded(): PGlite {
+  return globalForDb.__satNexusPGlite ?? new PGlite(embeddedDataDir);
+}
+
+function openPostgres(): Pool {
+  return (
+    globalForDb.__satNexusPgPool ??
     new Pool({
       connectionString: databaseUrl,
     })
-  : globalForDb.__satNexusPGlite ?? new PGlite(embeddedDataDir);
+  );
+}
 
-if (client instanceof Pool) globalForDb.__satNexusPgPool = client;
-else globalForDb.__satNexusPGlite = client;
+function createClient(): Pool | PGlite {
+  if (shouldUsePostgres) {
+    const pool = openPostgres();
+    globalForDb.__satNexusPgPool = pool;
+    return pool;
+  }
+  const embedded = openEmbedded();
+  globalForDb.__satNexusPGlite = embedded;
+  return embedded;
+}
 
-// Both drivers implement Drizzle's PostgreSQL API. Keeping one exported type
-// avoids spreading a driver union through every API route.
-export const db = (
-  client instanceof Pool ? drizzlePostgres(client) : drizzlePglite(client)
-) as ReturnType<typeof drizzlePostgres>;
+function currentDb(): DbInstance {
+  if (!globalForDb.__satNexusDb) {
+    globalForDb.__satNexusDb = buildDb(createClient());
+  }
+  return globalForDb.__satNexusDb;
+}
+
+/** Live Drizzle handle — always points at the current client. */
+export const db: DbInstance = new Proxy({} as DbInstance, {
+  get(_t, prop, receiver) {
+    const instance = currentDb();
+    const value = Reflect.get(instance as object, prop, receiver);
+    return typeof value === "function" ? (value as (...a: unknown[]) => unknown).bind(instance) : value;
+  },
+});
 
 export const databaseKind = shouldUsePostgres ? "postgres" : "embedded";
 
@@ -162,18 +203,65 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS ptq_test_idx ON practice_test_questions (test_id)`,
 ];
 
-async function runSchema() {
+async function applySchema(instance: DbInstance) {
   for (const statement of SCHEMA_STATEMENTS) {
-    try {
-      await db.execute(sql.raw(statement));
-    } catch (error) {
+    await instance.execute(sql.raw(statement));
+  }
+  // Sanity probe — catches half-open / locked stores that accepted DDL no-ops.
+  await instance.execute(sql`select 1`);
+}
+
+async function closeEmbedded() {
+  const existing = globalForDb.__satNexusPGlite;
+  if (!existing) return;
+  try {
+    await existing.close?.();
+  } catch {
+    /* ignore close races */
+  }
+  globalForDb.__satNexusPGlite = undefined;
+  globalForDb.__satNexusDb = undefined;
+}
+
+async function rebuildEmbeddedStore(reason: unknown) {
+  console.warn(
+    "[db] embedded PGlite store unusable — auto-rebuilding",
+    embeddedDataDir,
+    reason instanceof Error ? reason.message : reason,
+  );
+  await closeEmbedded();
+  rmDirSafe(embeddedDataDir);
+  // Recreate empty dir so PGlite doesn't trip over a half-deleted path.
+  try {
+    fs.mkdirSync(embeddedDataDir, { recursive: true });
+  } catch {
+    /* PGlite will create it */
+  }
+  const fresh = new PGlite(embeddedDataDir);
+  globalForDb.__satNexusPGlite = fresh;
+  globalForDb.__satNexusDb = buildDb(fresh);
+  await applySchema(globalForDb.__satNexusDb);
+}
+
+async function runSchema() {
+  try {
+    await applySchema(currentDb());
+  } catch (error) {
+    if (shouldUsePostgres) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(
-        `Database schema setup failed (${databaseKind}): ${message}\n` +
-          `Statement: ${statement.replace(/\s+/g, " ").slice(0, 140)}…\n` +
-          (shouldUsePostgres
-            ? "Check DATABASE_URL points at a reachable Postgres instance, or set DATABASE_MODE=embedded."
-            : "The embedded PGlite database could not initialize. Delete .sat-nexus-db and restart if it is corrupt."),
+        `Database schema setup failed (postgres): ${message}\n` +
+          "Check DATABASE_URL points at a reachable Postgres instance, or set DATABASE_MODE=embedded.",
+      );
+    }
+    // Auto-heal corrupt/locked embedded stores. Seed reloads questions after.
+    try {
+      await rebuildEmbeddedStore(error);
+    } catch (rebuildError) {
+      const message = rebuildError instanceof Error ? rebuildError.message : String(rebuildError);
+      throw new Error(
+        `Database schema setup failed (embedded): ${message}\n` +
+          "Automatic repair did not succeed. Stop every running dev server, then restart once.",
       );
     }
   }

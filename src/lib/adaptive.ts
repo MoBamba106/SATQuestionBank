@@ -1,4 +1,4 @@
-import { answersMatch } from "@/lib/utils";
+import { answersMatch, resolveCorrectAnswer } from "@/lib/utils";
 import type { AdaptiveRoute, SATQuestion } from "@/lib/types";
 
 /**
@@ -14,7 +14,7 @@ export function scoreModule(
 ): { correct: number; total: number; ratio: number; route: AdaptiveRoute } {
   const correct = questions.reduce((sum, question) => {
     const answer = answers[question.id];
-    return sum + (answer && answersMatch(answer, question.correctAnswer) ? 1 : 0);
+    return sum + (answer && answersMatch(answer, resolveCorrectAnswer(question.correctAnswer, question.explanation)) ? 1 : 0);
   }, 0);
   const total = questions.length;
   const ratio = total > 0 ? correct / total : 0;

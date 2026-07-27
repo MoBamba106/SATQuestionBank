@@ -14,7 +14,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
 import { useSettings } from "@/components/settings-provider";
 import { apiPost, apiPatch, mutateKey } from "@/lib/api-client";
-import { answersMatch, cn, difficultyColor, domainColor, formatTime, skillColor } from "@/lib/utils";
+import { answersMatch, cn, difficultyColor, domainColor, formatTime, resolveCorrectAnswer, skillColor } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
 type Mode = "practice" | "exam" | "mistakes" | "collection" | "favorites" | "session";
@@ -91,7 +91,7 @@ export function PracticeRunner({
   const doCheck = async () => {
     if (!current || !chosen || chosen.trim() === "" || checking || isGraded) return;
     setChecking(true);
-    const isCorrect = answersMatch(chosen, current.correctAnswer);
+    const isCorrect = answersMatch(chosen, resolveCorrectAnswer(current.correctAnswer, current.explanation));
     try {
       const res = await apiPost<{ recorded: number; duplicates: number }>("/api/attempts", {
         sessionId: sid,
@@ -121,7 +121,7 @@ export function PracticeRunner({
     try {
       const pending = pool
         .filter((q) => answers[q.id] && answers[q.id].trim() !== "" && !graded[q.id])
-        .map((q) => ({ questionId: q.id, isCorrect: answersMatch(answers[q.id], q.correctAnswer), answer: answers[q.id] }));
+        .map((q) => ({ questionId: q.id, isCorrect: answersMatch(answers[q.id], resolveCorrectAnswer(q.correctAnswer, q.explanation)), answer: answers[q.id] }));
       let merged = { ...graded };
       if (pending.length > 0) {
         await apiPost("/api/attempts", { sessionId: sid, mode, attempts: pending });

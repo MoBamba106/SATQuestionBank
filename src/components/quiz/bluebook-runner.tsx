@@ -26,7 +26,7 @@ import { apiPatch, apiPost, mutateKey } from "@/lib/api-client";
 import { scoreModule } from "@/lib/adaptive";
 import { estimateSatScore } from "@/lib/sat-score";
 import { removeBluebookProgress, saveBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
-import { answersMatch, cn, difficultyColor, domainColor, formatTime, skillColor } from "@/lib/utils";
+import { answersMatch, cn, difficultyColor, domainColor, formatTime, resolveCorrectAnswer, skillColor } from "@/lib/utils";
 import type { AdaptivePath, AdaptiveRoute, PracticeTestDetail, SATQuestion } from "@/lib/types";
 
 type Stage = 0 | 1 | 2 | 3;
@@ -159,7 +159,7 @@ export function BluebookRunner({
         .filter((question) => answers[question.id]?.trim())
         .map((question) => ({
           questionId: question.id,
-          isCorrect: answersMatch(answers[question.id], question.correctAnswer),
+          isCorrect: answersMatch(answers[question.id], resolveCorrectAnswer(question.correctAnswer, question.explanation)),
           answer: answers[question.id],
         }));
       if (attempts.length > 0) {

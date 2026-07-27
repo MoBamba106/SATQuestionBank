@@ -2,8 +2,19 @@
 
 import { CheckCircle2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
-import { cn } from "@/lib/utils";
+import { answersMatch, cn, resolveCorrectAnswer } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
+
+/** Pretty-print accepted keys like "0|3" → "0 or 3". */
+function formatAcceptedAnswer(answer: string): string {
+  const parts = String(answer || "")
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length <= 1) return answer || "—";
+  if (parts.length === 2) return `${parts[0]} or ${parts[1]}`;
+  return `${parts.slice(0, -1).join(", ")}, or ${parts.at(-1)}`;
+}
 
 /**
  * Shared question renderer used by practice, exam and Bluebook modes.
@@ -25,6 +36,8 @@ export function QuestionView({
   lockSelection?: boolean;
   showExplanation?: boolean;
 }) {
+  const correctKey = resolveCorrectAnswer(question.correctAnswer, question.explanation);
+
   return (
     <div className="space-y-4">
       {question.passageHtml && (
@@ -39,7 +52,7 @@ export function QuestionView({
         <div className="space-y-2.5 pt-1">
           {question.choices.map((c) => {
             const isSel = selected === c.key;
-            const isAnswer = c.key.toUpperCase() === question.correctAnswer.toUpperCase();
+            const isAnswer = c.key.toUpperCase() === correctKey.toUpperCase();
             const wasCheckedWrong = graded && isSel && !isAnswer;
             const answerState = graded
               ? isAnswer ? "correct" : wasCheckedWrong ? "wrong" : "muted"
@@ -80,7 +93,7 @@ export function QuestionView({
             <input
               className={cn(
                 "input grow font-mono text-[15px]",
-                graded && selected && selected.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase()
+                graded && selected && answersMatch(selected, correctKey)
                   ? "answer-input-correct"
                   : graded
                     ? "answer-input-wrong"
@@ -92,7 +105,9 @@ export function QuestionView({
               onChange={(e) => onSelect(e.target.value)}
             />
             {graded && (
-              <span className="text-[13px] font-semibold text-[#238a5e]">Answer: {question.correctAnswer}</span>
+              <span className="text-[13px] font-semibold text-[#238a5e]">
+                Answer: {formatAcceptedAnswer(correctKey)}
+              </span>
             )}
           </div>
         </div>
