@@ -43,8 +43,8 @@ function QuestionCardInner({
         className={cn(
           "question-card flex h-full flex-col p-5",
           selectable && "cursor-pointer select-none",
-          selected && "!border-[#88aeb9] !bg-[#dce8ed] shadow-[inset_4px_0_0_#286983]",
-          selectable && !selected && "hover:!border-[#aac7cf] hover:!bg-[#edf2f1]",
+          selected && "question-card-selected",
+          selectable && !selected && "hover:!border-[var(--accent)] hover:!bg-[var(--paper-soft)]",
         )}
         hover={!selectable && !selected}
         onClick={selectable ? activateSelection : undefined}
@@ -59,7 +59,7 @@ function QuestionCardInner({
           <span className={cn("badge", skillColor(question.skill))}>{question.skill}</span>
           <span className={cn("badge border", difficultyColor(question.difficulty))}>{question.difficulty}</span>
           {selectable ? (
-            <span className={cn("ml-auto inline-flex items-center gap-1.5 text-[11px] font-bold", selected ? "text-[#245d73]" : "text-[var(--ink-faint)]")}>
+            <span className={cn("ml-auto inline-flex items-center gap-1.5 text-[11px] font-bold", selected ? "text-[var(--accent-dark)]" : "text-[var(--ink-faint)]")}>
               {selected ? <Check className="h-4 w-4" strokeWidth={3} /> : <Square className="h-3.5 w-3.5" />}
               {selected ? "Selected" : "Select"}
             </span>
@@ -84,9 +84,9 @@ function QuestionCardInner({
           </button>
         )}
 
-        <div className={cn("mt-4 flex min-h-9 items-center justify-between border-t pt-3", selected ? "border-[#b3ccd3]" : "border-[var(--line-soft)]")}>
+        <div className={cn("mt-4 flex min-h-9 items-center justify-between border-t pt-3", selected ? "border-[var(--accent)]" : "border-[var(--line-soft)]")}>
           {selectable ? (
-            <span className={cn("inline-flex items-center gap-1.5 text-[12px] font-semibold", selected ? "text-[#245d73]" : "text-[var(--ink-soft)]")}>
+            <span className={cn("inline-flex items-center gap-1.5 text-[12px] font-semibold", selected ? "text-[var(--accent-dark)]" : "text-[var(--ink-soft)]")}>
               {selected ? <Check className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
               {selected ? "Included in quiz" : "Click card to include"}
             </span>

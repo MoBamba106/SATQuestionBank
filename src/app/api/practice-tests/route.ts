@@ -10,7 +10,7 @@ export async function GET() {
     await ensureSeeded();
     const res = await db.execute(sql`
       SELECT t.id, t.test_number AS "testNumber", t.title,
-             t.release_label AS "releaseLabel",
+             t.release_label AS "releaseLabel", t.is_custom AS "isCustom",
              t.rw_minutes AS "rwMinutes", t.math_minutes AS "mathMinutes",
              COUNT(*) FILTER (WHERE p.module IN ('rw1', 'rw2_hard', 'math1', 'math2_hard'))::int AS "totalQuestions",
              COUNT(*) FILTER (WHERE p.module IN ('rw1', 'rw2_hard'))::int AS "rwQuestions",

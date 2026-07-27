@@ -23,12 +23,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
   reducedMotion: false,
   compactMode: false,
   showTimer: true,
-  soundEffects: false,
+  soundEffects: true,
   defaultQuizSize: 10,
   defaultQuizMode: "practice",
 };
 
-const STORAGE_KEY = "sat-nexus-settings-v1";
+const STORAGE_KEY = "sat-nexus-settings-v2";
+const LEGACY_STORAGE_KEY = "sat-nexus-settings-v1";
 
 type SettingsContextValue = {
   settings: AppSettings;
@@ -55,10 +56,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
+        const currentRaw = window.localStorage.getItem(STORAGE_KEY);
+        const legacyRaw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+        const raw = currentRaw ?? legacyRaw;
         if (raw) {
           const saved = JSON.parse(raw) as Partial<AppSettings>;
-          setSettings({ ...DEFAULT_SETTINGS, ...saved });
+          // v1 shipped muted sounds as its implicit default. The v2 migration
+          // preserves every other preference while enabling the new default.
+          setSettings({ ...DEFAULT_SETTINGS, ...saved, ...(!currentRaw && { soundEffects: true }) });
         }
       } catch {
         // Invalid or unavailable local storage falls back to safe defaults.
@@ -114,6 +119,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings(DEFAULT_SETTINGS);
     try {
       window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
     } catch {
       // Nothing else to do.
     }

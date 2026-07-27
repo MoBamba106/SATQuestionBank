@@ -14,7 +14,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
     const metaRes = await db.execute(sql`
       SELECT id, test_number AS "testNumber", title, release_label AS "releaseLabel",
-             rw_minutes AS "rwMinutes", math_minutes AS "mathMinutes"
+             is_custom AS "isCustom", rw_minutes AS "rwMinutes", math_minutes AS "mathMinutes"
       FROM practice_tests WHERE id = ${id} LIMIT 1
     `);
     const meta = ((metaRes as unknown as { rows: Record<string, unknown>[] }).rows ?? [])[0];

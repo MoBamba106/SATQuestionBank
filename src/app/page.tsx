@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Target,
   TrendingUp,
+  TimerReset,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -27,6 +28,7 @@ import {
 import { GlassCard } from "@/components/ui/glass-card";
 import { useApi } from "@/lib/api-client";
 import type { PracticeTestInfo, StatsPayload } from "@/lib/types";
+import { openStudyTimer } from "@/lib/study-timer";
 
 export default function DashboardPage() {
   const { data: stats, loading, error } = useApi<StatsPayload>("/api/stats", "stats");
@@ -45,21 +47,21 @@ export default function DashboardPage() {
       value: `${stats?.accuracy ?? 0}%`,
       detail: `${stats?.totalCorrect ?? 0} correct`,
       icon: TrendingUp,
-      color: "text-[#287a55]",
+      color: "text-[var(--good)]",
     },
     {
       label: "Open mistakes",
       value: stats?.mistakesCount ?? 0,
       detail: "ready to review",
       icon: RotateCcw,
-      color: "text-[#ae3d51]",
+      color: "text-[var(--bad)]",
     },
     {
       label: "Study streak",
       value: stats?.streak.current ?? 0,
       detail: `best: ${stats?.streak.longest ?? 0} days`,
       icon: Flame,
-      color: "text-[#9a6725]",
+      color: "text-[var(--warn)]",
     },
   ];
 
@@ -86,12 +88,15 @@ export default function DashboardPage() {
             <Link href="/bank" className="btn btn-soft">
               <Library className="h-4 w-4" /> Question bank
             </Link>
+            <button type="button" className="btn btn-soft" onClick={openStudyTimer}>
+              <TimerReset className="h-4 w-4" /> Study timer
+            </button>
           </div>
         </div>
       </section>
 
       {error && (
-        <div className="rounded-[6px] border border-[#e9c6cc] bg-[#fff7f7] px-4 py-3 text-[13px] font-semibold text-[#ae3d51]">
+        <div className="rounded-[6px] border border-[#e9c6cc] bg-[#fff7f7] px-4 py-3 text-[13px] font-semibold text-[var(--bad)]">
           Progress data could not be loaded: {error}
         </div>
       )}

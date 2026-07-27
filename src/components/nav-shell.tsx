@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsDialog } from "@/components/settings-dialog";
+import { FloatingStudyTimer } from "@/components/floating-study-timer";
 
 const NAV_GROUPS = [
   {
@@ -173,6 +174,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <FloatingStudyTimer />
     </div>
   );
 }

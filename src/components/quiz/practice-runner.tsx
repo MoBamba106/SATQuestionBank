@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import {
-  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, NotebookPen, Timer, Loader2, LogOut, ListChecks,
+  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, NotebookPen, Timer, Loader2, LogOut, ListChecks, PencilRuler,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { FloatingDesmos } from "@/components/quiz/floating-desmos";
+import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
 import { QuizResults, type GradedMap } from "@/components/quiz/quiz-results";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
@@ -44,6 +45,7 @@ export function PracticeRunner({
   const [elapsed, setElapsed] = React.useState(0);
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [desmosOpen, setDesmosOpen] = React.useState(false);
+  const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [noteDrafts, setNoteDrafts] = React.useState<Record<string, string>>({});
   const noteSaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -235,9 +237,14 @@ export function PracticeRunner({
             <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
             <div className="ml-auto flex items-center gap-1">
               {current.domain === "Math" && (
-                <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
-                  <Calculator className="h-3.5 w-3.5" /> Desmos
-                </button>
+                <>
+                  <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
+                    <Calculator className="h-3.5 w-3.5" /> Desmos
+                  </button>
+                  <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setCanvasOpen(true)}>
+                    <PencilRuler className="h-3.5 w-3.5" /> Canvas
+                  </button>
+                </>
               )}
               <FavoriteButton questionId={current.id} favorite={current.favorite} />
               <AddToCollectionButton questionId={current.id} />
@@ -366,6 +373,7 @@ export function PracticeRunner({
       </GlassCard>
     </div>
     <FloatingDesmos open={desmosOpen && current.domain === "Math"} onClose={() => setDesmosOpen(false)} />
+    <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
     </>
   );
 }

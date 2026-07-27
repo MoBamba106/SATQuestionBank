@@ -7,6 +7,7 @@ import {
   AlarmClock,
   BookOpenCheck,
   Calculator,
+  PencilRuler,
   ChevronLeft,
   ChevronRight,
   Flag,
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { FloatingDesmos } from "@/components/quiz/floating-desmos";
+import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
 import { SkillBands } from "@/components/quiz/skill-bands";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiPatch, apiPost, mutateKey } from "@/lib/api-client";
@@ -86,6 +88,7 @@ export function BluebookRunner({
   const [secondsLeft, setSecondsLeft] = React.useState(resume?.secondsLeft ?? Math.round(test.rwMinutes / 2) * 60);
   const [confirmEnd, setConfirmEnd] = React.useState(false);
   const [desmosOpen, setDesmosOpen] = React.useState(false);
+  const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [finishing, setFinishing] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [graded, setGraded] = React.useState<Record<string, { correct: boolean; answer: string }>>({});
@@ -303,9 +306,14 @@ export function BluebookRunner({
             </div>
           </div>
           {current.domain === "Math" && (
-            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
-              <Calculator className="h-3.5 w-3.5" /> Desmos
-            </button>
+            <>
+              <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
+                <Calculator className="h-3.5 w-3.5" /> Desmos
+              </button>
+              <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setCanvasOpen(true)}>
+                <PencilRuler className="h-3.5 w-3.5" /> Canvas
+              </button>
+            </>
           )}
           {mod.number === 2 && (
             <span className="inline-flex items-center gap-1.5 rounded-[5px] border border-[#c9b9d1] bg-[#e9e1ec] px-2.5 py-1 text-[10.5px] font-bold text-[#6e5d7b]">
@@ -397,6 +405,7 @@ export function BluebookRunner({
       </GlassCard>
 
       <FloatingDesmos open={desmosOpen && current.domain === "Math"} onClose={() => setDesmosOpen(false)} />
+      <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
 
       <PaperDialog
         open={confirmEnd}

@@ -90,7 +90,7 @@ export default function BankPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#315eaa]">Browse and build sets</p>
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Browse and build sets</p>
           <h1 className="font-display text-3xl font-bold text-[var(--ink)]">Question bank</h1>
           <p className="mt-1 text-[14px] text-[var(--ink-faint)]">
             {data ? `${data.total.toLocaleString()} official questions match these filters` : "Loading official questions…"}
@@ -98,7 +98,7 @@ export default function BankPage() {
         </div>
         <button
           type="button"
-          className={selectionMode ? "btn border-[#9fbfc8] bg-[#dce8ed] text-[#245d73]" : "btn btn-soft"}
+          className={selectionMode ? "btn selection-mode-button" : "btn btn-soft"}
           onClick={() => setSelectionMode((active) => !active)}
           aria-pressed={selectionMode}
         >
@@ -108,7 +108,7 @@ export default function BankPage() {
       </div>
 
       {(selectionMode || selectedIds.length > 0) && (
-        <div className="flex flex-wrap items-center gap-3 rounded-[7px] border border-[#acc7d0] bg-[#dce8ed] px-4 py-3 text-[#245d73]">
+        <div className="selection-toolbar flex flex-wrap items-center gap-3 rounded-[7px] border px-4 py-3">
           <CheckSquare className="h-4 w-4 shrink-0" />
           <div className="min-w-[170px] grow text-[13px] font-semibold">
             {selectionMode

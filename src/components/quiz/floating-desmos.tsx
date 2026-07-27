@@ -16,6 +16,7 @@ declare global {
   }
 }
 
+const DESMOS_API_KEY = process.env.NEXT_PUBLIC_DESMOS_API_KEY || "dcb31709b452b1cf9dc26972add0fda6";
 let desmosLoader: Promise<void> | null = null;
 function loadDesmosApi() {
   if (window.Desmos) return Promise.resolve();
@@ -29,7 +30,9 @@ function loadDesmosApi() {
     }
     const script = document.createElement("script");
     script.dataset.satDesmos = "true";
-    script.src = "https://www.desmos.com/api/v1.11/calculator.js?apiKey=desmos";
+    // Desmos' documented demonstration key enables the full expression panel.
+    // The previous placeholder key was rejected even when desmos.com itself worked.
+    script.src = `https://www.desmos.com/api/v1.11/calculator.js?apiKey=${encodeURIComponent(DESMOS_API_KEY)}`;
     script.async = true;
     script.addEventListener("load", () => resolve(), { once: true });
     script.addEventListener("error", () => reject(new Error("Desmos could not be loaded")), { once: true });

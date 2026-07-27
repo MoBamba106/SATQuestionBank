@@ -131,10 +131,12 @@ const SCHEMA_STATEMENTS = [
     test_number integer NOT NULL,
     title text NOT NULL,
     release_label text,
+    is_custom boolean NOT NULL DEFAULT false,
     rw_minutes integer NOT NULL DEFAULT 64,
     math_minutes integer NOT NULL DEFAULT 70,
     created_at timestamp NOT NULL DEFAULT now()
   )`,
+  `ALTER TABLE practice_tests ADD COLUMN IF NOT EXISTS is_custom boolean NOT NULL DEFAULT false`,
   `CREATE TABLE IF NOT EXISTS practice_test_questions (
     test_id text NOT NULL REFERENCES practice_tests(id) ON DELETE CASCADE,
     position integer NOT NULL,

@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, X } from "lucide-react";
+import { toast } from "sonner";
+import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, WandSparkles, X } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PaperDialog } from "@/components/ui/paper-dialog";
-import { apiDelete, useApi } from "@/lib/api-client";
+import { apiDelete, apiPost, mutateKey, useApi } from "@/lib/api-client";
 import { readBluebookProgress, removeBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import type { PracticeTestInfo } from "@/lib/types";
 
@@ -15,6 +16,7 @@ export default function BluebookPage() {
   const { data, loading, error } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
   const [selected, setSelected] = React.useState<PracticeTestInfo | null>(null);
   const [starting, setStarting] = React.useState(false);
+  const [generating, setGenerating] = React.useState(false);
   const [saved, setSaved] = React.useState<Record<string, BluebookProgress>>({});
 
   React.useEffect(() => {
@@ -36,6 +38,19 @@ export default function BluebookPage() {
     router.push(`/quiz?test=${selected.id}${saved[selected.id] ? "&resume=1" : ""}`);
   };
 
+  const generateTest = async () => {
+    if (generating) return;
+    setGenerating(true);
+    try {
+      const generated = await apiPost<{ id: string }>("/api/practice-tests/generate");
+      mutateKey("tests");
+      router.push(`/quiz?test=${generated.id}`);
+    } catch (error) {
+      toast.error("Could not generate a practice test", { description: error instanceof Error ? error.message : undefined });
+      setGenerating(false);
+    }
+  };
+
   const discardSaved = async (testId: string) => {
     const progress = saved[testId];
     removeBluebookProgress(testId);
@@ -51,14 +66,20 @@ export default function BluebookPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
-          Bluebook <span className="hl-blue px-1">Practice Tests</span>
-        </h1>
-        <p className="mt-1 max-w-2xl text-[15px] text-[var(--ink-faint)]">
-          Timed digital SAT practice with adaptive Reading &amp; Writing and Math sections.
-          Your Module 1 performance routes you to an easier or harder Module 2.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
+            Bluebook <span className="hl-blue px-1">Practice Tests</span>
+          </h1>
+          <p className="mt-1 max-w-2xl text-[15px] text-[var(--ink-faint)]">
+            Timed digital SAT practice with adaptive Reading &amp; Writing and Math sections.
+            Your Module 1 performance routes you to an easier or harder Module 2.
+          </p>
+        </div>
+        <button type="button" className="btn btn-primary" onClick={generateTest} disabled={generating}>
+          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <WandSparkles className="h-4 w-4" />}
+          {generating ? "Building test…" : "Generate new test"}
+        </button>
       </div>
 
       <div className="glass-subtle flex items-start gap-3 px-4 py-3.5">
@@ -88,10 +109,10 @@ export default function BluebookPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="font-display text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-faint)]">
-                    Practice Test
+                    {t.isCustom ? "Generated Test" : "Practice Test"}
                   </div>
-                  <div className="font-display mt-0.5 text-5xl font-bold text-[#315eaa]">
-                    {t.testNumber}
+                  <div className={t.isCustom ? "font-display mt-1 text-2xl font-bold text-[var(--accent)]" : "font-display mt-0.5 text-5xl font-bold text-[var(--accent)]"}>
+                    {t.isCustom ? "Custom" : t.testNumber}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -53,6 +53,7 @@ export interface PracticeTestInfo {
   testNumber: number;
   title: string;
   releaseLabel: string | null;
+  isCustom?: boolean;
   rwMinutes: number;
   mathMinutes: number;
   totalQuestions: number;

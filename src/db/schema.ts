@@ -122,6 +122,7 @@ export const practiceTests = pgTable("practice_tests", {
   testNumber: integer("test_number").notNull(),
   title: text("title").notNull(),
   releaseLabel: text("release_label"),
+  isCustom: boolean("is_custom").notNull().default(false),
   rwMinutes: integer("rw_minutes").notNull().default(64),
   mathMinutes: integer("math_minutes").notNull().default(70),
   createdAt: timestamp("created_at").defaultNow().notNull(),

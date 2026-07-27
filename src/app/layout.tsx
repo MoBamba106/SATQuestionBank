@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const themeBootScript = `
 try {
-  const saved = JSON.parse(localStorage.getItem('sat-nexus-settings-v1') || '{}');
+  const saved = JSON.parse(localStorage.getItem('sat-nexus-settings-v2') || localStorage.getItem('sat-nexus-settings-v1') || '{}');
   const root = document.documentElement;
   root.dataset.theme = saved.theme || 'soft-paper';
   root.dataset.fontScale = saved.fontScale || 'default';
