@@ -7,14 +7,32 @@ import { Pool } from "pg";
 
 /**
  * Local development is zero-config: PGlite stores a real Postgres-compatible
- * database in .sat-nexus-db. Set DATABASE_MODE=postgres to explicitly use the
- * DATABASE_URL connection instead (production does this automatically when a
- * URL is present).
+ * database in .sat-nexus-db.
+ *
+ * Use a real Postgres instance by setting:
+ *   DATABASE_MODE=postgres
+ *   DATABASE_URL=postgresql://user:pass@host:5432/db
+ *
+ * SQLite-style URLs like `file:./dev.db` are ignored — this app never uses
+ * SQLite, and treating them as Postgres produced the CREATE TABLE failures.
  */
-const databaseUrl = process.env.DATABASE_URL?.trim();
-const useExternalPostgres =
-  process.env.DATABASE_MODE === "postgres" ||
-  (process.env.NODE_ENV === "production" && Boolean(databaseUrl));
+const rawUrl = process.env.DATABASE_URL?.trim() || "";
+const isPostgresUrl =
+  /^(postgres(ql)?:\/\/)/i.test(rawUrl) ||
+  (/^[\w.-]+:\d+\//.test(rawUrl) && !rawUrl.startsWith("file:"));
+
+const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
+const forceEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
+const forcePostgres = mode === "postgres" || mode === "pg";
+
+// Default: embedded. Only talk to external Postgres when explicitly asked, or
+// when production has a real postgres:// URL.
+const shouldUsePostgres =
+  !forceEmbedded &&
+  isPostgresUrl &&
+  (forcePostgres || (process.env.NODE_ENV === "production" && mode !== "embedded"));
+
+const databaseUrl = isPostgresUrl ? rawUrl : undefined;
 
 const globalForDb = globalThis as typeof globalThis & {
   __satNexusPgPool?: Pool;
@@ -26,18 +44,15 @@ const embeddedDataDir = process.env.SAT_NEXUS_DATA_DIR?.trim()
   ? path.resolve(process.env.SAT_NEXUS_DATA_DIR)
   : path.resolve(process.cwd(), ".sat-nexus-db");
 
-const client = useExternalPostgres
+const client = shouldUsePostgres
   ? globalForDb.__satNexusPgPool ??
     new Pool({
       connectionString: databaseUrl,
     })
-  : globalForDb.__satNexusPGlite ??
-    new PGlite(embeddedDataDir);
+  : globalForDb.__satNexusPGlite ?? new PGlite(embeddedDataDir);
 
-if (process.env.NODE_ENV !== "production") {
-  if (client instanceof Pool) globalForDb.__satNexusPgPool = client;
-  else globalForDb.__satNexusPGlite = client;
-}
+if (client instanceof Pool) globalForDb.__satNexusPgPool = client;
+else globalForDb.__satNexusPGlite = client;
 
 // Both drivers implement Drizzle's PostgreSQL API. Keeping one exported type
 // avoids spreading a driver union through every API route.
@@ -45,7 +60,7 @@ export const db = (
   client instanceof Pool ? drizzlePostgres(client) : drizzlePglite(client)
 ) as ReturnType<typeof drizzlePostgres>;
 
-export const databaseKind = useExternalPostgres ? "postgres" : "embedded";
+export const databaseKind = shouldUsePostgres ? "postgres" : "embedded";
 
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS questions (
@@ -147,13 +162,26 @@ const SCHEMA_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS ptq_test_idx ON practice_test_questions (test_id)`,
 ];
 
+async function runSchema() {
+  for (const statement of SCHEMA_STATEMENTS) {
+    try {
+      await db.execute(sql.raw(statement));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Database schema setup failed (${databaseKind}): ${message}\n` +
+          `Statement: ${statement.replace(/\s+/g, " ").slice(0, 140)}…\n` +
+          (shouldUsePostgres
+            ? "Check DATABASE_URL points at a reachable Postgres instance, or set DATABASE_MODE=embedded."
+            : "The embedded PGlite database could not initialize. Delete .sat-nexus-db and restart if it is corrupt."),
+      );
+    }
+  }
+}
+
 export function ensureDatabaseReady(): Promise<void> {
   if (!globalForDb.__satNexusSchemaPromise) {
-    globalForDb.__satNexusSchemaPromise = (async () => {
-      for (const statement of SCHEMA_STATEMENTS) {
-        await db.execute(sql.raw(statement));
-      }
-    })().catch((error) => {
+    globalForDb.__satNexusSchemaPromise = runSchema().catch((error) => {
       globalForDb.__satNexusSchemaPromise = undefined;
       throw error;
     });

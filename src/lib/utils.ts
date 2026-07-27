@@ -20,13 +20,35 @@ export function decodeEntities(s: string): string {
   return out;
 }
 
+/** Convert College Board spoken-math alttext into compact symbols for snippets. */
+function humanizeSpokenMath(text: string): string {
+  return text
+    .replace(/\bleft parenthesis\b/gi, "(")
+    .replace(/\bright parenthesis\b/gi, ")")
+    .replace(/\bleft bracket\b/gi, "[")
+    .replace(/\bright bracket\b/gi, "]")
+    .replace(/\bStartFraction\s+(.+?)\s+Over\s+(.+?)\s+EndFraction\b/g, "($1)/($2)")
+    .replace(/\bplus\b/g, "+")
+    .replace(/\bminus\b/g, "−")
+    .replace(/\bequals\b/g, "=");
+}
+
 export function stripHtml(html?: string | null): string {
   if (!html) return "";
   let s = decodeEntities(String(html));
+  // Expand bare <mfenced> so plain-text snippets keep their parentheses.
+  for (let guard = 0; guard < 20 && /<mfenced\b/i.test(s); guard++) {
+    s = s.replace(/<mfenced\b([^>]*)>([\s\S]*?)<\/mfenced>/i, (_full, attrs: string, inner: string) => {
+      const open = /(?:^|\s)open\s*=\s*(["'])(.*?)\1/i.exec(attrs)?.[2] ?? "(";
+      const close = /(?:^|\s)close\s*=\s*(["'])(.*?)\1/i.exec(attrs)?.[2] ?? ")";
+      return `${open}${inner}${close}`;
+    });
+  }
   s = s
     .replace(/<math[\s\S]*?<\/math>/gi, (m) => {
       const alt = /alttext="([^"]*)"/i.exec(m);
-      return alt ? ` ${decodeEntities(alt[1])} ` : " ";
+      // Only rewrite alttext (math speech), never the surrounding prose.
+      return alt ? ` ${humanizeSpokenMath(decodeEntities(alt[1]))} ` : " ";
     })
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")

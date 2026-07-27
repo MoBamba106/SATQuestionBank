@@ -65,3 +65,34 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to load practice test" }, { status: 500 });
   }
 }
+
+/** Delete a generated (custom) practice test. Official Bluebook tests are protected. */
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  try {
+    await ensureSeeded();
+    const { id } = await ctx.params;
+
+    const metaRes = await db.execute(sql`
+      SELECT id, is_custom AS "isCustom", title
+      FROM practice_tests WHERE id = ${id} LIMIT 1
+    `);
+    const meta = ((metaRes as unknown as { rows: Record<string, unknown>[] }).rows ?? [])[0];
+    if (!meta) return NextResponse.json({ error: "Practice test not found" }, { status: 404 });
+    if (!meta.isCustom) {
+      return NextResponse.json(
+        { error: "Official Bluebook practice tests cannot be deleted." },
+        { status: 403 },
+      );
+    }
+
+    // Cascades to practice_test_questions via FK.
+    await db.execute(sql`DELETE FROM practice_tests WHERE id = ${id}`);
+    return NextResponse.json({ ok: true, id, title: meta.title });
+  } catch (e) {
+    console.error("[api/practice-tests/id] DELETE failed:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Failed to delete practice test" },
+      { status: 500 },
+    );
+  }
+}

@@ -72,14 +72,29 @@ html {
 *::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink-faint) 72%, var(--paper-soft)); border: 2px solid var(--paper-soft); border-radius: 999px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+/* W11 Cursor Dark Free (Jepri Creations) — files live in /public/cursors.
+   PNG fallbacks first (broad browser support); .cur for engines that honor it. */
 body {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 2l23 16-10 1 6 10-6 3-6-11-6 7z' fill='%230a0b0e' stroke='%23ffffff' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E") 4 3, auto;
+  cursor: url("/cursors/arrow.png") 2 2, url("/cursors/arrow.cur") 2 2, auto;
 }
-a, button, [role="button"], [role="option"], [role="switch"] {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 2l23 16-10 1 6 10-6 3-6-11-6 7z' fill='%230a0b0e' stroke='%23ffffff' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E") 4 3, pointer;
+a, button, [role="button"], [role="option"], [role="switch"],
+summary, label[for], .btn, select {
+  cursor: url("/cursors/hand.png") 6 1, url("/cursors/hand.cur") 6 1, pointer;
 }
 input, textarea, [contenteditable="true"], .sat-content p, .sat-content span {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 2h10M12 2v20M7 22h10' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M7 2h10M12 2v20M7 22h10' fill='none' stroke='%23171922' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 12 12, text;
+  cursor: url("/cursors/ibeam.png") 16 16, url("/cursors/ibeam.cur") 16 16, text;
+}
+button:disabled, [aria-disabled="true"], .btn:disabled {
+  cursor: url("/cursors/no.png") 16 16, url("/cursors/no.cur") 16 16, not-allowed;
+}
+[data-resize], .resize, .cursor-move, [class*="cursor-move"] {
+  cursor: url("/cursors/sizeall.png") 16 16, url("/cursors/sizeall.cur") 16 16, move;
+}
+.cursor-crosshair, [class*="cursor-crosshair"] {
+  cursor: url("/cursors/crosshair.png") 16 16, url("/cursors/crosshair.cur") 16 16, crosshair;
+}
+input[type="range"] {
+  cursor: url("/cursors/sizewe.png") 16 16, url("/cursors/sizewe.cur") 16 16, ew-resize;
 }
 
 button,
@@ -376,6 +391,20 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
+
+/* MathML layout: keep fractions, fences and operators readable across engines. */
+.sat-content math {
+  display: inline-block;
+  vertical-align: middle;
+  math-style: normal;
+}
+.sat-content mfrac {
+  padding: 0 0.15em;
+}
+.sat-content mo {
+  padding: 0 0.06em;
+}
+
 html[data-theme="dark"] .sat-content img,
 html[data-theme="dark"] .sat-content svg,
 html[data-theme="obsidian"] .sat-content img,

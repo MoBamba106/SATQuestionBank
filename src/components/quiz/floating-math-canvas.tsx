@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/components/settings-provider";
 
 type Point = { x: number; y: number };
 type Tool = "select" | "pen" | "line" | "rect" | "ellipse" | "triangle" | "text" | "eraser";
@@ -39,6 +40,22 @@ const TOOLS: { id: Tool; label: string; icon: React.ComponentType<{ className?: 
 const QUICK_LETTERS = ["A", "B", "C", "D", "x", "y", "m", "n", "θ", "π"];
 const uid = () => `draw-${crypto.randomUUID()}`;
 
+/** Theme-aware default pen colors — ink on light paper, soft chalk on dark. */
+function defaultPenForTheme(theme: string): string {
+  if (theme === "dark") return "#d7e6f5";
+  if (theme === "obsidian") return "#e4dfd4";
+  if (theme === "cardboard") return "#2c1c12";
+  if (theme === "highlighter") return "#292b2f";
+  if (theme === "liquid-glass") return "#172742";
+  if (theme === "light") return "#182437";
+  // soft-paper / paper
+  return "#4e3f4f";
+}
+
+function isDarkTheme(theme: string): boolean {
+  return theme === "dark" || theme === "obsidian";
+}
+
 function moveItem(item: DrawItem, dx: number, dy: number): DrawItem {
   if (item.type === "path") return { ...item, points: item.points.map((point) => ({ x: point.x + dx, y: point.y + dy })) };
   if (item.type === "text") return { ...item, point: { x: item.point.x + dx, y: item.point.y + dy } };
@@ -46,10 +63,14 @@ function moveItem(item: DrawItem, dx: number, dy: number): DrawItem {
 }
 
 export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { settings } = useSettings();
+  const theme = settings.theme;
+  const dark = isDarkTheme(theme);
+
   const [position, setPosition] = React.useState({ x: 40, y: 70 });
   const [minimized, setMinimized] = React.useState(false);
   const [tool, setTool] = React.useState<Tool>("pen");
-  const [color, setColor] = React.useState("#263238");
+  const [color, setColor] = React.useState(() => defaultPenForTheme(theme));
   const [strokeWidth, setStrokeWidth] = React.useState(3);
   const [textValue, setTextValue] = React.useState("x");
   const [items, setItems] = React.useState<DrawItem[]>([]);
@@ -59,6 +80,22 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   const windowDrag = React.useRef<{ id: number; x: number; y: number } | null>(null);
   const drawDrag = React.useRef<{ id: number; start: Point; original?: DrawItem } | null>(null);
   const svgRef = React.useRef<SVGSVGElement | null>(null);
+  // Track whether the user has manually picked a color so theme changes
+  // only override the automatic default, not a deliberate choice.
+  const userPickedColor = React.useRef(false);
+  const lastAutoColor = React.useRef(color);
+
+  React.useEffect(() => {
+    const next = defaultPenForTheme(theme);
+    // Update default when theme changes, unless the user overrode it with a
+    // color that no longer matches the previous auto default.
+    if (!userPickedColor.current || color === lastAutoColor.current) {
+      setColor(next);
+      userPickedColor.current = false;
+    }
+    lastAutoColor.current = next;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to theme
+  }, [theme]);
 
   const addText = React.useCallback((text: string, point = { x: 360, y: 240 }) => {
     setItems((current) => [...current, { id: uid(), type: "text", point, text, color, size: 24 }]);
@@ -118,7 +155,7 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
       const dx = point.x - drawDrag.current.start.x;
       const dy = point.y - drawDrag.current.start.y;
       const moved = moveItem(drawDrag.current.original, dx, dy);
-      setItems((current) => current.map((item) => item.id === moved.id ? moved : item));
+      setItems((current) => current.map((item) => (item.id === moved.id ? moved : item)));
       return;
     }
     setDraft((current) => {
@@ -139,29 +176,79 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   };
 
   const renderItem = (item: DrawItem) => {
-    if (item.type === "text") return <text key={item.id} data-draw-id={item.id} x={item.point.x} y={item.point.y} fill={item.color} fontSize={item.size} fontFamily="IBM Plex Sans, sans-serif" fontWeight="600">{item.text}</text>;
+    if (item.type === "text") {
+      return (
+        <text
+          key={item.id}
+          data-draw-id={item.id}
+          x={item.point.x}
+          y={item.point.y}
+          fill={item.color}
+          fontSize={item.size}
+          fontFamily="IBM Plex Sans, sans-serif"
+          fontWeight="600"
+        >
+          {item.text}
+        </text>
+      );
+    }
     const common = {
       "data-draw-id": item.id,
       stroke: item.color,
       strokeWidth: item.width,
-      fill: "none",
+      fill: "none" as const,
       strokeLinecap: "round" as const,
       strokeLinejoin: "round" as const,
       className: selected === item.id ? "drop-shadow-[0_0_3px_var(--accent)]" : "",
     };
-    if (item.type === "path") return <path key={item.id} {...common} d={item.points.map((point, index) => `${index ? "L" : "M"}${point.x},${point.y}`).join(" ")} />;
-    const x = Math.min(item.start.x, item.end.x), y = Math.min(item.start.y, item.end.y);
-    const width = Math.abs(item.end.x - item.start.x), height = Math.abs(item.end.y - item.start.y);
-    if (item.type === "line") return <line key={item.id} {...common} x1={item.start.x} y1={item.start.y} x2={item.end.x} y2={item.end.y} />;
+    if (item.type === "path") {
+      return (
+        <path
+          key={item.id}
+          {...common}
+          d={item.points.map((point, index) => `${index ? "L" : "M"}${point.x},${point.y}`).join(" ")}
+        />
+      );
+    }
+    const x = Math.min(item.start.x, item.end.x);
+    const y = Math.min(item.start.y, item.end.y);
+    const width = Math.abs(item.end.x - item.start.x);
+    const height = Math.abs(item.end.y - item.start.y);
+    if (item.type === "line") {
+      return <line key={item.id} {...common} x1={item.start.x} y1={item.start.y} x2={item.end.x} y2={item.end.y} />;
+    }
     if (item.type === "rect") return <rect key={item.id} {...common} x={x} y={y} width={width} height={height} />;
-    if (item.type === "ellipse") return <ellipse key={item.id} {...common} cx={x + width / 2} cy={y + height / 2} rx={width / 2} ry={height / 2} />;
-    return <polygon key={item.id} {...common} points={`${x + width / 2},${y} ${x + width},${y + height} ${x},${y + height}`} />;
+    if (item.type === "ellipse") {
+      return (
+        <ellipse key={item.id} {...common} cx={x + width / 2} cy={y + height / 2} rx={width / 2} ry={height / 2} />
+      );
+    }
+    return (
+      <polygon
+        key={item.id}
+        {...common}
+        points={`${x + width / 2},${y} ${x + width},${y + height} ${x},${y + height}`}
+      />
+    );
   };
+
+  // Soft grid: muted in dark mode so lines don't glow against the paper.
+  const surfaceBg = dark ? "#121a26" : "#f8f7f2";
+  const gridLine = dark ? "rgba(148, 168, 192, 0.14)" : "#e8e6df";
+  const borderCol = dark ? "rgba(120, 145, 170, 0.28)" : "#cbc8bf";
+  const padBg = dark ? "var(--paper-soft)" : "#f8f7f2";
 
   return (
     <div
       className="fixed z-[945] flex resize flex-col overflow-hidden rounded-[12px] border border-[var(--line)] bg-[var(--paper-raised)] shadow-[0_24px_70px_rgba(0,0,0,.32)]"
-      style={{ left: position.x, top: position.y, width: minimized ? 340 : "min(790px, calc(100vw - 24px))", height: minimized ? 48 : "min(720px, calc(100vh - 24px))", minWidth: minimized ? 340 : 580, minHeight: minimized ? 48 : 520 }}
+      style={{
+        left: position.x,
+        top: position.y,
+        width: minimized ? 340 : "min(790px, calc(100vw - 24px))",
+        height: minimized ? 48 : "min(720px, calc(100vh - 24px))",
+        minWidth: minimized ? 340 : 580,
+        minHeight: minimized ? 48 : 520,
+      }}
       role="dialog"
       aria-label="Math drawing canvas"
     >
@@ -173,42 +260,163 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
         }}
         onPointerMove={(event) => {
           if (!windowDrag.current || windowDrag.current.id !== event.pointerId) return;
-          setPosition({ x: Math.max(6, event.clientX - windowDrag.current.x), y: Math.max(6, event.clientY - windowDrag.current.y) });
+          setPosition({
+            x: Math.max(6, event.clientX - windowDrag.current.x),
+            y: Math.max(6, event.clientY - windowDrag.current.y),
+          });
         }}
-        onPointerUp={() => { windowDrag.current = null; }}
+        onPointerUp={() => {
+          windowDrag.current = null;
+        }}
       >
         <GripHorizontal className="h-4 w-4 text-[var(--ink-faint)]" />
         <span className="grow text-[13px] font-bold text-[var(--ink)]">Math Canvas</span>
         <span className="hidden text-[10.5px] text-[var(--ink-faint)] sm:inline">Alt + letter adds a label</span>
-        <button type="button" className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)]" onPointerDown={(event) => event.stopPropagation()} onClick={() => setMinimized((value) => !value)} aria-label={minimized ? "Restore canvas" : "Minimize canvas"}><Minus className="h-4 w-4" /></button>
-        <button type="button" className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)] hover:text-[var(--bad)]" onPointerDown={(event) => event.stopPropagation()} onClick={onClose} aria-label="Close canvas"><X className="h-4 w-4" /></button>
+        <button
+          type="button"
+          className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)]"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => setMinimized((value) => !value)}
+          aria-label={minimized ? "Restore canvas" : "Minimize canvas"}
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)] hover:text-[var(--bad)]"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={onClose}
+          aria-label="Close canvas"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {!minimized && (
         <>
           <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--line)] bg-[var(--paper-raised)] p-2">
             {TOOLS.map((entry) => (
-              <button key={entry.id} type="button" title={entry.label} aria-label={entry.label} onClick={() => setTool(entry.id)} className={tool === entry.id ? "btn btn-primary !min-h-8 !px-2.5 !py-1.5" : "btn btn-ghost !min-h-8 !px-2.5 !py-1.5"}><entry.icon className="h-4 w-4" /></button>
+              <button
+                key={entry.id}
+                type="button"
+                title={entry.label}
+                aria-label={entry.label}
+                onClick={() => setTool(entry.id)}
+                className={
+                  tool === entry.id
+                    ? "btn btn-primary !min-h-8 !px-2.5 !py-1.5"
+                    : "btn btn-ghost !min-h-8 !px-2.5 !py-1.5"
+                }
+              >
+                <entry.icon className="h-4 w-4" />
+              </button>
             ))}
             <span className="mx-1 h-6 w-px bg-[var(--line)]" />
-            <input type="color" value={color} onChange={(event) => setColor(event.target.value)} className="h-8 w-9 cursor-pointer rounded border border-[var(--line)] bg-transparent p-0.5" aria-label="Drawing color" />
-            <input type="range" min="1" max="8" value={strokeWidth} onChange={(event) => setStrokeWidth(Number(event.target.value))} className="w-20" aria-label="Line width" />
-            <button type="button" className="btn btn-ghost !min-h-8 !px-2.5" disabled={!items.length} onClick={() => { const last = items.at(-1); if (last) { setItems(items.slice(0, -1)); setRedo((current) => [...current, last]); } }}><Undo2 className="h-4 w-4" /></button>
-            <button type="button" className="btn btn-ghost !min-h-8 !px-2.5" disabled={!redo.length} onClick={() => { const last = redo.at(-1); if (last) { setRedo(redo.slice(0, -1)); setItems((current) => [...current, last]); } }}><Redo2 className="h-4 w-4" /></button>
-            <button type="button" className="btn btn-ghost !min-h-8 !px-2.5 text-[var(--bad)]" onClick={() => { setItems([]); setRedo([]); }}><Trash2 className="h-4 w-4" /></button>
+            <input
+              type="color"
+              value={color}
+              onChange={(event) => {
+                userPickedColor.current = true;
+                setColor(event.target.value);
+              }}
+              className="h-8 w-9 cursor-pointer rounded border border-[var(--line)] bg-transparent p-0.5"
+              aria-label="Drawing color"
+            />
+            <button
+              type="button"
+              className="btn btn-ghost !min-h-8 !px-2 !text-[11px]"
+              title="Reset pen to theme default"
+              onClick={() => {
+                userPickedColor.current = false;
+                setColor(defaultPenForTheme(theme));
+              }}
+            >
+              Auto
+            </button>
+            <input
+              type="range"
+              min="1"
+              max="8"
+              value={strokeWidth}
+              onChange={(event) => setStrokeWidth(Number(event.target.value))}
+              className="w-20"
+              aria-label="Line width"
+            />
+            <button
+              type="button"
+              className="btn btn-ghost !min-h-8 !px-2.5"
+              disabled={!items.length}
+              onClick={() => {
+                const last = items.at(-1);
+                if (last) {
+                  setItems(items.slice(0, -1));
+                  setRedo((current) => [...current, last]);
+                }
+              }}
+            >
+              <Undo2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost !min-h-8 !px-2.5"
+              disabled={!redo.length}
+              onClick={() => {
+                const last = redo.at(-1);
+                if (last) {
+                  setRedo(redo.slice(0, -1));
+                  setItems((current) => [...current, last]);
+                }
+              }}
+            >
+              <Redo2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost !min-h-8 !px-2.5 text-[var(--bad)]"
+              onClick={() => {
+                setItems([]);
+                setRedo([]);
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--line)] bg-[var(--paper-soft)] px-2 py-1.5">
-            <input value={textValue} onChange={(event) => setTextValue(event.target.value)} className="input !h-8 !w-24 !px-2 !py-1 text-sm" aria-label="Text to add" />
-            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[11px]" onClick={() => addText(textValue || "x")}>Add text</button>
+            <input
+              value={textValue}
+              onChange={(event) => setTextValue(event.target.value)}
+              className="input !h-8 !w-24 !px-2 !py-1 text-sm"
+              aria-label="Text to add"
+            />
+            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[11px]" onClick={() => addText(textValue || "x")}>
+              Add text
+            </button>
             <span className="ml-1 text-[10px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Quick</span>
-            {QUICK_LETTERS.map((letter) => <button key={letter} type="button" className="flex h-7 min-w-7 items-center justify-center rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 font-mono text-xs font-bold text-[var(--ink)] hover:border-[var(--accent)]" onClick={() => addText(letter)}>{letter}</button>)}
+            {QUICK_LETTERS.map((letter) => (
+              <button
+                key={letter}
+                type="button"
+                className="flex h-7 min-w-7 items-center justify-center rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 font-mono text-xs font-bold text-[var(--ink)] hover:border-[var(--accent)]"
+                onClick={() => addText(letter)}
+              >
+                {letter}
+              </button>
+            ))}
           </div>
-          <div className="min-h-0 grow bg-[#f8f7f2] p-2">
+          <div className="min-h-0 grow p-2" style={{ background: padBg }}>
             <svg
               ref={svgRef}
               viewBox="0 0 720 480"
-              className={cn("h-full w-full touch-none rounded-[6px] border border-[#cbc8bf] bg-white", tool === "select" ? "cursor-move" : "cursor-crosshair")}
-              style={{ backgroundImage: "linear-gradient(#e8e6df 1px, transparent 1px), linear-gradient(90deg, #e8e6df 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+              className={cn(
+                "h-full w-full touch-none rounded-[6px] border",
+                tool === "select" ? "cursor-move" : "cursor-crosshair",
+              )}
+              style={{
+                backgroundColor: surfaceBg,
+                borderColor: borderCol,
+                backgroundImage: `linear-gradient(${gridLine} 1px, transparent 1px), linear-gradient(90deg, ${gridLine} 1px, transparent 1px)`,
+                backgroundSize: "24px 24px",
+              }}
               onPointerDown={startDrawing}
               onPointerMove={continueDrawing}
               onPointerUp={finishDrawing}
