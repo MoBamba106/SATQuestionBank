@@ -1,31 +1,69 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 import { NavShell } from "@/components/nav-shell";
+import { SettingsProvider } from "@/components/settings-provider";
+import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SAT Nexus — Official Question Bank & Bluebook Practice",
+  title: "SAT Nexus — SAT Question Bank and Practice",
   description:
-    "3,444 official College Board SAT questions, 9 full-length Bluebook practice tests, mistake tracking, and collections — all in a Soft Paper theme.",
+    "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
+  applicationName: "SAT Nexus",
+  manifest: "/manifest.webmanifest",
 };
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#eadcc7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1726" },
+  ],
+};
+
+const themeBootScript = `
+try {
+  const saved = JSON.parse(
+    localStorage.getItem('sat-nexus-settings-v3')
+      || localStorage.getItem('sat-nexus-settings-v2')
+      || localStorage.getItem('sat-nexus-settings-v1')
+      || '{}'
+  );
+  const root = document.documentElement;
+  root.dataset.theme = saved.theme || 'soft-paper';
+  root.dataset.fontScale = saved.fontScale || 'default';
+  root.dataset.density = saved.compactMode ? 'compact' : 'comfortable';
+  root.dataset.reduceMotion = saved.reducedMotion ? 'true' : 'false';
+  root.dataset.expandPassages = saved.expandPassages ? 'true' : 'false';
+} catch (_) {}
+`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="soft-paper" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body>
-        <NavShell>{children}</NavShell>
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: "#fffdf8",
-              border: "1px solid #e2dbc9",
-              color: "#2b2b2a",
-              boxShadow: "0 10px 30px rgba(60,45,20,0.14)",
-              borderRadius: "14px",
-            },
-          }}
-        />
+        <SettingsProvider>
+          <AuthProvider>
+            <NavShell>{children}</NavShell>
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: "var(--paper-raised)",
+                  border: "1px solid var(--line)",
+                  color: "var(--ink)",
+                  boxShadow: "0 10px 28px rgba(20,24,34,0.18)",
+                  borderRadius: "7px",
+                  fontFamily: "IBM Plex Sans, ui-sans-serif, system-ui, sans-serif",
+                },
+              }}
+            />
+          </AuthProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

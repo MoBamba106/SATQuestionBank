@@ -3,18 +3,16 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, type SoftTone } from "@/lib/utils";
 
 export interface SelectOption {
   value: string;
   label: string;
   hint?: string;
+  tone?: SoftTone;
 }
 
-/**
- * Fully custom, themeable dropdown (Radix under the hood) styled for the
- * Soft Paper theme. Zero native <select> elements anywhere in the app.
- */
+/** Radix select whose material and accent are controlled by the active theme. */
 export function PaperSelect({
   value,
   onValueChange,
@@ -24,37 +22,34 @@ export function PaperSelect({
   disabled,
   size = "md",
   ariaLabel,
+  tone = "paper",
 }: {
   value?: string;
-  onValueChange?: (v: string) => void;
+  onValueChange?: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   size?: "sm" | "md";
   ariaLabel?: string;
+  tone?: SoftTone;
 }) {
   return (
-    <SelectPrimitive.Root
-      value={value}
-      onValueChange={onValueChange}
-      disabled={disabled}
-    >
+    <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectPrimitive.Trigger
         aria-label={ariaLabel ?? placeholder}
+        data-tone={tone}
         className={cn(
-          "group inline-flex w-full items-center justify-between gap-2 rounded-xl border-[1.5px] border-[#d5cfc0] bg-white text-left text-[#2b2b2a] shadow-[0_1px_3px_rgba(60,45,20,0.05)] transition-all duration-150",
-          "hover:border-[#c0b8a2] hover:shadow-[0_2px_8px_rgba(60,45,20,0.08)]",
-          "focus:outline-none focus:border-[#5b8def] focus:shadow-[0_0_0_3px_rgba(91,141,239,0.15)]",
-          "data-[state=open]:border-[#5b8def] data-[state=open]:shadow-[0_0_0_3px_rgba(91,141,239,0.15)]",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          size === "md" ? "px-3.5 py-2.5 text-sm" : "px-2.5 py-1.5 text-[13px] rounded-lg",
+          "paper-select-trigger group inline-flex w-full items-center justify-between gap-2 rounded-[7px] border text-left transition-[background-color,border-color,box-shadow] duration-150",
+          "focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 data-[state=open]:ring-2 data-[state=open]:ring-[var(--accent)]/20",
+          "disabled:cursor-not-allowed disabled:opacity-45",
+          size === "md" ? "px-3.5 py-2.5 text-sm" : "rounded-[5px] px-2.5 py-1.5 text-[13px]",
           className,
         )}
       >
-        <SelectPrimitive.Value placeholder={<span className="text-[#8a8680]">{placeholder}</span>} />
+        <SelectPrimitive.Value placeholder={<span className="text-[var(--ink-faint)]">{placeholder}</span>} />
         <SelectPrimitive.Icon>
-          <ChevronDown className="h-4 w-4 shrink-0 text-[#8a8680] transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[state=open]:text-[#3a5fc8]" />
+          <ChevronDown className="h-4 w-4 shrink-0 opacity-65 transition-transform duration-150 group-data-[state=open]:rotate-180" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
 
@@ -62,43 +57,38 @@ export function PaperSelect({
         <SelectPrimitive.Content
           position="popper"
           sideOffset={6}
-          className={cn(
-            "paper-pop z-[999] max-h-[320px] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl border border-[#e2dbc9] bg-[#fffdf8]",
-            "shadow-[0_16px_40px_rgba(60,45,20,0.16),0_2px_8px_rgba(60,45,20,0.08)]",
-          )}
+          className="paper-pop z-[999] max-h-[320px] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[7px] border border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink)] shadow-[0_16px_36px_rgba(20,24,34,0.18)]"
         >
-          <SelectPrimitive.ScrollUpButton className="flex h-7 items-center justify-center bg-[#fffdf8] text-[#8a8680]">
+          <SelectPrimitive.ScrollUpButton className="flex h-7 items-center justify-center bg-[var(--paper-raised)] text-[var(--ink-faint)]">
             <ChevronUp className="h-4 w-4" />
           </SelectPrimitive.ScrollUpButton>
           <SelectPrimitive.Viewport className="p-1.5 scrollbar-thin">
-            {options.map((opt) => (
+            {options.map((option) => (
               <SelectPrimitive.Item
-                key={opt.value}
-                value={opt.value}
+                key={option.value}
+                value={option.value}
+                data-tone={option.tone ?? tone}
                 className={cn(
-                  "relative flex cursor-pointer select-none items-center gap-2 rounded-lg py-2 pl-3 pr-8 text-[13.5px] text-[#2b2b2a] outline-none transition-colors",
-                  "data-[highlighted]:bg-[#f2ecdd] data-[highlighted]:text-[#1f1e1c]",
-                  "data-[state=checked]:bg-[#e9effc] data-[state=checked]:text-[#3053ad] data-[state=checked]:font-semibold",
-                  "data-[disabled]:opacity-40 data-[disabled]:pointer-events-none",
+                  "paper-select-item relative flex cursor-pointer select-none items-center gap-2 rounded-[5px] py-2 pl-3 pr-8 text-[13.5px] outline-none transition-colors",
+                  "data-[highlighted]:bg-[var(--paper-soft)] data-[state=checked]:font-semibold",
+                  "data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
                   size === "sm" && "py-1.5 text-[12.5px]",
                 )}
               >
                 <SelectPrimitive.ItemText>
                   <span className="flex flex-col">
-                    <span>{opt.label}</span>
-                    {opt.hint && <span className="text-[11px] text-[#8a8680]">{opt.hint}</span>}
+                    <span>{option.label}</span>
+                    {option.hint && <span className="text-[11px] text-[var(--ink-faint)]">{option.hint}</span>}
                   </span>
                 </SelectPrimitive.ItemText>
                 <SelectPrimitive.ItemIndicator className="absolute right-2.5 inline-flex items-center">
-                  <Check className="h-4 w-4 text-[#3a5fc8]" strokeWidth={3} />
+                  <Check className="h-4 w-4 text-[var(--accent)]" strokeWidth={3} />
                 </SelectPrimitive.ItemIndicator>
               </SelectPrimitive.Item>
             ))}
-            {options.length === 0 && (
-              <div className="px-3 py-4 text-center text-[13px] text-[#8a8680]">No options</div>
-            )}
+            {options.length === 0 && <div className="px-3 py-4 text-center text-[13px] text-[var(--ink-faint)]">No options</div>}
           </SelectPrimitive.Viewport>
-          <SelectPrimitive.ScrollDownButton className="flex h-7 items-center justify-center bg-[#fffdf8] text-[#8a8680]">
+          <SelectPrimitive.ScrollDownButton className="flex h-7 items-center justify-center bg-[var(--paper-raised)] text-[var(--ink-faint)]">
             <ChevronDown className="h-4 w-4" />
           </SelectPrimitive.ScrollDownButton>
         </SelectPrimitive.Content>

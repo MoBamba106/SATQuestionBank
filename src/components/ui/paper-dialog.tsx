@@ -25,29 +25,29 @@ export function PaperDialog({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="paper-fade fixed inset-0 z-[998] bg-[rgba(43,40,33,0.42)] backdrop-blur-[3px]" />
+        <DialogPrimitive.Overlay className="paper-fade fixed inset-0 z-[998] bg-[rgba(37,40,44,0.44)]" />
         <DialogPrimitive.Content
           className={cn(
-            "paper-pop fixed left-1/2 top-1/2 z-[999] max-h-[88vh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-[#e2dbc9] bg-[#fffdf8] p-6 shadow-[0_28px_70px_rgba(43,40,33,0.30)] scrollbar-thin focus:outline-none",
+            "paper-pop fixed left-1/2 top-1/2 z-[999] max-h-[88vh] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[8px] border border-[#cfc8ba] bg-[var(--paper-raised)] p-6 shadow-[0_24px_60px_rgba(37,40,44,0.28)] scrollbar-thin focus:outline-none",
             wide ? "max-w-3xl" : "max-w-md",
             className,
           )}
         >
           <div className="relative">
             {title && (
-              <DialogPrimitive.Title className="font-display pr-8 text-xl font-semibold text-[#2b2b2a]">
+              <DialogPrimitive.Title className="font-display pr-8 text-xl font-semibold text-[var(--ink)]">
                 {title}
               </DialogPrimitive.Title>
             )}
             {description && (
-              <DialogPrimitive.Description className="mt-1 text-sm text-[#8a8680]">
+              <DialogPrimitive.Description className="mt-1 text-sm text-[var(--ink-faint)]">
                 {description}
               </DialogPrimitive.Description>
             )}
             <DialogPrimitive.Close asChild>
               <button
                 aria-label="Close"
-                className="absolute -top-1 right-0 rounded-lg p-1.5 text-[#8a8680] transition-colors hover:bg-[#f2ecdd] hover:text-[#2b2b2a]"
+                className="absolute -top-1 right-0 rounded-[4px] p-1.5 text-[var(--ink-faint)] transition-colors hover:bg-[var(--paper-soft)] hover:text-[var(--ink)]"
               >
                 <X className="h-4.5 w-4.5" />
               </button>

@@ -1,35 +1,43 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams } from "next/navigation";
-import { Play, Loader2, FlaskConical, PenLine } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AlertCircle, ArrowLeft, Play, Loader2, FlaskConical, PenLine, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperSelect } from "@/components/ui/paper-select";
 import { PaperSlider } from "@/components/ui/paper-slider";
 import { PracticeRunner } from "@/components/quiz/practice-runner";
+import { useSettings } from "@/components/settings-provider";
 import { BluebookRunner } from "@/components/quiz/bluebook-runner";
 import { apiGet, apiPost } from "@/lib/api-client";
-import { consumePool } from "@/lib/quiz-session";
+import { clearPool, readPool } from "@/lib/quiz-session";
+import { readBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import { skillsForDomain, subskillsFor } from "@/lib/sat-categories";
-import { cn } from "@/lib/utils";
+import { cn, skillTone } from "@/lib/utils";
 import type { PracticeTestDetail, QuestionSummary, SATQuestion } from "@/lib/types";
 
 const DOMAIN_OPTS = [
-  { value: "All", label: "All domains" },
-  { value: "Math", label: "Math" },
-  { value: "Reading & Writing", label: "Reading & Writing" },
+  { value: "All", label: "All sections", tone: "lavender" as const },
+  { value: "Math", label: "Math", tone: "teal" as const },
+  { value: "Reading & Writing", label: "Reading & Writing", tone: "lavender" as const },
 ];
 
 type Phase =
   | { kind: "setup" }
   | { kind: "practice"; pool: SATQuestion[]; sessionId: string; label: string; mode: string }
-  | { kind: "bluebook"; test: PracticeTestDetail; sessionId: string };
+  | { kind: "bluebook"; test: PracticeTestDetail; sessionId: string; resume: BluebookProgress | null };
 
 function QuizInner() {
+  const router = useRouter();
   const sp = useSearchParams();
+  const { settings, ready: settingsReady } = useSettings();
+  const defaultsApplied = React.useRef(false);
   const [phase, setPhase] = React.useState<Phase>({ kind: "setup" });
   const [booting, setBooting] = React.useState(false);
+  const [handoffError, setHandoffError] = React.useState<string | null>(null);
+  const [handoffAttempt, setHandoffAttempt] = React.useState(0);
+  const handoffStarted = React.useRef(false);
 
   // setup state
   const [domain, setDomain] = React.useState("All");
@@ -40,12 +48,25 @@ function QuizInner() {
   const [quizMode, setQuizMode] = React.useState<"practice" | "exam">("practice");
   const [available, setAvailable] = React.useState<number | null>(null);
 
+  React.useEffect(() => {
+    if (!settingsReady || defaultsApplied.current) return;
+    defaultsApplied.current = true;
+    setCount(settings.defaultQuizSize);
+    setQuizMode(settings.defaultQuizMode);
+  }, [settings, settingsReady]);
+
   const skillOpts = React.useMemo(
-    () => [{ value: "All", label: "All categories" }, ...skillsForDomain(domain).map((s) => ({ value: s, label: s }))],
+    () => [
+      { value: "All", label: "All domains", tone: "blue" as const },
+      ...skillsForDomain(domain).map((item) => ({ value: item, label: item, tone: skillTone(item) })),
+    ],
     [domain],
   );
   const subskillOpts = React.useMemo(
-    () => [{ value: "All", label: "All skills" }, ...subskillsFor(domain, skill).map((s) => ({ value: s, label: s }))],
+    () => [
+      { value: "All", label: "All skills", tone: "green" as const },
+      ...subskillsFor(domain, skill).map((item) => ({ value: item, label: item, tone: "green" as const })),
+    ],
     [domain, skill],
   );
 
@@ -72,45 +93,86 @@ function QuizInner() {
     return () => { alive = false; clearTimeout(t); };
   }, [filterQS]);
 
-  // handoff: ?pool=1 (mistakes / collections / favorites) or ?test=test-N
+  // Handoff from Question Bank, Mistakes, Collections, or a practice test.
+  // The ref prevents React Strict Mode from consuming/starting the same pool twice.
   React.useEffect(() => {
     const poolParam = sp.get("pool");
     const testParam = sp.get("test");
-    if (!poolParam && !testParam) return;
+    if ((!poolParam && !testParam) || handoffStarted.current) return;
+    handoffStarted.current = true;
 
     (async () => {
       setBooting(true);
+      setHandoffError(null);
       try {
         if (testParam) {
           const test = await apiGet<PracticeTestDetail>(`/api/practice-tests/${testParam}`);
-          const s = await apiPost<{ id: string }>("/api/sessions", {
-            mode: "bluebook", label: test.title, testId: test.id, totalQuestions: test.totalQuestions,
-          });
-          setPhase({ kind: "bluebook", test, sessionId: s.id });
+          const resume = sp.get("resume") === "1" ? readBluebookProgress(test.id) : null;
+          let sessionId = resume?.sessionId;
+          let resumeSafe = resume;
+          if (sessionId) {
+            try {
+              const probe = await fetch(`/api/sessions/${sessionId}`);
+              if (!probe.ok) {
+                sessionId = undefined;
+                resumeSafe = resume ? { ...resume, sessionId: "" } : null;
+              }
+            } catch {
+              sessionId = undefined;
+            }
+          }
+          if (!sessionId) {
+            const session = await apiPost<{ id: string }>("/api/sessions", {
+              mode: "bluebook",
+              label: test.title,
+              testId: test.id,
+              totalQuestions: test.totalQuestions,
+            });
+            sessionId = session.id;
+            if (resumeSafe) resumeSafe = { ...resumeSafe, sessionId };
+          }
+          setPhase({ kind: "bluebook", test, sessionId, resume: resumeSafe });
+          router.replace("/quiz", { scroll: false });
           return;
         }
-        const launch = consumePool();
-        if (!launch) {
-          toast.error("That question pool expired — build it again from its page.");
-          return;
+
+        const launch = readPool();
+        if (!launch) throw new Error("The selected question set is no longer available. Return to the source page and select it again.");
+
+        // Load the exact IDs before creating the session. If loading fails, the
+        // stored pool remains intact and the user gets a real retry action.
+        const loaded = await apiPost<QuestionSummary>("/api/questions", { ids: launch.ids });
+        if (loaded.questions.length !== launch.ids.length) {
+          throw new Error(`Loaded ${loaded.questions.length} of ${launch.ids.length} selected questions.`);
         }
-        const s = await apiPost<{ id: string }>("/api/sessions", {
-          mode: launch.mode ?? "practice", label: launch.label, totalQuestions: launch.ids.length,
+        const session = await apiPost<{ id: string }>("/api/sessions", {
+          mode: launch.mode ?? "practice",
+          label: launch.label,
+          totalQuestions: loaded.questions.length,
         });
-        const d = await apiPost<QuestionSummary>("/api/questions", { ids: launch.ids });
-        if (d.questions.length === 0) {
-          toast.error("None of those questions could be loaded.");
-          return;
-        }
-        setPhase({ kind: "practice", pool: d.questions, sessionId: s.id, label: launch.label, mode: launch.mode ?? "practice" });
-      } catch (e) {
-        toast.error("Couldn't start the quiz", { description: e instanceof Error ? e.message : undefined });
+        clearPool();
+        setPhase({
+          kind: "practice",
+          pool: loaded.questions,
+          sessionId: session.id,
+          label: launch.label,
+          mode: launch.mode ?? "practice",
+        });
+        router.replace("/quiz", { scroll: false });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Could not load that question set.";
+        setHandoffError(message);
+        toast.error("Could not start the selected quiz", { description: message });
       } finally {
         setBooting(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp]);
+  }, [sp, router, handoffAttempt]);
+
+  const retryHandoff = () => {
+    handoffStarted.current = false;
+    setHandoffAttempt((attempt) => attempt + 1);
+  };
 
   const startCustom = async () => {
     if (booting) return;
@@ -124,7 +186,7 @@ function QuizInner() {
       const label = `${quizMode === "exam" ? "Exam" : "Practice"} · ${labelParts.join(" · ")}`;
       const d = await apiGet<QuestionSummary>(`/api/questions?${filterQS}&random=1&limit=${count}`);
       if (d.questions.length === 0) {
-        toast.error("No questions match those filters — widen them and try again.");
+        toast.error("No questions match those filters. Widen them and try again.");
         return;
       }
       const s = await apiPost<{ id: string }>("/api/sessions", {
@@ -156,18 +218,51 @@ function QuizInner() {
         key={phase.sessionId}
         test={phase.test}
         sessionId={phase.sessionId}
-        onExit={() => setPhase({ kind: "setup" })}
+        resume={phase.resume}
+        onExit={() => router.push("/bluebook")}
       />
+    );
+  }
+
+  if (sp.get("pool") || sp.get("test")) {
+    return (
+      <div className="mx-auto max-w-xl py-12">
+        <GlassCard hover={false} className="p-7 text-center">
+          {handoffError ? (
+            <>
+              <AlertCircle className="mx-auto h-9 w-9 text-[var(--bad)]" />
+              <h1 className="font-display mt-3 text-2xl font-bold text-[var(--ink)]">Could not load that quiz</h1>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{handoffError}</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                <button type="button" className="btn btn-primary" onClick={retryHandoff}>
+                  <RotateCcw className="h-4 w-4" /> Try again
+                </button>
+                <button type="button" className="btn btn-soft" onClick={() => router.push("/bank")}>
+                  <ArrowLeft className="h-4 w-4" /> Back to question bank
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Loader2 className="mx-auto h-8 w-8 animate-spin text-[var(--accent)]" />
+              <h1 className="font-display mt-3 text-2xl font-bold text-[var(--ink)]">Loading your exact questions</h1>
+              <p className="mt-1 text-[13px] text-[var(--ink-faint)]">
+                {booting ? "Preparing the selected set…" : "Starting…"}
+              </p>
+            </>
+          )}
+        </GlassCard>
+      </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="font-display text-3xl font-bold text-[#2b2b2a]">
+        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
           Practice <span className="hl-blue px-1">Quiz</span>
         </h1>
-        <p className="mt-1 text-[15px] text-[#8a8680]">
+        <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
           Build a custom drill from all 3,444 official College Board questions.
         </p>
       </div>
@@ -175,16 +270,18 @@ function QuizInner() {
       <GlassCard hover={false} className="p-6 sm:p-8">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Domain</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="lavender">Section</label>
             <PaperSelect
+              tone="lavender"
               value={domain}
               onValueChange={(v) => { setDomain(v); setSkill("All"); setSubskill("All"); }}
               options={DOMAIN_OPTS}
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Category</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="blue">Domain</label>
             <PaperSelect
+              tone="blue"
               value={skill}
               onValueChange={(v) => { setSkill(v); setSubskill("All"); }}
               options={skillOpts}
@@ -192,8 +289,9 @@ function QuizInner() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Skill</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="green">Skill</label>
             <PaperSelect
+              tone="green"
               value={subskill}
               onValueChange={setSubskill}
               options={subskillOpts}
@@ -201,15 +299,16 @@ function QuizInner() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Difficulty</label>
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="yellow">Difficulty</label>
             <PaperSelect
+              tone="yellow"
               value={difficulty}
               onValueChange={setDifficulty}
               options={[
-                { value: "All", label: "All difficulties" },
-                { value: "Easy", label: "Easy" },
-                { value: "Medium", label: "Medium" },
-                { value: "Hard", label: "Hard" },
+                { value: "All", label: "All difficulties", tone: "yellow" },
+                { value: "Easy", label: "Easy", tone: "green" },
+                { value: "Medium", label: "Medium", tone: "yellow" },
+                { value: "Hard", label: "Hard", tone: "rose" },
               ]}
             />
           </div>
@@ -217,8 +316,8 @@ function QuizInner() {
 
         <div className="mt-7">
           <div className="mb-1 flex items-baseline justify-between">
-            <label className="text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Questions</label>
-            <span className="font-display text-2xl font-bold text-[#3a5fc8]">{count}</span>
+            <label className="text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Questions</label>
+            <span className="font-display text-2xl font-bold text-[var(--accent)]">{count}</span>
           </div>
           <PaperSlider
             value={count}
@@ -231,44 +330,36 @@ function QuizInner() {
             ariaLabel="Number of questions"
           />
           {available != null && (
-            <p className={cn("mt-1 text-[12.5px] font-medium", available === 0 ? "text-[#a33046]" : "text-[#8a8680]")}>
+            <p className={cn("mt-1 text-[12.5px] font-medium", available === 0 ? "text-[#a33046]" : "text-[var(--ink-faint)]")}>
               {available.toLocaleString()} question{available === 1 ? "" : "s"} match your filters
-              {available > 0 && available < count ? ` — quiz will use all ${available}` : ""}
+              {available > 0 && available < count ? `. The quiz will use all ${available}.` : ""}
             </p>
           )}
         </div>
 
         <div className="mt-7">
-          <label className="mb-2 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">Mode</label>
+          <label className="mb-2 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Mode</label>
           <div className="grid grid-cols-2 gap-2.5">
             <button
               onClick={() => setQuizMode("practice")}
-              className={cn(
-                "flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-all",
-                quizMode === "practice"
-                  ? "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]"
-                  : "border-[#e7e0d0] bg-white hover:border-[#cfc5ae]",
-              )}
+              data-active={quizMode === "practice"}
+              className="quiz-mode-card flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors"
             >
-              <FlaskConical className={cn("mt-0.5 h-5 w-5", quizMode === "practice" ? "text-[#3a5fc8]" : "text-[#a8a294]")} />
+              <FlaskConical className="quiz-mode-icon mt-0.5 h-5 w-5" />
               <span>
-                <span className="block text-[14px] font-bold text-[#2b2b2a]">Practice</span>
-                <span className="block text-[12px] text-[#8a8680]">Check answers as you go with explanations</span>
+                <span className="block text-[14px] font-bold text-[var(--ink)]">Practice</span>
+                <span className="block text-[12px] text-[var(--ink-faint)]">Check answers as you go with explanations</span>
               </span>
             </button>
             <button
               onClick={() => setQuizMode("exam")}
-              className={cn(
-                "flex items-start gap-3 rounded-2xl border-[1.5px] p-4 text-left transition-all",
-                quizMode === "exam"
-                  ? "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]"
-                  : "border-[#e7e0d0] bg-white hover:border-[#cfc5ae]",
-              )}
+              data-active={quizMode === "exam"}
+              className="quiz-mode-card flex items-start gap-3 rounded-[6px] border p-4 text-left transition-colors"
             >
-              <PenLine className={cn("mt-0.5 h-5 w-5", quizMode === "exam" ? "text-[#3a5fc8]" : "text-[#a8a294]")} />
+              <PenLine className="quiz-mode-icon mt-0.5 h-5 w-5" />
               <span>
-                <span className="block text-[14px] font-bold text-[#2b2b2a]">Exam</span>
-                <span className="block text-[12px] text-[#8a8680]">No feedback until you finish — graded at the end</span>
+                <span className="block text-[14px] font-bold text-[var(--ink)]">Exam</span>
+                <span className="block text-[12px] text-[var(--ink-faint)]">No feedback until you finish; graded at the end</span>
               </span>
             </button>
           </div>
@@ -287,7 +378,7 @@ export default function QuizPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="flex items-center justify-center gap-2 py-24 text-[#8a8680]">
+        <div className="flex items-center justify-center gap-2 py-24 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading quiz…
         </div>
       }

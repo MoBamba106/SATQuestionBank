@@ -2,28 +2,25 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Records graded attempts. The (session_id, question_id) unique constraint
- * with ON CONFLICT DO NOTHING is the server-side guarantee that re-checking
- * the SAME question in the SAME quiz can never inflate stats — the core fix
- * for "check answer keeps updating questions done".
- */
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const body = await req.json();
     const sessionId = String(body?.sessionId ?? "");
     const mode = String(body?.mode ?? "practice");
     if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
 
-    const session = await db.execute(sql`SELECT 1 FROM quiz_sessions WHERE id = ${sessionId} LIMIT 1`);
+    const session = await db.execute(sql`
+      SELECT 1 FROM quiz_sessions WHERE id = ${sessionId} AND user_id = ${user.id} LIMIT 1
+    `);
     if (((session as unknown as { rows: unknown[] }).rows ?? []).length === 0)
       return NextResponse.json({ error: "Session not found — start a new quiz" }, { status: 404 });
 
-    // accept single attempt or bulk list
     const list: { questionId: string; isCorrect: boolean; answer?: string }[] = Array.isArray(body?.attempts)
       ? body.attempts
       : [{ questionId: body?.questionId, isCorrect: body?.isCorrect, answer: body?.answer }];

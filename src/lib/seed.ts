@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { db } from "@/db";
+import { db, ensureDatabaseReady } from "@/db";
 import { sql } from "drizzle-orm";
 import { questions, practiceTests, practiceTestQuestions } from "@/db/schema";
 
@@ -56,8 +56,9 @@ const MATH_MODULE_SKILLS: [string, number][] = [
   ["Geometry and Trigonometry", 3],
 ];
 
-const MOD1_PATTERN = ["Medium", "Easy", "Medium", "Hard", "Medium", "Medium", "Easy", "Medium", "Hard"];
-const MOD2_PATTERN = ["Medium", "Medium", "Hard", "Medium", "Hard", "Medium", "Easy", "Medium", "Hard"];
+const ROUTING_PATTERN = ["Medium", "Easy", "Medium", "Hard", "Medium", "Medium", "Easy", "Medium", "Hard"];
+const EASIER_PATTERN = ["Easy", "Medium", "Easy", "Medium", "Easy", "Medium", "Easy", "Medium", "Hard"];
+const HARDER_PATTERN = ["Hard", "Medium", "Hard", "Hard", "Medium", "Hard", "Medium", "Hard", "Easy"];
 
 export const PRACTICE_TEST_META: { testNumber: number; title: string; releaseLabel: string }[] = [
   { testNumber: 3, title: "Practice Test 3", releaseLabel: "Legacy Bluebook test (retired Feb 2025)" },
@@ -104,19 +105,58 @@ function buildModule(
 const seededState: { promise: Promise<unknown> | null } = { promise: null };
 
 export function ensureSeeded(): Promise<unknown> {
-  if (!seededState.promise) seededState.promise = doSeed();
+  if (!seededState.promise) {
+    seededState.promise = doSeed().catch((error) => {
+      seededState.promise = null;
+      throw error;
+    });
+  }
   return seededState.promise;
 }
 
+function loadQuestionBank(): SeedQuestion[] {
+  const file = path.join(process.cwd(), "src/data/question-bank.json");
+  return JSON.parse(fs.readFileSync(file, "utf8")) as SeedQuestion[];
+}
+
+/**
+ * Patch answers that were missing/blank in older DB seeds. Safe to re-run:
+ * only overwrites rows whose correct_answer is still empty or matches a
+ * known backfill key.
+ */
+async function backfillMissingAnswers(all: SeedQuestion[]) {
+  // Only touch rows that are still blank (or the placeholder "?" from a prior seed).
+  const emptyRes = await db.execute(
+    sql`select id from questions where coalesce(trim(correct_answer), '') in ('', '?')`,
+  );
+  const emptyIds = new Set(
+    ((emptyRes as unknown as { rows?: { id: string }[] }).rows ?? []).map((row) => row.id),
+  );
+  if (emptyIds.size === 0) return;
+
+  const needs = all.filter(
+    (q) => emptyIds.has(q.id) && String(q.correctAnswer || "").trim().length > 0,
+  );
+  for (const q of needs) {
+    await db.execute(sql`
+      UPDATE questions
+      SET correct_answer = ${q.correctAnswer}
+      WHERE id = ${q.id}
+        AND coalesce(trim(correct_answer), '') in ('', '?')
+    `);
+  }
+}
+
 async function doSeed() {
+  await ensureDatabaseReady();
+
   // --- questions ---
   const qCount = await db.execute(sql`select count(*)::int as c from questions`);
   const c = Number((qCount as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
 
   let all: SeedQuestion[] = [];
   if (c === 0) {
-    const file = path.join(process.cwd(), "src/data/question-bank.json");
-    all = JSON.parse(fs.readFileSync(file, "utf8"));
+    all = loadQuestionBank();
     const BATCH = 100;
     for (let i = 0; i < all.length; i += BATCH) {
       const chunk = all.slice(i, i + BATCH).map((q) => ({
@@ -125,7 +165,7 @@ async function doSeed() {
         questionHtml: q.questionHtml,
         passage: q.passage,
         passageHtml: q.passageHtml,
-        correctAnswer: q.correctAnswer,
+        correctAnswer: q.correctAnswer || "?",
         explanation: q.explanation,
         difficulty: q.difficulty,
         domain: q.domain,
@@ -137,12 +177,27 @@ async function doSeed() {
       }));
       await db.insert(questions).values(chunk).onConflictDoNothing();
     }
+  } else {
+    // Existing DBs may predate answer backfills — fill blanks in place.
+    all = loadQuestionBank();
+    await backfillMissingAnswers(all);
   }
 
   // --- practice tests 3-11 ---
   const tCount = await db.execute(sql`select count(*)::int as c from practice_tests`);
   const tc = Number((tCount as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
-  if (tc > 0) return;
+  const moduleCount = await db.execute(sql`
+    SELECT COUNT(DISTINCT module)::int AS c FROM practice_test_questions
+    WHERE module IN ('rw1', 'rw2_easy', 'rw2_hard', 'math1', 'math2_easy', 'math2_hard')
+  `);
+  const adaptiveModules = Number((moduleCount as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
+  if (tc > 0 && adaptiveModules === 6) return;
+
+  // Upgrade databases seeded by the older non-adaptive implementation.
+  if (tc > 0) {
+    await db.execute(sql`DELETE FROM practice_test_questions`);
+    await db.execute(sql`DELETE FROM practice_tests`);
+  }
 
   if (all.length === 0) {
     const file = path.join(process.cwd(), "src/data/question-bank.json");
@@ -158,20 +213,24 @@ async function doSeed() {
       pools.set(s, shuffled(all.filter((q) => q.skill === s), rnd));
     }
     const used = new Set<string>();
-    const rw1 = buildModule(pools, used, RW_MODULE_SKILLS, MOD1_PATTERN);
-    const rw2 = buildModule(pools, used, RW_MODULE_SKILLS, MOD2_PATTERN);
-    const m1 = buildModule(pools, used, MATH_MODULE_SKILLS, MOD1_PATTERN);
-    const m2 = buildModule(pools, used, MATH_MODULE_SKILLS, MOD2_PATTERN);
-    if (!rw1 || !rw2 || !m1 || !m2) continue;
+    const rw1 = buildModule(pools, used, RW_MODULE_SKILLS, ROUTING_PATTERN);
+    const rw2Easy = buildModule(pools, used, RW_MODULE_SKILLS, EASIER_PATTERN);
+    const rw2Hard = buildModule(pools, used, RW_MODULE_SKILLS, HARDER_PATTERN);
+    const math1 = buildModule(pools, used, MATH_MODULE_SKILLS, ROUTING_PATTERN);
+    const math2Easy = buildModule(pools, used, MATH_MODULE_SKILLS, EASIER_PATTERN);
+    const math2Hard = buildModule(pools, used, MATH_MODULE_SKILLS, HARDER_PATTERN);
+    if (!rw1 || !rw2Easy || !rw2Hard || !math1 || !math2Easy || !math2Hard) continue;
 
     const testId = `test-${meta.testNumber}`;
     await db
       .insert(practiceTests)
       .values({
         id: testId,
+        userId: null,
         testNumber: meta.testNumber,
         title: meta.title,
         releaseLabel: meta.releaseLabel,
+        isCustom: false,
         rwMinutes: 64,
         mathMinutes: 70,
       })
@@ -181,9 +240,11 @@ async function doSeed() {
     let pos = 0;
     for (const [mod, list] of [
       ["rw1", rw1],
-      ["rw2", rw2],
-      ["math1", m1],
-      ["math2", m2],
+      ["rw2_easy", rw2Easy],
+      ["rw2_hard", rw2Hard],
+      ["math1", math1],
+      ["math2_easy", math2Easy],
+      ["math2_hard", math2Hard],
     ] as [string, SeedQuestion[]][]) {
       for (const q of list) rows.push({ testId, position: pos++, module: mod, questionId: q.id });
     }

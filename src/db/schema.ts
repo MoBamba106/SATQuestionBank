@@ -11,6 +11,16 @@ import {
   serial,
 } from "drizzle-orm/pg-core";
 
+/** CloudBase (or other IdP) user profiles mirrored into Postgres. */
+export const users = pgTable("users", {
+  id: text("id").primaryKey(), // CloudBase uid
+  email: text("email"),
+  displayName: text("display_name"),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const questions = pgTable(
   "questions",
   {
@@ -38,28 +48,53 @@ export const questions = pgTable(
   ],
 );
 
-export const favorites = pgTable("favorites", {
-  questionId: text("question_id")
-    .primaryKey()
-    .references(() => questions.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const favorites = pgTable(
+  "favorites",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    questionId: text("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.questionId] }),
+    index("favorites_user_idx").on(t.userId),
+  ],
+);
 
-export const notes = pgTable("notes", {
-  questionId: text("question_id")
-    .primaryKey()
-    .references(() => questions.id, { onDelete: "cascade" }),
-  note: text("note").notNull().default(""),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const notes = pgTable(
+  "notes",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    questionId: text("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    note: text("note").notNull().default(""),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.questionId] })],
+);
 
-export const collections = pgTable("collections", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const collections = pgTable(
+  "collections",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    icon: text("icon").notNull().default("folder"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => [index("collections_user_idx").on(t.userId)],
+);
 
 export const collectionItems = pgTable(
   "collection_items",
@@ -75,17 +110,29 @@ export const collectionItems = pgTable(
   (t) => [primaryKey({ columns: [t.collectionId, t.questionId] })],
 );
 
-export const quizSessions = pgTable("quiz_sessions", {
-  id: text("id").primaryKey(),
-  mode: text("mode").notNull().default("practice"),
-  label: text("label"),
-  testId: text("test_id"),
-  totalQuestions: integer("total_questions").notNull().default(0),
-  correctCount: integer("correct_count"),
-  answeredCount: integer("answered_count"),
-  startedAt: timestamp("started_at").defaultNow().notNull(),
-  finishedAt: timestamp("finished_at"),
-});
+export const quizSessions = pgTable(
+  "quiz_sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    mode: text("mode").notNull().default("practice"),
+    label: text("label"),
+    testId: text("test_id"),
+    totalQuestions: integer("total_questions").notNull().default(0),
+    correctCount: integer("correct_count"),
+    answeredCount: integer("answered_count"),
+    adaptivePath: jsonb("adaptive_path"),
+    totalScore: integer("total_score"),
+    rwScore: integer("rw_score"),
+    mathScore: integer("math_score"),
+    skillBands: jsonb("skill_bands"),
+    startedAt: timestamp("started_at").defaultNow().notNull(),
+    finishedAt: timestamp("finished_at"),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+);
 
 export const attempts = pgTable(
   "attempts",
@@ -103,8 +150,6 @@ export const attempts = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [
-    // One graded attempt per question per quiz session — re-clicking
-    // "Check Answer" on the same question can never double-count stats.
     uniqueIndex("attempts_session_question_unique").on(t.sessionId, t.questionId),
     index("attempts_question_idx").on(t.questionId),
     index("attempts_created_idx").on(t.createdAt),
@@ -113,9 +158,11 @@ export const attempts = pgTable(
 
 export const practiceTests = pgTable("practice_tests", {
   id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   testNumber: integer("test_number").notNull(),
   title: text("title").notNull(),
   releaseLabel: text("release_label"),
+  isCustom: boolean("is_custom").notNull().default(false),
   rwMinutes: integer("rw_minutes").notNull().default(64),
   mathMinutes: integer("math_minutes").notNull().default(70),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -128,7 +175,7 @@ export const practiceTestQuestions = pgTable(
       .notNull()
       .references(() => practiceTests.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
-    module: text("module").notNull(), // rw1 | rw2 | math1 | math2
+    module: text("module").notNull(),
     questionId: text("question_id")
       .notNull()
       .references(() => questions.id, { onDelete: "cascade" }),
@@ -142,3 +189,4 @@ export const practiceTestQuestions = pgTable(
 export type QuestionRow = typeof questions.$inferSelect;
 export type AttemptRow = typeof attempts.$inferSelect;
 export type CollectionRow = typeof collections.$inferSelect;
+export type UserRow = typeof users.$inferSelect;

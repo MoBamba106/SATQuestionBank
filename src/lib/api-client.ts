@@ -1,41 +1,79 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readStoredAuth } from "@/lib/auth/client";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const { accessToken } = readStoredAuth();
   const res = await fetch(url, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(init?.headers ?? {}),
+    },
   });
   if (!res.ok) {
     let msg = `Request failed (${res.status})`;
     try {
       const data = await res.json();
       if (data?.error) msg = data.error;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     throw new Error(msg);
   }
+  // 204 / empty
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
-export const apiGet = <T>(url: string) => request<T>(url);
-export const apiPost = <T>(url: string, body?: unknown) =>
-  request<T>(url, { method: "POST", body: JSON.stringify(body ?? {}) });
-export const apiPatch = <T>(url: string, body?: unknown) =>
-  request<T>(url, { method: "PATCH", body: JSON.stringify(body ?? {}) });
-export const apiDelete = <T>(url: string) => request<T>(url, { method: "DELETE" });
+const GET_CACHE = new Map<string, { value: unknown; expires: number }>();
+const GET_IN_FLIGHT = new Map<string, Promise<unknown>>();
+const GET_TTL_MS = 12_000;
 
-// ------- tiny cross-component revalidation bus -------
-const BUS_EVENT = "sat-api-mutate";
-export function mutateKey(key: string) {
-  if (typeof window !== "undefined")
-    window.dispatchEvent(new CustomEvent(BUS_EVENT, { detail: key }));
+function clearGetCache() {
+  GET_CACHE.clear();
+  GET_IN_FLIGHT.clear();
 }
 
-/**
- * Simple SWR-lite hook. `key` doubles as the cache-invalidation channel:
- * calling mutateKey("favorites") revalidates any hook whose url contains it.
- */
+export function apiGet<T>(url: string): Promise<T> {
+  const cached = GET_CACHE.get(url);
+  if (cached && cached.expires > Date.now()) return Promise.resolve(cached.value as T);
+  const running = GET_IN_FLIGHT.get(url);
+  if (running) return running as Promise<T>;
+  const promise = request<T>(url)
+    .then((value) => {
+      GET_CACHE.set(url, { value, expires: Date.now() + GET_TTL_MS });
+      return value;
+    })
+    .finally(() => GET_IN_FLIGHT.delete(url));
+  GET_IN_FLIGHT.set(url, promise);
+  return promise;
+}
+
+export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
+  const value = await request<T>(url, { method: "POST", body: JSON.stringify(body ?? {}) });
+  clearGetCache();
+  return value;
+}
+export async function apiPatch<T>(url: string, body?: unknown): Promise<T> {
+  const value = await request<T>(url, { method: "PATCH", body: JSON.stringify(body ?? {}) });
+  clearGetCache();
+  return value;
+}
+export async function apiDelete<T>(url: string): Promise<T> {
+  const value = await request<T>(url, { method: "DELETE" });
+  clearGetCache();
+  return value;
+}
+
+const BUS_EVENT = "sat-api-mutate";
+export function mutateKey(key: string) {
+  clearGetCache();
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(BUS_EVENT, { detail: key }));
+}
+
 export function useApi<T>(url: string | null, key?: string) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +98,8 @@ export function useApi<T>(url: string | null, key?: string) {
   }, [url]);
 
   useEffect(() => {
-    load();
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
 
   useEffect(() => {

@@ -2,14 +2,18 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const res = await db.execute(
-      sql`SELECT question_id AS id, created_at AS "createdAt" FROM favorites ORDER BY created_at DESC`,
+      sql`SELECT question_id AS id, created_at AS "createdAt"
+          FROM favorites WHERE user_id = ${user.id}
+          ORDER BY created_at DESC`,
     );
     const rows = (res as unknown as { rows: { id: string; createdAt: string }[] }).rows ?? [];
     return NextResponse.json({ ids: rows.map((r) => r.id), count: rows.length });
@@ -22,6 +26,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const body = await req.json();
     const questionId = String(body?.questionId ?? "");
     const favorite = Boolean(body?.favorite);
@@ -33,10 +38,11 @@ export async function POST(req: Request) {
 
     if (favorite) {
       await db.execute(
-        sql`INSERT INTO favorites (question_id) VALUES (${questionId}) ON CONFLICT (question_id) DO NOTHING`,
+        sql`INSERT INTO favorites (user_id, question_id) VALUES (${user.id}, ${questionId})
+            ON CONFLICT (user_id, question_id) DO NOTHING`,
       );
     } else {
-      await db.execute(sql`DELETE FROM favorites WHERE question_id = ${questionId}`);
+      await db.execute(sql`DELETE FROM favorites WHERE user_id = ${user.id} AND question_id = ${questionId}`);
     }
     return NextResponse.json({ questionId, favorite });
   } catch (e) {

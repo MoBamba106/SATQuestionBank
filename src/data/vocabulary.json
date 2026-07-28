@@ -1,0 +1,4583 @@
+[
+  {
+    "id": "v-abate",
+    "term": "abate",
+    "phonetic": "/əˈbeɪt/",
+    "difficulty": "Hard",
+    "definition": "make less active or intense"
+  },
+  {
+    "id": "v-ambivalent",
+    "term": "ambivalent",
+    "phonetic": "/æmˈbɪvəɫənt/",
+    "difficulty": "Hard",
+    "definition": "uncertain or unable to decide about what course to follow",
+    "example": "was ambivalent about having children"
+  },
+  {
+    "id": "v-bolster",
+    "term": "bolster",
+    "phonetic": "/ˈboʊɫstɝ/",
+    "difficulty": "Hard",
+    "definition": "support and strengthen",
+    "example": "bolster morale"
+  },
+  {
+    "id": "v-corroborate",
+    "term": "corroborate",
+    "phonetic": "/kɝˈɑbɝˌeɪt/",
+    "difficulty": "Hard",
+    "definition": "establish or strengthen as with new evidence or facts",
+    "example": "his story confirmed my doubts"
+  },
+  {
+    "id": "v-delineate",
+    "term": "delineate",
+    "phonetic": "/dɪˈɫɪniˌeɪt/",
+    "difficulty": "Hard",
+    "definition": "show the form or outline of",
+    "example": "The tree was clearly defined by the light"
+  },
+  {
+    "id": "v-empirical",
+    "term": "empirical",
+    "phonetic": "/ˌɛmˈpɪɹɪkəɫ/",
+    "difficulty": "Hard",
+    "definition": "derived from experiment and observation rather than theory",
+    "example": "an empirical basis for an ethical theory"
+  },
+  {
+    "id": "v-equivocal",
+    "term": "equivocal",
+    "phonetic": "/ɪˈkwɪvəkəɫ/",
+    "difficulty": "Hard",
+    "definition": "open to two or more interpretations; or of uncertain nature or significance; or (often) intended to mislead",
+    "example": "an equivocal statement"
+  },
+  {
+    "id": "v-exacerbate",
+    "term": "exacerbate",
+    "phonetic": "/ɪɡˈzæsɝˌbeɪt/",
+    "difficulty": "Hard",
+    "definition": "make worse",
+    "example": "This drug aggravates the pain"
+  },
+  {
+    "id": "v-infer",
+    "term": "infer",
+    "phonetic": "/ˌɪnˈfɝ/",
+    "difficulty": "Hard",
+    "definition": "reason by deduction; establish by deduction"
+  },
+  {
+    "id": "v-mitigate",
+    "term": "mitigate",
+    "phonetic": "/ˈmɪtəˌɡeɪt/",
+    "difficulty": "Hard",
+    "definition": "lessen or to try to lessen the seriousness or extent of",
+    "example": "The circumstances extenuate the crime"
+  },
+  {
+    "id": "v-nuance",
+    "term": "nuance",
+    "phonetic": "/ˈnuɑns/",
+    "difficulty": "Hard",
+    "definition": "a subtle difference in meaning or opinion or attitude",
+    "example": "without understanding the finer nuances you can't enjoy the humor"
+  },
+  {
+    "id": "v-pragmatic",
+    "term": "pragmatic",
+    "phonetic": "/pɹæɡˈmætɪk/",
+    "difficulty": "Hard",
+    "definition": "concerned with practical matters",
+    "example": "a matter-of-fact (or pragmatic) approach to the problem"
+  },
+  {
+    "id": "v-refute",
+    "term": "refute",
+    "phonetic": "/ɹɪfˈjut/",
+    "difficulty": "Hard",
+    "definition": "overthrow by argument, evidence, or proof",
+    "example": "The speaker refuted his opponent's arguments"
+  },
+  {
+    "id": "v-substantiate",
+    "term": "substantiate",
+    "phonetic": "/səbˈstænʃiˌeɪt/",
+    "difficulty": "Hard",
+    "definition": "establish or strengthen as with new evidence or facts",
+    "example": "his story confirmed my doubts"
+  },
+  {
+    "id": "v-ubiquitous",
+    "term": "ubiquitous",
+    "phonetic": "/juˈbɪkwɪtəs/",
+    "difficulty": "Hard",
+    "definition": "being present everywhere at once"
+  },
+  {
+    "id": "v-authority",
+    "term": "authority",
+    "phonetic": "/əˈθɔɹəti/",
+    "difficulty": "Easy",
+    "definition": "the power or right to give orders or make decisions",
+    "example": "he has the authority to issue warrants"
+  },
+  {
+    "id": "v-publish",
+    "term": "publish",
+    "phonetic": "/ˈpəbɫɪʃ/",
+    "difficulty": "Medium",
+    "definition": "put into print",
+    "example": "The newspaper published the news of the royal couple's divorce"
+  },
+  {
+    "id": "v-conference",
+    "term": "conference",
+    "phonetic": "/ˈkɑnfɝəns/",
+    "difficulty": "Easy",
+    "definition": "a prearranged meeting for consultation or exchange of information or discussion (especially one with a formal agenda)"
+  },
+  {
+    "id": "v-aspect",
+    "term": "aspect",
+    "phonetic": "/ˈæsˌpɛkt/",
+    "difficulty": "Easy",
+    "definition": "a distinct feature or element in a problem",
+    "example": "he studied every facet of the question"
+  },
+  {
+    "id": "v-client",
+    "term": "client",
+    "phonetic": "/ˈkɫaɪənt/",
+    "difficulty": "Easy",
+    "definition": "a person who seeks the advice of a lawyer"
+  },
+  {
+    "id": "v-impact",
+    "term": "impact",
+    "phonetic": "/ˈɪmpækt/",
+    "difficulty": "Easy",
+    "definition": "press or wedge together; pack together"
+  },
+  {
+    "id": "v-candidate",
+    "term": "candidate",
+    "phonetic": "/ˈkændədeɪt/",
+    "difficulty": "Easy",
+    "definition": "a politician who is running for public office"
+  },
+  {
+    "id": "v-obtain",
+    "term": "obtain",
+    "phonetic": "/əbˈteɪn/",
+    "difficulty": "Easy",
+    "definition": "come into possession of",
+    "example": "How did you obtain the visa?"
+  },
+  {
+    "id": "v-repertoire",
+    "term": "repertoire",
+    "phonetic": "/ˈɹɛpɝtˌwɑɹ/",
+    "difficulty": "Hard",
+    "definition": "the entire range of skills or aptitudes or devices used in a particular field or occupation",
+    "example": "the repertory of the supposed feats of mesmerism"
+  },
+  {
+    "id": "v-distribution",
+    "term": "distribution",
+    "phonetic": "/ˌdɪstɹəbˈjuʃən/",
+    "difficulty": "Easy",
+    "definition": "(statistics) an arrangement of values of a variable showing their observed or theoretical frequency of occurrence"
+  },
+  {
+    "id": "v-afterward",
+    "term": "afterward",
+    "phonetic": "/ˈæftɝwɝd/",
+    "difficulty": "Hard",
+    "definition": "happening at a time subsequent to a reference time",
+    "example": "he apologized subsequently"
+  },
+  {
+    "id": "v-essentially",
+    "term": "essentially",
+    "phonetic": "/ɛˈsɛnʃəɫi/",
+    "difficulty": "Easy",
+    "definition": "in essence; at bottom or by one's (or its) very nature",
+    "example": "He is basically dishonest"
+  },
+  {
+    "id": "v-classroom",
+    "term": "classroom",
+    "phonetic": "/ˈkɫæsˌɹum/",
+    "difficulty": "Easy",
+    "definition": "a room in a school where lessons take place"
+  },
+  {
+    "id": "v-regime",
+    "term": "regime",
+    "phonetic": "/ɹeɪˈʒim/",
+    "difficulty": "Easy",
+    "definition": "the organization that is the governing authority of a political unit",
+    "example": "the government reduced taxes"
+  },
+  {
+    "id": "v-cinema",
+    "term": "cinema",
+    "phonetic": "/ˈsɪnəmə/",
+    "difficulty": "Easy",
+    "definition": "a medium that disseminates moving pictures",
+    "example": "theater pieces transferred to celluloid"
+  },
+  {
+    "id": "v-acid",
+    "term": "acid",
+    "phonetic": "/ˈæsəd/",
+    "difficulty": "Easy",
+    "definition": "harsh or corrosive in tone",
+    "example": "an acerbic tone piercing otherwise flowery prose"
+  },
+  {
+    "id": "v-transaction",
+    "term": "transaction",
+    "phonetic": "/tɹænˈzækʃən/",
+    "difficulty": "Easy",
+    "definition": "the act of transacting within or between groups (as carrying on commercial activities)",
+    "example": "no transactions are possible without him"
+  },
+  {
+    "id": "v-disadvantage",
+    "term": "disadvantage",
+    "phonetic": "/ˌdɪsədˈvænɪdʒ/",
+    "difficulty": "Hard",
+    "definition": "put at a disadvantage; hinder, harm",
+    "example": "This rule clearly disadvantages me"
+  },
+  {
+    "id": "v-dynamic",
+    "term": "dynamic",
+    "phonetic": "/daɪˈnæmɪk/",
+    "difficulty": "Easy",
+    "definition": "characterized by action or forcefulness or force of personality",
+    "example": "a dynamic market"
+  },
+  {
+    "id": "v-strategic",
+    "term": "strategic",
+    "phonetic": "/stɹəˈtidʒɪk/",
+    "difficulty": "Easy",
+    "definition": "relating to or concerned with strategy",
+    "example": "strategic weapon"
+  },
+  {
+    "id": "v-shortly",
+    "term": "shortly",
+    "phonetic": "/ˈʃɔɹtɫi/",
+    "difficulty": "Easy",
+    "definition": "for a short time",
+    "example": "he was at the airport shortly before she was expected to arrive"
+  },
+  {
+    "id": "v-contrary",
+    "term": "contrary",
+    "phonetic": "/ˈkɑntɹɛɹi/",
+    "difficulty": "Easy",
+    "definition": "very opposed in nature or character or purpose",
+    "example": "acts contrary to our code of ethics"
+  },
+  {
+    "id": "v-graph",
+    "term": "graph",
+    "phonetic": "/ˈɡɹæf/",
+    "difficulty": "Medium",
+    "definition": "represent by means of a graph",
+    "example": "chart the data"
+  },
+  {
+    "id": "v-diary",
+    "term": "diary",
+    "phonetic": "/ˈdaɪɝi/",
+    "difficulty": "Medium",
+    "definition": "a daily written record of (usually personal) experiences and observations"
+  },
+  {
+    "id": "v-jazz",
+    "term": "jazz",
+    "phonetic": "/ˈdʒæz/",
+    "difficulty": "Easy",
+    "definition": "play something in the style of jazz"
+  },
+  {
+    "id": "v-click",
+    "term": "click",
+    "phonetic": "/ˈkɫɪk/",
+    "difficulty": "Easy",
+    "definition": "move or strike with a noise",
+    "example": "he clicked on the light"
+  },
+  {
+    "id": "v-sophisticate",
+    "term": "sophisticate",
+    "phonetic": "/səˈfɪstəˌkeɪt/",
+    "difficulty": "Hard",
+    "definition": "make less natural or innocent",
+    "example": "Their manners had sophisticated the young girls"
+  },
+  {
+    "id": "v-translation",
+    "term": "translation",
+    "phonetic": "/tɹænˈsɫeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "a written communication in a second language having the same meaning as the written communication in a first language"
+  },
+  {
+    "id": "v-headquarter",
+    "term": "headquarter",
+    "phonetic": "/ˈhɛdˌkɔɹtɝ/",
+    "difficulty": "Hard",
+    "definition": "provide with headquarters",
+    "example": "the company is headquartered in New Jersey"
+  },
+  {
+    "id": "v-suicide",
+    "term": "suicide",
+    "phonetic": "/ˈsuəˌsaɪd/",
+    "difficulty": "Easy",
+    "definition": "the act of killing yourself",
+    "example": "it is a crime to commit suicide"
+  },
+  {
+    "id": "v-portfolio",
+    "term": "portfolio",
+    "phonetic": "/pɔɹtˈfoʊɫiˌoʊ/",
+    "difficulty": "Easy",
+    "definition": "a large, flat, thin case for carrying loose papers or drawings or maps; usually leather",
+    "example": "he remembered her because she was carrying a large portfolio"
+  },
+  {
+    "id": "v-workshop",
+    "term": "workshop",
+    "phonetic": "/ˈwɝkˌʃɑp/",
+    "difficulty": "Easy",
+    "definition": "small workplace where handcrafts or manufacturing are done"
+  },
+  {
+    "id": "v-occupation",
+    "term": "occupation",
+    "phonetic": "/ˌɑkjəˈpeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the principal activity in your life that you do to earn money",
+    "example": "he's not in my line of business"
+  },
+  {
+    "id": "v-consumption",
+    "term": "consumption",
+    "phonetic": "/kənˈsəmpʃən/",
+    "difficulty": "Easy",
+    "definition": "the process of taking food into the body through the mouth (as by eating)"
+  },
+  {
+    "id": "v-absorb",
+    "term": "absorb",
+    "phonetic": "/əbˈzɔɹb/",
+    "difficulty": "Hard",
+    "definition": "become imbued",
+    "example": "The liquids, light, and gases absorb"
+  },
+  {
+    "id": "v-domain",
+    "term": "domain",
+    "phonetic": "/doʊˈmeɪn/",
+    "difficulty": "Easy",
+    "definition": "a particular environment or walk of life",
+    "example": "his social sphere is limited"
+  },
+  {
+    "id": "v-leisure",
+    "term": "leisure",
+    "phonetic": "/ˈɫɛʒɝ/",
+    "difficulty": "Medium",
+    "definition": "time available for ease and relaxation",
+    "example": "his job left him little leisure"
+  },
+  {
+    "id": "v-lifestyle",
+    "term": "lifestyle",
+    "phonetic": "/ˈɫaɪfˌstaɪɫ/",
+    "difficulty": "Easy",
+    "definition": "a manner of living that reflects the person's values and attitudes"
+  },
+  {
+    "id": "v-tremendous",
+    "term": "tremendous",
+    "phonetic": "/tɹəˈmɛndəs/",
+    "difficulty": "Medium",
+    "definition": "extraordinarily large in size or extent or amount or power or degree",
+    "example": "an enormous boulder"
+  },
+  {
+    "id": "v-exit",
+    "term": "exit",
+    "phonetic": "/ˈɛɡzɪt/",
+    "difficulty": "Easy",
+    "definition": "move out of or depart from",
+    "example": "leave the room"
+  },
+  {
+    "id": "v-curriculum",
+    "term": "curriculum",
+    "phonetic": "/kɝˈɪkjəɫəm/",
+    "difficulty": "Medium",
+    "definition": "an integrated course of academic studies",
+    "example": "he was admitted to a new program at the university"
+  },
+  {
+    "id": "v-productivity",
+    "term": "productivity",
+    "phonetic": "/ˌpɹoʊdəkˈtɪvəti/",
+    "difficulty": "Easy",
+    "definition": "the quality of being productive or having the power to produce"
+  },
+  {
+    "id": "v-superior",
+    "term": "superior",
+    "phonetic": "/suˈpɪɹiɝ/",
+    "difficulty": "Easy",
+    "definition": "of high or superior quality or performance",
+    "example": "superior wisdom derived from experience"
+  },
+  {
+    "id": "v-assembly",
+    "term": "assembly",
+    "phonetic": "/əˈsɛmbɫi/",
+    "difficulty": "Easy",
+    "definition": "a group of machine parts that fit together to form a self-contained unit"
+  },
+  {
+    "id": "v-incredible",
+    "term": "incredible",
+    "phonetic": "/ˌɪnˈkɹɛdəbəɫ/",
+    "difficulty": "Easy",
+    "definition": "beyond belief or understanding",
+    "example": "at incredible speed"
+  },
+  {
+    "id": "v-upward",
+    "term": "upward",
+    "phonetic": "/ˈəpwɝd/",
+    "difficulty": "Hard",
+    "definition": "directed up",
+    "example": "the cards were face upward"
+  },
+  {
+    "id": "v-prominent",
+    "term": "prominent",
+    "phonetic": "/ˈpɹɑmənənt/",
+    "difficulty": "Easy",
+    "definition": "having a quality that thrusts itself into attention",
+    "example": "an outstanding fact of our time is that nations poisoned by anti semitism proved less fortunate in regard to their own freedom"
+  },
+  {
+    "id": "v-lifetime",
+    "term": "lifetime",
+    "phonetic": "/ˈɫaɪfˌtaɪm/",
+    "difficulty": "Easy",
+    "definition": "the period during which something is functional (as between birth and death)",
+    "example": "the battery had a short life"
+  },
+  {
+    "id": "v-ultimate",
+    "term": "ultimate",
+    "phonetic": "/ˈəɫtəmət/",
+    "difficulty": "Easy",
+    "definition": "furthest or highest in degree or order; utmost or extreme",
+    "example": "the ultimate achievement"
+  },
+  {
+    "id": "v-missile",
+    "term": "missile",
+    "phonetic": "/ˈmɪsəɫ/",
+    "difficulty": "Medium",
+    "definition": "a rocket carrying a warhead of conventional or nuclear explosives; may be ballistic or directed by remote control"
+  },
+  {
+    "id": "v-utility",
+    "term": "utility",
+    "phonetic": "/juˈtɪɫəti/",
+    "difficulty": "Easy",
+    "definition": "used of beef; usable but inferior"
+  },
+  {
+    "id": "v-exploit",
+    "term": "exploit",
+    "phonetic": "/ˈɛksˌpɫɔɪt/",
+    "difficulty": "Hard",
+    "definition": "use or manipulate to one's advantage",
+    "example": "He exploited the new taxation system"
+  },
+  {
+    "id": "v-seminar",
+    "term": "seminar",
+    "phonetic": "/ˈsɛməˌnɑɹ/",
+    "difficulty": "Hard",
+    "definition": "any meeting for an exchange of ideas"
+  },
+  {
+    "id": "v-widespread",
+    "term": "widespread",
+    "phonetic": "/ˈwaɪdsˈpɹɛd/",
+    "difficulty": "Easy",
+    "definition": "widely circulated or diffused",
+    "example": "a widespread doctrine"
+  },
+  {
+    "id": "v-emission",
+    "term": "emission",
+    "phonetic": "/ɪˈmɪʃən/",
+    "difficulty": "Hard",
+    "definition": "the act of emitting; causing to flow forth"
+  },
+  {
+    "id": "v-integration",
+    "term": "integration",
+    "phonetic": "/ˌɪnəˈɡɹeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the action of incorporating a racial or religious group into a community"
+  },
+  {
+    "id": "v-bargain",
+    "term": "bargain",
+    "phonetic": "/ˈbɑɹɡən/",
+    "difficulty": "Medium",
+    "definition": "negotiate the terms of an exchange",
+    "example": "We bargained for a beautiful rug in the bazaar"
+  },
+  {
+    "id": "v-carrier",
+    "term": "carrier",
+    "phonetic": "/ˈkæɹiɝ/",
+    "difficulty": "Easy",
+    "definition": "someone whose employment involves carrying something",
+    "example": "the bonds were transmitted by carrier"
+  },
+  {
+    "id": "v-dominant",
+    "term": "dominant",
+    "phonetic": "/ˈdɑmənənt/",
+    "difficulty": "Easy",
+    "definition": "exercising influence or control",
+    "example": "television plays a dominant role in molding public opinion"
+  },
+  {
+    "id": "v-cure",
+    "term": "cure",
+    "phonetic": "/ˈkjʊɹ/",
+    "difficulty": "Easy",
+    "definition": "provide a cure for, make healthy again",
+    "example": "The treatment cured the boy's acne"
+  },
+  {
+    "id": "v-admission",
+    "term": "admission",
+    "phonetic": "/ædˈmɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the act of admitting someone to enter",
+    "example": "the surgery was performed on his second admission to the clinic"
+  },
+  {
+    "id": "v-dose",
+    "term": "dose",
+    "phonetic": "/ˈdoʊs/",
+    "difficulty": "Easy",
+    "definition": "treat with an agent; add (an agent) to",
+    "example": "The ray dosed the paint"
+  },
+  {
+    "id": "v-execute",
+    "term": "execute",
+    "phonetic": "/ˈɛksəkˌjut/",
+    "difficulty": "Medium",
+    "definition": "kill as a means of socially sanctioned punishment",
+    "example": "In some states, criminals are executed"
+  },
+  {
+    "id": "v-conscious",
+    "term": "conscious",
+    "phonetic": "/ˈkɑnʃəs/",
+    "difficulty": "Easy",
+    "definition": "intentionally conceived",
+    "example": "a conscious effort to speak more slowly"
+  },
+  {
+    "id": "v-junior",
+    "term": "junior",
+    "phonetic": "/ˈdʒunjɝ/",
+    "difficulty": "Easy",
+    "definition": "younger; lower in rank; shorter in length of tenure or service"
+  },
+  {
+    "id": "v-consent",
+    "term": "consent",
+    "phonetic": "/kənˈsɛnt/",
+    "difficulty": "Easy",
+    "definition": "give an affirmative reply to; respond favorably to",
+    "example": "I cannot accept your invitation"
+  },
+  {
+    "id": "v-vocabulary",
+    "term": "vocabulary",
+    "phonetic": "/voʊˈkæbjəˌɫɛɹi/",
+    "difficulty": "Hard",
+    "definition": "a listing of the words used in some enterprise"
+  },
+  {
+    "id": "v-punishment",
+    "term": "punishment",
+    "phonetic": "/ˈpənɪʃmənt/",
+    "difficulty": "Easy",
+    "definition": "the act of punishing, or the infliction of a penalty"
+  },
+  {
+    "id": "v-interval",
+    "term": "interval",
+    "phonetic": "/ˈɪntɝvəɫ/",
+    "difficulty": "Hard",
+    "definition": "a definite length of time marked off by two instants"
+  },
+  {
+    "id": "v-replacement",
+    "term": "replacement",
+    "phonetic": "/ɹɪˈpɫeɪsmənt/",
+    "difficulty": "Easy",
+    "definition": "the act of furnishing an equivalent person or thing in the place of another",
+    "example": "replacing the star will not be easy"
+  },
+  {
+    "id": "v-scenario",
+    "term": "scenario",
+    "phonetic": "/sɪˈnɛɹioʊ/",
+    "difficulty": "Easy",
+    "definition": "an outline or synopsis of a play (or, by extension, of a literary work)"
+  },
+  {
+    "id": "v-outlet",
+    "term": "outlet",
+    "phonetic": "/ˈaʊtˌɫɛt/",
+    "difficulty": "Medium",
+    "definition": "a place of business for retailing goods"
+  },
+  {
+    "id": "v-architect",
+    "term": "architect",
+    "phonetic": "/ˈɑɹkəˌtɛkt/",
+    "difficulty": "Medium",
+    "definition": "someone who creates plans to be used in making something (such as buildings)"
+  },
+  {
+    "id": "v-controversy",
+    "term": "controversy",
+    "phonetic": "/ˈkɑntɹəˌvɝsi/",
+    "difficulty": "Easy",
+    "definition": "a contentious speech act; a dispute where there is strong disagreement",
+    "example": "they were involved in a violent argument"
+  },
+  {
+    "id": "v-feedback",
+    "term": "feedback",
+    "phonetic": "/ˈfidˌbæk/",
+    "difficulty": "Easy",
+    "definition": "the process in which part of the output of a system is returned to its input in order to regulate its further output"
+  },
+  {
+    "id": "v-render",
+    "term": "render",
+    "phonetic": "/ˈɹɛndɝ/",
+    "difficulty": "Hard",
+    "definition": "cause to become",
+    "example": "The shot rendered her immobile"
+  },
+  {
+    "id": "v-puzzle",
+    "term": "puzzle",
+    "phonetic": "/ˈpəzəɫ/",
+    "difficulty": "Medium",
+    "definition": "be a mystery or bewildering to",
+    "example": "This beats me!"
+  },
+  {
+    "id": "v-classify",
+    "term": "classify",
+    "phonetic": "/ˈkɫæsəˌfaɪ/",
+    "difficulty": "Hard",
+    "definition": "arrange or order by classes or categories",
+    "example": "How would you classify these pottery shards — are they prehistoric?"
+  },
+  {
+    "id": "v-correctly",
+    "term": "correctly",
+    "phonetic": "/kɝˈɛktɫi/",
+    "difficulty": "Easy",
+    "definition": "in an accurate manner",
+    "example": "the flower had been correctly depicted by his son"
+  },
+  {
+    "id": "v-accent",
+    "term": "accent",
+    "phonetic": "/ˈækˌsɛnt/",
+    "difficulty": "Medium",
+    "definition": "to stress, single out as important",
+    "example": "Dr. Jones emphasizes exercise in addition to a change in diet"
+  },
+  {
+    "id": "v-economist",
+    "term": "economist",
+    "phonetic": "/iˈkɑnəmɪst/",
+    "difficulty": "Medium",
+    "definition": "an expert in the science of economics"
+  },
+  {
+    "id": "v-scatter",
+    "term": "scatter",
+    "phonetic": "/ˈskætɝ/",
+    "difficulty": "Hard",
+    "definition": "to cause to separate and go in different directions",
+    "example": "She waved her hand and scattered the crowds"
+  },
+  {
+    "id": "v-transformation",
+    "term": "transformation",
+    "phonetic": "/ˌtɹænsfɝˈmeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "a qualitative change"
+  },
+  {
+    "id": "v-clever",
+    "term": "clever",
+    "phonetic": "/ˈkɫɛvɝ/",
+    "difficulty": "Easy",
+    "definition": "showing self-interest and shrewdness in dealing with others",
+    "example": "a cagey lawyer"
+  },
+  {
+    "id": "v-organ",
+    "term": "organ",
+    "phonetic": "/ˈɔɹɡən/",
+    "difficulty": "Medium",
+    "definition": "a fully differentiated structural and functional unit in an animal that is specialized for some particular function"
+  },
+  {
+    "id": "v-physically",
+    "term": "physically",
+    "phonetic": "/ˈfɪzɪkəɫi/",
+    "difficulty": "Easy",
+    "definition": "in accord with physical laws",
+    "example": "it is physically impossible"
+  },
+  {
+    "id": "v-treaty",
+    "term": "treaty",
+    "phonetic": "/ˈtɹiti/",
+    "difficulty": "Easy",
+    "definition": "a written agreement between two states or sovereigns"
+  },
+  {
+    "id": "v-diverse",
+    "term": "diverse",
+    "phonetic": "/daɪˈvɝs/",
+    "difficulty": "Easy",
+    "definition": "many and different",
+    "example": "tourist offices of divers nationalities"
+  },
+  {
+    "id": "v-alliance",
+    "term": "alliance",
+    "phonetic": "/əˈɫaɪəns/",
+    "difficulty": "Easy",
+    "definition": "the state of being allied or confederated"
+  },
+  {
+    "id": "v-campus",
+    "term": "campus",
+    "phonetic": "/ˈkæmpəs/",
+    "difficulty": "Easy",
+    "definition": "a field on which the buildings of a university are situated"
+  },
+  {
+    "id": "v-clue",
+    "term": "clue",
+    "phonetic": "/ˈkɫu/",
+    "difficulty": "Easy",
+    "definition": "roll into a ball"
+  },
+  {
+    "id": "v-evident",
+    "term": "evident",
+    "phonetic": "/ˈɛvədənt/",
+    "difficulty": "Medium",
+    "definition": "clearly revealed to the mind or the senses or judgment",
+    "example": "the effects of the drought are apparent to anyone who sees the parched fields"
+  },
+  {
+    "id": "v-virtue",
+    "term": "virtue",
+    "phonetic": "/ˈvɝtʃu/",
+    "difficulty": "Medium",
+    "definition": "the quality of doing what is right and avoiding what is wrong"
+  },
+  {
+    "id": "v-commonly",
+    "term": "commonly",
+    "phonetic": "/ˈkɑmənɫi/",
+    "difficulty": "Easy",
+    "definition": "under normal conditions",
+    "example": "usually she was late"
+  },
+  {
+    "id": "v-observer",
+    "term": "observer",
+    "phonetic": "/əbˈzɝvɝ/",
+    "difficulty": "Medium",
+    "definition": "a person who becomes aware (of things or events) through the senses"
+  },
+  {
+    "id": "v-destination",
+    "term": "destination",
+    "phonetic": "/ˌdɛstəˈneɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the place designated as the end (as of a race or journey)",
+    "example": "a crowd assembled at the finish"
+  },
+  {
+    "id": "v-apple",
+    "term": "apple",
+    "phonetic": "/ˈæpəɫ/",
+    "difficulty": "Easy",
+    "definition": "fruit with red or yellow or green skin and sweet to tart crisp whitish flesh"
+  },
+  {
+    "id": "v-entity",
+    "term": "entity",
+    "phonetic": "/ˈɛntəti/",
+    "difficulty": "Medium",
+    "definition": "that which is perceived or known or inferred to have its own distinct existence (living or nonliving)"
+  },
+  {
+    "id": "v-facilitate",
+    "term": "facilitate",
+    "phonetic": "/fəˈsɪɫəˌteɪt/",
+    "difficulty": "Medium",
+    "definition": "make easier",
+    "example": "you could facilitate the process by sharing your knowledge"
+  },
+  {
+    "id": "v-agriculture",
+    "term": "agriculture",
+    "phonetic": "/ˈæɡɹɪˌkəɫtʃɝ/",
+    "difficulty": "Easy",
+    "definition": "a large-scale farming enterprise"
+  },
+  {
+    "id": "v-beam",
+    "term": "beam",
+    "phonetic": "/ˈbim/",
+    "difficulty": "Medium",
+    "definition": "smile radiantly; express joy through one's facial expression"
+  },
+  {
+    "id": "v-cattle",
+    "term": "cattle",
+    "phonetic": "/ˈkætəɫ/",
+    "difficulty": "Easy",
+    "definition": "domesticated bovine animals as a group regardless of sex or age",
+    "example": "so many head of cattle"
+  },
+  {
+    "id": "v-cheer",
+    "term": "cheer",
+    "phonetic": "/ˈtʃɪɹ/",
+    "difficulty": "Medium",
+    "definition": "give encouragement to"
+  },
+  {
+    "id": "v-induce",
+    "term": "induce",
+    "phonetic": "/ˌɪnˈdus/",
+    "difficulty": "Hard",
+    "definition": "cause to arise",
+    "example": "induce a crisis"
+  },
+  {
+    "id": "v-indicator",
+    "term": "indicator",
+    "phonetic": "/ˈɪndəˌkeɪtɝ/",
+    "difficulty": "Medium",
+    "definition": "a number or ratio (a value on a scale of measurement) derived from a series of observed facts; can reveal relative changes as a function of time"
+  },
+  {
+    "id": "v-necessity",
+    "term": "necessity",
+    "phonetic": "/nəˈsɛsəti/",
+    "difficulty": "Medium",
+    "definition": "the condition of being essential or indispensable"
+  },
+  {
+    "id": "v-calculation",
+    "term": "calculation",
+    "phonetic": "/ˌkæɫkjəˈɫeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "the procedure of calculating; determining something by mathematical or logical methods"
+  },
+  {
+    "id": "v-drain",
+    "term": "drain",
+    "phonetic": "/ˈdɹeɪn/",
+    "difficulty": "Medium",
+    "definition": "flow off gradually",
+    "example": "The rain water drains into this big vat"
+  },
+  {
+    "id": "v-audit",
+    "term": "audit",
+    "phonetic": "/ˈɔdɪt/",
+    "difficulty": "Medium",
+    "definition": "examine carefully for accuracy with the intent of verification",
+    "example": "audit accounts and tax returns"
+  },
+  {
+    "id": "v-consensus",
+    "term": "consensus",
+    "phonetic": "/kənˈsɛnsəs/",
+    "difficulty": "Medium",
+    "definition": "agreement in the judgment or opinion reached by a group as a whole",
+    "example": "the lack of consensus reflected differences in theoretical positions"
+  },
+  {
+    "id": "v-productive",
+    "term": "productive",
+    "phonetic": "/pɝˈdəktɪv/",
+    "difficulty": "Easy",
+    "definition": "producing or capable of producing (especially abundantly)",
+    "example": "productive farmland"
+  },
+  {
+    "id": "v-assignment",
+    "term": "assignment",
+    "phonetic": "/əˈsaɪnmənt/",
+    "difficulty": "Easy",
+    "definition": "a duty that you are assigned to perform (especially in the armed forces)",
+    "example": "hazardous assignment"
+  },
+  {
+    "id": "v-gross",
+    "term": "gross",
+    "phonetic": "/ˈɡɹoʊs/",
+    "difficulty": "Easy",
+    "definition": "earn before taxes, expenses, etc."
+  },
+  {
+    "id": "v-painful",
+    "term": "painful",
+    "phonetic": "/ˈpeɪnfəɫ/",
+    "difficulty": "Easy",
+    "definition": "causing physical or psychological pain",
+    "example": "worked with painful slowness"
+  },
+  {
+    "id": "v-reinforce",
+    "term": "reinforce",
+    "phonetic": "/ˌɹiɪnˈfɔɹs/",
+    "difficulty": "Hard",
+    "definition": "make stronger",
+    "example": "he reinforced the concrete"
+  },
+  {
+    "id": "v-identification",
+    "term": "identification",
+    "phonetic": "/aɪˌdɛntəfəˈkeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the act of designating or identifying something"
+  },
+  {
+    "id": "v-backward",
+    "term": "backward",
+    "phonetic": "/ˈbækwɝd/",
+    "difficulty": "Hard",
+    "definition": "directed or facing toward the back or rear",
+    "example": "a backward view"
+  },
+  {
+    "id": "v-identical",
+    "term": "identical",
+    "phonetic": "/aɪˈdɛntɪkəɫ/",
+    "difficulty": "Easy",
+    "definition": "exactly alike; incapable of being perceived as different",
+    "example": "rows of identical houses"
+  },
+  {
+    "id": "v-clinic",
+    "term": "clinic",
+    "phonetic": "/ˈkɫɪnɪk/",
+    "difficulty": "Easy",
+    "definition": "a medical establishment run by a group of medical specialists"
+  },
+  {
+    "id": "v-valid",
+    "term": "valid",
+    "phonetic": "/ˈvæɫɪd/",
+    "difficulty": "Easy",
+    "definition": "well grounded in logic or truth or having legal force",
+    "example": "a valid inference"
+  },
+  {
+    "id": "v-bonus",
+    "term": "bonus",
+    "phonetic": "/ˈboʊnəs/",
+    "difficulty": "Easy",
+    "definition": "anything that tends to arouse",
+    "example": "his approval was an added fillip"
+  },
+  {
+    "id": "v-collective",
+    "term": "collective",
+    "phonetic": "/kəˈɫɛktɪv/",
+    "difficulty": "Easy",
+    "definition": "done by or characteristic of individuals acting together",
+    "example": "the collective mind"
+  },
+  {
+    "id": "v-proposition",
+    "term": "proposition",
+    "phonetic": "/ˌpɹɑpəˈzɪʃən/",
+    "difficulty": "Medium",
+    "definition": "suggest sex to",
+    "example": "She was propositioned by a stranger at the party"
+  },
+  {
+    "id": "v-parameter",
+    "term": "parameter",
+    "phonetic": "/pɝˈæmətɝ/",
+    "difficulty": "Hard",
+    "definition": "a constant in the equation of a curve that can be varied to yield a family of similar curves"
+  },
+  {
+    "id": "v-terminal",
+    "term": "terminal",
+    "phonetic": "/ˈtɝmənəɫ/",
+    "difficulty": "Easy",
+    "definition": "of or relating to or situated at the ends of a delivery route",
+    "example": "freight pickup is a terminal service"
+  },
+  {
+    "id": "v-interrupt",
+    "term": "interrupt",
+    "phonetic": "/ˌɪntɝˈəpt/",
+    "difficulty": "Hard",
+    "definition": "make a break in",
+    "example": "We interrupt the program for the following messages"
+  },
+  {
+    "id": "v-fiber",
+    "term": "fiber",
+    "phonetic": "/ˈfaɪbɝ/",
+    "difficulty": "Medium",
+    "definition": "a slender and greatly elongated substance capable of being spun into yarn"
+  },
+  {
+    "id": "v-precede",
+    "term": "precede",
+    "phonetic": "/pɹɪˈsid/",
+    "difficulty": "Hard",
+    "definition": "be earlier in time; go back further",
+    "example": "Stone tools precede bronze tools"
+  },
+  {
+    "id": "v-drift",
+    "term": "drift",
+    "phonetic": "/ˈdɹɪft/",
+    "difficulty": "Hard",
+    "definition": "be in motion due to some air or water current",
+    "example": "The leaves were blowing in the wind"
+  },
+  {
+    "id": "v-expertise",
+    "term": "expertise",
+    "phonetic": "/ˌɛkspɝˈtiz/",
+    "difficulty": "Medium",
+    "definition": "skillfulness by virtue of possessing special knowledge"
+  },
+  {
+    "id": "v-prediction",
+    "term": "prediction",
+    "phonetic": "/pɹiˈdɪkʃən/",
+    "difficulty": "Medium",
+    "definition": "the act of predicting (as by reasoning about the future)"
+  },
+  {
+    "id": "v-communist",
+    "term": "communist",
+    "phonetic": "/ˈkɑmjənəst/",
+    "difficulty": "Easy",
+    "definition": "relating to or marked by communism",
+    "example": "Communist Party"
+  },
+  {
+    "id": "v-elite",
+    "term": "elite",
+    "phonetic": "/eɪˈɫit/",
+    "difficulty": "Easy",
+    "definition": "selected as the best",
+    "example": "an elect circle of artists"
+  },
+  {
+    "id": "v-confine",
+    "term": "confine",
+    "phonetic": "/kənˈfaɪn/",
+    "difficulty": "Hard",
+    "definition": "place limits on (extent or amount or access)",
+    "example": "restrict the use of this parking lot"
+  },
+  {
+    "id": "v-stimulus",
+    "term": "stimulus",
+    "phonetic": "/ˈstɪmjəɫəs/",
+    "difficulty": "Hard",
+    "definition": "any stimulating information or event; acts to arouse action"
+  },
+  {
+    "id": "v-thereby",
+    "term": "thereby",
+    "phonetic": "/ˈðɛɹˈbaɪ/",
+    "difficulty": "Medium",
+    "definition": "by that means or because of that",
+    "example": "He knocked over the red wine, thereby ruining the table cloth"
+  },
+  {
+    "id": "v-physician",
+    "term": "physician",
+    "phonetic": "/fəˈzɪʃən/",
+    "difficulty": "Easy",
+    "definition": "a licensed medical practitioner",
+    "example": "I felt so bad I went to see my doctor"
+  },
+  {
+    "id": "v-elaborate",
+    "term": "elaborate",
+    "phonetic": "/ɪˈɫæbɝˌeɪt/",
+    "difficulty": "Medium",
+    "definition": "add details, as to an account or idea; clarify the meaning of and discourse in a learned way, usually in writing",
+    "example": "She elaborated on the main ideas in her dissertation"
+  },
+  {
+    "id": "v-composer",
+    "term": "composer",
+    "phonetic": "/kəmˈpoʊzɝ/",
+    "difficulty": "Medium",
+    "definition": "someone who composes music, usually as a profession"
+  },
+  {
+    "id": "v-manual",
+    "term": "manual",
+    "phonetic": "/ˈmænjuəɫ/",
+    "difficulty": "Easy",
+    "definition": "of or relating to the hands",
+    "example": "manual dexterity"
+  },
+  {
+    "id": "v-particle",
+    "term": "particle",
+    "phonetic": "/ˈpɑɹtəkəɫ/",
+    "difficulty": "Medium",
+    "definition": "(nontechnical usage) a tiny piece of anything"
+  },
+  {
+    "id": "v-initiate",
+    "term": "initiate",
+    "phonetic": "/ˌɪˈnɪʃiˌeɪt/",
+    "difficulty": "Hard",
+    "definition": "bring into being",
+    "example": "He initiated a new program"
+  },
+  {
+    "id": "v-politically",
+    "term": "politically",
+    "phonetic": "/ˈpɫɪtɪkɫi/",
+    "difficulty": "Medium",
+    "definition": "with regard to social relationships involving authority",
+    "example": "politically correct clothing"
+  },
+  {
+    "id": "v-sperm",
+    "term": "sperm",
+    "phonetic": "/ˈspɝm/",
+    "difficulty": "Hard",
+    "definition": "the male reproductive cell; the male gamete",
+    "example": "a sperm is mostly a nucleus surrounded by little other cellular material"
+  },
+  {
+    "id": "v-logical",
+    "term": "logical",
+    "phonetic": "/ˈɫɑdʒɪkəɫ/",
+    "difficulty": "Medium",
+    "definition": "capable of or reflecting the capability for correct and valid reasoning",
+    "example": "a logical mind"
+  },
+  {
+    "id": "v-dictionary",
+    "term": "dictionary",
+    "phonetic": "/ˈdɪkʃəˌnɛɹi/",
+    "difficulty": "Medium",
+    "definition": "a reference book containing an alphabetical list of words with information about them"
+  },
+  {
+    "id": "v-clip",
+    "term": "clip",
+    "phonetic": "/ˈkɫɪp/",
+    "difficulty": "Easy",
+    "definition": "sever or remove by pinching or snipping",
+    "example": "nip off the flowers"
+  },
+  {
+    "id": "v-invasion",
+    "term": "invasion",
+    "phonetic": "/ˌɪnˈveɪʒən/",
+    "difficulty": "Easy",
+    "definition": "the act of invading; the act of an army that invades for conquest or plunder"
+  },
+  {
+    "id": "v-fluid",
+    "term": "fluid",
+    "phonetic": "/ˈfɫuəd/",
+    "difficulty": "Easy",
+    "definition": "subject to change; variable",
+    "example": "a fluid situation fraught with uncertainty"
+  },
+  {
+    "id": "v-discrimination",
+    "term": "discrimination",
+    "phonetic": "/dɪsˌkɹɪməˈneɪʃən/",
+    "difficulty": "Easy",
+    "definition": "unfair treatment of a person or group on the basis of prejudice"
+  },
+  {
+    "id": "v-coordinate",
+    "term": "coordinate",
+    "phonetic": "/koʊˈɔɹdəˌneɪt/",
+    "difficulty": "Hard",
+    "definition": "bring order and organization to",
+    "example": "Can you help me organize my files?"
+  },
+  {
+    "id": "v-sensible",
+    "term": "sensible",
+    "phonetic": "/ˈsɛnsəbəɫ/",
+    "difficulty": "Medium",
+    "definition": "showing reason or sound judgment",
+    "example": "a sensible choice"
+  },
+  {
+    "id": "v-fabric",
+    "term": "fabric",
+    "phonetic": "/ˈfæbɹɪk/",
+    "difficulty": "Medium",
+    "definition": "artifact made by weaving or felting or knitting or crocheting natural or synthetic fibers",
+    "example": "the fabric in the curtains was light and semitransparent"
+  },
+  {
+    "id": "v-flexibility",
+    "term": "flexibility",
+    "phonetic": "/ˌfɫɛksəˈbɪɫəti/",
+    "difficulty": "Medium",
+    "definition": "the property of being flexible; easily bent or shaped"
+  },
+  {
+    "id": "v-spectrum",
+    "term": "spectrum",
+    "phonetic": "/ˈspɛktɹəm/",
+    "difficulty": "Easy",
+    "definition": "an ordered array of the components of an emission or wave"
+  },
+  {
+    "id": "v-lung",
+    "term": "lung",
+    "phonetic": "/ˈɫəŋ/",
+    "difficulty": "Medium",
+    "definition": "either of two saclike respiratory organs in the chest of vertebrates; serves to remove carbon dioxide and provide oxygen to the blood"
+  },
+  {
+    "id": "v-grasp",
+    "term": "grasp",
+    "phonetic": "/ˈɡɹæsp/",
+    "difficulty": "Medium",
+    "definition": "hold firmly"
+  },
+  {
+    "id": "v-rhythm",
+    "term": "rhythm",
+    "phonetic": "/ˈɹɪðəm/",
+    "difficulty": "Medium",
+    "definition": "the basic rhythmic unit in a piece of music",
+    "example": "the piece has a fast rhythm"
+  },
+  {
+    "id": "v-ritual",
+    "term": "ritual",
+    "phonetic": "/ˈɹɪtʃuəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or relating to or characteristic of religious rituals",
+    "example": "ritual killing"
+  },
+  {
+    "id": "v-namely",
+    "term": "namely",
+    "phonetic": "/ˈneɪmɫi/",
+    "difficulty": "Medium",
+    "definition": "as follows",
+    "example": "I want you to know one thing, namely that if you run up debts, we will not pay them for you."
+  },
+  {
+    "id": "v-realistic",
+    "term": "realistic",
+    "phonetic": "/ˌɹiəˈɫɪstɪk/",
+    "difficulty": "Easy",
+    "definition": "aware or expressing awareness of things as they really are",
+    "example": "a realistic description"
+  },
+  {
+    "id": "v-traditionally",
+    "term": "traditionally",
+    "phonetic": "/tɹəˈdɪʃənəɫi/",
+    "difficulty": "Medium",
+    "definition": "according to tradition; in a traditional manner",
+    "example": "traditionally, we eat fried foods on Hanukah"
+  },
+  {
+    "id": "v-intensity",
+    "term": "intensity",
+    "phonetic": "/ɪnˈtɛnsəti/",
+    "difficulty": "Medium",
+    "definition": "the amount of energy transmitted (as by acoustic or electromagnetic radiation)",
+    "example": "he adjusted the intensity of the sound"
+  },
+  {
+    "id": "v-enforcement",
+    "term": "enforcement",
+    "phonetic": "/ɛnˈfɔɹsmənt/",
+    "difficulty": "Easy",
+    "definition": "the act of enforcing; ensuring observance of or obedience to"
+  },
+  {
+    "id": "v-pronounce",
+    "term": "pronounce",
+    "phonetic": "/pɹəˈnaʊns/",
+    "difficulty": "Hard",
+    "definition": "speak, pronounce, or utter in a certain way",
+    "example": "She pronounces French words in a funny way"
+  },
+  {
+    "id": "v-wisdom",
+    "term": "wisdom",
+    "phonetic": "/ˈwɪzdəm/",
+    "difficulty": "Easy",
+    "definition": "accumulated knowledge or erudition or enlightenment"
+  },
+  {
+    "id": "v-inevitably",
+    "term": "inevitably",
+    "phonetic": "/ˌɪˈnɛvətəbɫi/",
+    "difficulty": "Medium",
+    "definition": "in such a manner as could not be otherwise",
+    "example": "it is necessarily so"
+  },
+  {
+    "id": "v-simultaneously",
+    "term": "simultaneously",
+    "phonetic": "/ˌsaɪməɫˈteɪniəsɫi/",
+    "difficulty": "Easy",
+    "definition": "at the same instant",
+    "example": "they spoke simultaneously"
+  },
+  {
+    "id": "v-interact",
+    "term": "interact",
+    "phonetic": "/ˌɪnɝˈækt/",
+    "difficulty": "Medium",
+    "definition": "act together or towards others or with others",
+    "example": "He should interact more with his colleagues"
+  },
+  {
+    "id": "v-blank",
+    "term": "blank",
+    "phonetic": "/ˈbɫæŋk/",
+    "difficulty": "Medium",
+    "definition": "keep the opposing (baseball) team from winning"
+  },
+  {
+    "id": "v-tense",
+    "term": "tense",
+    "phonetic": "/ˈtɛns/",
+    "difficulty": "Medium",
+    "definition": "become stretched or tense or taut",
+    "example": "the bodybuilder's neck muscles tensed"
+  },
+  {
+    "id": "v-strictly",
+    "term": "strictly",
+    "phonetic": "/ˈstɹɪktɫi/",
+    "difficulty": "Easy",
+    "definition": "restricted to something",
+    "example": "we talked strictly business"
+  },
+  {
+    "id": "v-assert",
+    "term": "assert",
+    "phonetic": "/əˈsɝt/",
+    "difficulty": "Hard",
+    "definition": "state categorically"
+  },
+  {
+    "id": "v-objection",
+    "term": "objection",
+    "phonetic": "/əbˈdʒɛkʃən/",
+    "difficulty": "Hard",
+    "definition": "the act of expressing earnest opposition or protest"
+  },
+  {
+    "id": "v-span",
+    "term": "span",
+    "phonetic": "/ˈspæn/",
+    "difficulty": "Medium",
+    "definition": "to cover or extend over an area or time period",
+    "example": "Rivers traverse the valley floor"
+  },
+  {
+    "id": "v-execution",
+    "term": "execution",
+    "phonetic": "/ˌɛksəkˈjuʃən/",
+    "difficulty": "Easy",
+    "definition": "putting a condemned person to death"
+  },
+  {
+    "id": "v-continent",
+    "term": "continent",
+    "phonetic": "/ˈkɑntənənt/",
+    "difficulty": "Medium",
+    "definition": "having control over urination and defecation"
+  },
+  {
+    "id": "v-civilization",
+    "term": "civilization",
+    "phonetic": "/ˌsɪvəɫɪˈzeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "a society in an advanced state of social development (e.g., with complex legal and political and religious organizations)",
+    "example": "the people slowly progressed from barbarism to civilization"
+  },
+  {
+    "id": "v-undermine",
+    "term": "undermine",
+    "phonetic": "/ˈəndɝˌmaɪn/",
+    "difficulty": "Hard",
+    "definition": "destroy property or hinder normal operations",
+    "example": "The Resistance sabotaged railroad operations during the war"
+  },
+  {
+    "id": "v-airplane",
+    "term": "airplane",
+    "phonetic": "/ˈɛɹˌpɫeɪn/",
+    "difficulty": "Medium",
+    "definition": "an aircraft that has a fixed wing and is powered by propellers or jets",
+    "example": "the flight was delayed due to trouble with the airplane"
+  },
+  {
+    "id": "v-comply",
+    "term": "comply",
+    "phonetic": "/kəmˈpɫaɪ/",
+    "difficulty": "Medium",
+    "definition": "act in accordance with someone's rules, commands, or wishes",
+    "example": "He complied with my instructions"
+  },
+  {
+    "id": "v-kilometer",
+    "term": "kilometer",
+    "phonetic": "/ˈkɪɫəˌmitɝ/",
+    "difficulty": "Hard",
+    "definition": "a metric unit of length equal to 1000 meters (or 0.621371 miles)"
+  },
+  {
+    "id": "v-neat",
+    "term": "neat",
+    "phonetic": "/ˈnit/",
+    "difficulty": "Medium",
+    "definition": "clean or organized",
+    "example": "her neat dress"
+  },
+  {
+    "id": "v-fraction",
+    "term": "fraction",
+    "phonetic": "/ˈfɹækʃən/",
+    "difficulty": "Medium",
+    "definition": "perform a division",
+    "example": "Can you divide 49 by seven?"
+  },
+  {
+    "id": "v-effectiveness",
+    "term": "effectiveness",
+    "phonetic": "/ˈifɛktɪvnəs/",
+    "difficulty": "Medium",
+    "definition": "power to be effective; the quality of being able to bring about an effect"
+  },
+  {
+    "id": "v-ethics",
+    "term": "ethics",
+    "phonetic": "/ˈɛθɪks/",
+    "difficulty": "Easy",
+    "definition": "motivation based on ideas of right and wrong"
+  },
+  {
+    "id": "v-insert",
+    "term": "insert",
+    "phonetic": "/ˈɪnˌsɝt/",
+    "difficulty": "Medium",
+    "definition": "put or introduce into something",
+    "example": "insert a picture into the text"
+  },
+  {
+    "id": "v-tempt",
+    "term": "tempt",
+    "phonetic": "/ˈtɛmpt/",
+    "difficulty": "Hard",
+    "definition": "dispose or incline or entice to",
+    "example": "We were tempted by the delicious-looking food"
+  },
+  {
+    "id": "v-availability",
+    "term": "availability",
+    "phonetic": "/əˌveɪɫəˈbɪɫəti/",
+    "difficulty": "Medium",
+    "definition": "the quality of being at hand when needed"
+  },
+  {
+    "id": "v-faculty",
+    "term": "faculty",
+    "phonetic": "/ˈfækəɫti/",
+    "difficulty": "Easy",
+    "definition": "one of the inherent cognitive or perceptual powers of the mind"
+  },
+  {
+    "id": "v-depict",
+    "term": "depict",
+    "phonetic": "/dɪˈpɪkt/",
+    "difficulty": "Hard",
+    "definition": "show in, or as in, a picture",
+    "example": "This scene depicts country life"
+  },
+  {
+    "id": "v-clarify",
+    "term": "clarify",
+    "phonetic": "/ˈkɫɛɹəˌfaɪ/",
+    "difficulty": "Medium",
+    "definition": "make clear and (more) comprehensible",
+    "example": "clarify the mystery surrounding her death"
+  },
+  {
+    "id": "v-diagnosis",
+    "term": "diagnosis",
+    "phonetic": "/ˌdaɪəɡˈnoʊsəs/",
+    "difficulty": "Easy",
+    "definition": "identifying the nature or cause of some phenomenon"
+  },
+  {
+    "id": "v-colony",
+    "term": "colony",
+    "phonetic": "/ˈkɑɫəni/",
+    "difficulty": "Medium",
+    "definition": "a body of people who settle far from home but maintain ties with their homeland; inhabitants remain nationals of their home state but are not literally under the home state's system of government",
+    "example": "the American colony in Paris"
+  },
+  {
+    "id": "v-deadline",
+    "term": "deadline",
+    "phonetic": "/ˈdɛdˌɫaɪn/",
+    "difficulty": "Medium",
+    "definition": "the point in time at which something must be completed"
+  },
+  {
+    "id": "v-motive",
+    "term": "motive",
+    "phonetic": "/ˈmoʊtɪv/",
+    "difficulty": "Medium",
+    "definition": "causing or able to cause motion",
+    "example": "a motive force"
+  },
+  {
+    "id": "v-mineral",
+    "term": "mineral",
+    "phonetic": "/ˈmɪnɝəɫ/",
+    "difficulty": "Medium",
+    "definition": "relating to minerals",
+    "example": "mineral elements"
+  },
+  {
+    "id": "v-readily",
+    "term": "readily",
+    "phonetic": "/ˈɹɛdəɫi/",
+    "difficulty": "Medium",
+    "definition": "without much difficulty",
+    "example": "these snakes can be identified readily"
+  },
+  {
+    "id": "v-correspondence",
+    "term": "correspondence",
+    "phonetic": "/ˌkɔɹəˈspɑndəns/",
+    "difficulty": "Medium",
+    "definition": "communication by the exchange of letters"
+  },
+  {
+    "id": "v-tribe",
+    "term": "tribe",
+    "phonetic": "/ˈtɹaɪb/",
+    "difficulty": "Medium",
+    "definition": "a social division of (usually preliterate) people"
+  },
+  {
+    "id": "v-statistical",
+    "term": "statistical",
+    "phonetic": "/stəˈtɪstɪkəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or relating to statistics",
+    "example": "statistical population"
+  },
+  {
+    "id": "v-disability",
+    "term": "disability",
+    "phonetic": "/ˌdɪsəˈbɪɫɪti/",
+    "difficulty": "Easy",
+    "definition": "the condition of being unable to perform as a consequence of physical or mental unfitness",
+    "example": "reading disability"
+  },
+  {
+    "id": "v-separation",
+    "term": "separation",
+    "phonetic": "/ˌsɛpɝˈeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "the state of lacking unity"
+  },
+  {
+    "id": "v-punch",
+    "term": "punch",
+    "phonetic": "/ˈpəntʃ/",
+    "difficulty": "Easy",
+    "definition": "deliver a quick blow to",
+    "example": "he punched me in the stomach"
+  },
+  {
+    "id": "v-infect",
+    "term": "infect",
+    "phonetic": "/ˌɪnˈfɛkt/",
+    "difficulty": "Hard",
+    "definition": "communicate a disease to",
+    "example": "Your children have infected you with this head cold"
+  },
+  {
+    "id": "v-minimize",
+    "term": "minimize",
+    "phonetic": "/ˈmɪnəˌmaɪz/",
+    "difficulty": "Hard",
+    "definition": "make small or insignificant",
+    "example": "Let's minimize the risk"
+  },
+  {
+    "id": "v-informal",
+    "term": "informal",
+    "phonetic": "/ˌɪnˈfɔɹməɫ/",
+    "difficulty": "Medium",
+    "definition": "not formal",
+    "example": "conservative people unaccustomed to informal dress"
+  },
+  {
+    "id": "v-plug",
+    "term": "plug",
+    "phonetic": "/ˈpɫəɡ/",
+    "difficulty": "Medium",
+    "definition": "fill or close tightly with or as if with a plug",
+    "example": "plug the hole"
+  },
+  {
+    "id": "v-punish",
+    "term": "punish",
+    "phonetic": "/ˈpənɪʃ/",
+    "difficulty": "Medium",
+    "definition": "impose a penalty on; inflict punishment on",
+    "example": "The students were penalized for showing up late for class"
+  },
+  {
+    "id": "v-artificial",
+    "term": "artificial",
+    "phonetic": "/ˌɑɹtəˈfɪʃəɫ/",
+    "difficulty": "Easy",
+    "definition": "contrived by art rather than nature",
+    "example": "artificial flowers"
+  },
+  {
+    "id": "v-strand",
+    "term": "strand",
+    "phonetic": "/ˈstɹænd/",
+    "difficulty": "Hard",
+    "definition": "leave stranded or isolated with little hope of rescue",
+    "example": "the travellers were marooned"
+  },
+  {
+    "id": "v-adolescent",
+    "term": "adolescent",
+    "phonetic": "/ˌædəˈɫɛsənt/",
+    "difficulty": "Hard",
+    "definition": "relating to or peculiar to or suggestive of an adolescent",
+    "example": "adolescent problems"
+  },
+  {
+    "id": "v-scholarship",
+    "term": "scholarship",
+    "phonetic": "/ˈskɑɫɝˌʃɪp/",
+    "difficulty": "Easy",
+    "definition": "financial aid provided to a student on the basis of academic merit"
+  },
+  {
+    "id": "v-discourse",
+    "term": "discourse",
+    "phonetic": "/ˈdɪskɔɹs/",
+    "difficulty": "Hard",
+    "definition": "to consider or examine in speech or writing",
+    "example": "The author talks about the different aspects of this question"
+  },
+  {
+    "id": "v-purely",
+    "term": "purely",
+    "phonetic": "/ˈpjʊɹɫi/",
+    "difficulty": "Medium",
+    "definition": "restricted to something",
+    "example": "we talked strictly business"
+  },
+  {
+    "id": "v-partial",
+    "term": "partial",
+    "phonetic": "/ˈpɑɹʃəɫ/",
+    "difficulty": "Easy",
+    "definition": "constituting or comprising a part or fraction of a possible whole or entirety",
+    "example": "a fractional share of the vote"
+  },
+  {
+    "id": "v-legitimate",
+    "term": "legitimate",
+    "phonetic": "/ɫəˈdʒɪtəmət/",
+    "difficulty": "Easy",
+    "definition": "make legal",
+    "example": "Marijuana should be legalized"
+  },
+  {
+    "id": "v-bound",
+    "term": "bound",
+    "phonetic": "/ˈbaʊnd/",
+    "difficulty": "Easy",
+    "definition": "move forward by leaps and bounds",
+    "example": "The horse bounded across the meadow"
+  },
+  {
+    "id": "v-norm",
+    "term": "norm",
+    "phonetic": "/ˈnɔɹm/",
+    "difficulty": "Medium",
+    "definition": "a standard or model or pattern regarded as typical",
+    "example": "the current middle-class norm of two children per family"
+  },
+  {
+    "id": "v-duration",
+    "term": "duration",
+    "phonetic": "/ˈdʊˈɹeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "the period of time during which something continues"
+  },
+  {
+    "id": "v-constitution",
+    "term": "constitution",
+    "phonetic": "/ˌkɑnstəˈtuʃən/",
+    "difficulty": "Easy",
+    "definition": "law determining the fundamental political principles of a government"
+  },
+  {
+    "id": "v-homework",
+    "term": "homework",
+    "phonetic": "/ˈhoʊmˌwɝk/",
+    "difficulty": "Medium",
+    "definition": "work, such as schoolwork or piecework, that is done at home"
+  },
+  {
+    "id": "v-horizon",
+    "term": "horizon",
+    "phonetic": "/hɝˈaɪzən/",
+    "difficulty": "Medium",
+    "definition": "the line at which the sky and Earth appear to meet"
+  },
+  {
+    "id": "v-allocate",
+    "term": "allocate",
+    "phonetic": "/ˈæɫəˌkeɪt/",
+    "difficulty": "Hard",
+    "definition": "distribute according to a plan or set apart for a special purpose",
+    "example": "I am allocating a loaf of bread to everyone on a daily basis"
+  },
+  {
+    "id": "v-rational",
+    "term": "rational",
+    "phonetic": "/ˈɹæʃənəɫ/",
+    "difficulty": "Medium",
+    "definition": "consistent with or based on or using reason",
+    "example": "rational behavior"
+  },
+  {
+    "id": "v-nest",
+    "term": "nest",
+    "phonetic": "/ˈnɛst/",
+    "difficulty": "Medium",
+    "definition": "inhabit a nest, usually after building",
+    "example": "birds are nesting outside my window every Spring"
+  },
+  {
+    "id": "v-resemble",
+    "term": "resemble",
+    "phonetic": "/ɹiˈzɛmbəɫ/",
+    "difficulty": "Hard",
+    "definition": "appear like; be similar or bear a likeness to",
+    "example": "She resembles her mother very much"
+  },
+  {
+    "id": "v-deliberately",
+    "term": "deliberately",
+    "phonetic": "/dɪˈɫɪbɝətɫi/",
+    "difficulty": "Medium",
+    "definition": "with intention; in an intentional manner",
+    "example": "he used that word intentionally"
+  },
+  {
+    "id": "v-unemployed",
+    "term": "unemployed",
+    "phonetic": "/ˌənɛmˈpɫɔɪd/",
+    "difficulty": "Medium",
+    "definition": "not engaged in a gainful occupation",
+    "example": "unemployed workers marched on the capital"
+  },
+  {
+    "id": "v-psychology",
+    "term": "psychology",
+    "phonetic": "/saɪˈkɑɫədʒi/",
+    "difficulty": "Easy",
+    "definition": "the science of mental life"
+  },
+  {
+    "id": "v-corruption",
+    "term": "corruption",
+    "phonetic": "/kɝˈəpʃən/",
+    "difficulty": "Easy",
+    "definition": "lack of integrity or honesty (especially susceptibility to bribery); use of a position of trust for dishonest gain"
+  },
+  {
+    "id": "v-probe",
+    "term": "probe",
+    "phonetic": "/ˈpɹoʊb/",
+    "difficulty": "Medium",
+    "definition": "question or examine thoroughly and closely"
+  },
+  {
+    "id": "v-harvest",
+    "term": "harvest",
+    "phonetic": "/ˈhɑɹvəst/",
+    "difficulty": "Medium",
+    "definition": "gather, as of natural products",
+    "example": "harvest the grapes"
+  },
+  {
+    "id": "v-outer",
+    "term": "outer",
+    "phonetic": "/ˈaʊtɝ/",
+    "difficulty": "Easy",
+    "definition": "being on the outside or further from a center",
+    "example": "spent hours adorning the outer man"
+  },
+  {
+    "id": "v-recipe",
+    "term": "recipe",
+    "phonetic": "/ˈɹɛsəpi/",
+    "difficulty": "Easy",
+    "definition": "directions for making something"
+  },
+  {
+    "id": "v-oxygen",
+    "term": "oxygen",
+    "phonetic": "/ˈɑksədʒən/",
+    "difficulty": "Easy",
+    "definition": "a nonmetallic bivalent element that is normally a colorless odorless tasteless nonflammable diatomic gas; constitutes 21 percent of the atmosphere by volume; the most abundant element in the earth's crust"
+  },
+  {
+    "id": "v-cognitive",
+    "term": "cognitive",
+    "phonetic": "/ˈkɑɡnɪtɪv/",
+    "difficulty": "Medium",
+    "definition": "of or being or relating to or involving cognition",
+    "example": "cognitive psychology"
+  },
+  {
+    "id": "v-subtle",
+    "term": "subtle",
+    "phonetic": "/ˈsətəɫ/",
+    "difficulty": "Medium",
+    "definition": "difficult to detect or grasp by the mind or analyze",
+    "example": "his whole attitude had undergone a subtle change"
+  },
+  {
+    "id": "v-merge",
+    "term": "merge",
+    "phonetic": "/ˈmɝdʒ/",
+    "difficulty": "Hard",
+    "definition": "become one",
+    "example": "Germany unified officially in 1990"
+  },
+  {
+    "id": "v-slot",
+    "term": "slot",
+    "phonetic": "/ˈsɫɑt/",
+    "difficulty": "Medium",
+    "definition": "assign a time slot",
+    "example": "slot a television program"
+  },
+  {
+    "id": "v-legend",
+    "term": "legend",
+    "phonetic": "/ˈɫɛdʒənd/",
+    "difficulty": "Easy",
+    "definition": "a story about mythical or supernatural beings or events"
+  },
+  {
+    "id": "v-interface",
+    "term": "interface",
+    "phonetic": "/ˈɪnɝˌfeɪs/",
+    "difficulty": "Medium",
+    "definition": "(chemistry) a surface forming a common boundary between two things (two objects or liquids or chemical phases)"
+  },
+  {
+    "id": "v-comparable",
+    "term": "comparable",
+    "phonetic": "/ˈkɑmpɝəbəɫ/",
+    "difficulty": "Medium",
+    "definition": "able to be compared or worthy of comparison"
+  },
+  {
+    "id": "v-hedge",
+    "term": "hedge",
+    "phonetic": "/ˈhɛdʒ/",
+    "difficulty": "Hard",
+    "definition": "avoid or try to avoid fulfilling, answering, or performing (duties, questions, or issues)",
+    "example": "He dodged the issue"
+  },
+  {
+    "id": "v-ridiculous",
+    "term": "ridiculous",
+    "phonetic": "/ɹɪˈdɪkjəɫəs/",
+    "difficulty": "Easy",
+    "definition": "inspiring scornful pity",
+    "example": "{'source': 'Dashiell Hammett', 'text': 'how silly an ardent and unsuccessful wooer can be especially if he is getting on in years'}"
+  },
+  {
+    "id": "v-linguistic",
+    "term": "linguistic",
+    "phonetic": "/ɫɪŋˈɡwɪstɪk/",
+    "difficulty": "Hard",
+    "definition": "consisting of or related to language",
+    "example": "linguistic behavior"
+  },
+  {
+    "id": "v-naked",
+    "term": "naked",
+    "phonetic": "/ˈneɪkəd/",
+    "difficulty": "Easy",
+    "definition": "having no clothes on the body",
+    "example": "bare bodies"
+  },
+  {
+    "id": "v-preliminary",
+    "term": "preliminary",
+    "phonetic": "/pɹiˈɫɪməˌnɛɹi/",
+    "difficulty": "Easy",
+    "definition": "denoting an action or event preceding or in preparation for something more important",
+    "example": "a preliminary investigation"
+  },
+  {
+    "id": "v-similarity",
+    "term": "similarity",
+    "phonetic": "/ˌsɪməˈɫɛɹəti/",
+    "difficulty": "Hard",
+    "definition": "the quality of being similar"
+  },
+  {
+    "id": "v-bulk",
+    "term": "bulk",
+    "phonetic": "/ˈbəɫk/",
+    "difficulty": "Easy",
+    "definition": "stick out or up",
+    "example": "The parcel bulked in the sack"
+  },
+  {
+    "id": "v-mall",
+    "term": "mall",
+    "phonetic": "/ˈmɔɫ/",
+    "difficulty": "Easy",
+    "definition": "a public area set aside as a pedestrian walk"
+  },
+  {
+    "id": "v-poster",
+    "term": "poster",
+    "phonetic": "/ˈpoʊstɝ/",
+    "difficulty": "Easy",
+    "definition": "a sign posted in a public place as an advertisement",
+    "example": "a poster advertised the coming attractions"
+  },
+  {
+    "id": "v-myth",
+    "term": "myth",
+    "phonetic": "/ˈmɪθ/",
+    "difficulty": "Medium",
+    "definition": "a traditional story accepted as history; serves to explain the world view of a people"
+  },
+  {
+    "id": "v-ghost",
+    "term": "ghost",
+    "phonetic": "/ˈɡoʊst/",
+    "difficulty": "Easy",
+    "definition": "move like a ghost",
+    "example": "The masked men ghosted across the moonlit yard"
+  },
+  {
+    "id": "v-pole",
+    "term": "pole",
+    "phonetic": "/ˈpoʊɫ/",
+    "difficulty": "Easy",
+    "definition": "propel with a pole",
+    "example": "pole barges on the river"
+  },
+  {
+    "id": "v-separately",
+    "term": "separately",
+    "phonetic": "/ˈsɛpɝətɫi/",
+    "difficulty": "Medium",
+    "definition": "apart from others",
+    "example": "taken individually, the rooms were, in fact, square"
+  },
+  {
+    "id": "v-discharge",
+    "term": "discharge",
+    "phonetic": "/ˈdɪsˌtʃɑɹdʒ/",
+    "difficulty": "Medium",
+    "definition": "complete or carry out",
+    "example": "discharge one's duties"
+  },
+  {
+    "id": "v-rope",
+    "term": "rope",
+    "phonetic": "/ˈɹoʊp/",
+    "difficulty": "Medium",
+    "definition": "catch with a lasso",
+    "example": "rope cows"
+  },
+  {
+    "id": "v-swell",
+    "term": "swell",
+    "phonetic": "/ˈswɛɫ/",
+    "difficulty": "Hard",
+    "definition": "increase in size, magnitude, number, or intensity",
+    "example": "The music swelled to a crescendo"
+  },
+  {
+    "id": "v-importantly",
+    "term": "importantly",
+    "phonetic": "/ˌɪmˈpɔɹtəntɫi/",
+    "difficulty": "Medium",
+    "definition": "in an important way or to an important degree",
+    "example": "more importantly, Weber held that the manifold meaning attached to the event by the social scientist could alter his definition of the concrete event itself"
+  },
+  {
+    "id": "v-processor",
+    "term": "processor",
+    "phonetic": "/ˈpɹɑˌsɛsɝ/",
+    "difficulty": "Medium",
+    "definition": "a business engaged in processing agricultural products and preparing them for market"
+  },
+  {
+    "id": "v-robot",
+    "term": "robot",
+    "phonetic": "/ˈɹoʊˌbɑt/",
+    "difficulty": "Easy",
+    "definition": "a mechanism that can move automatically"
+  },
+  {
+    "id": "v-correlation",
+    "term": "correlation",
+    "phonetic": "/ˌkɔɹəˈɫeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "a reciprocal relation between two or more things"
+  },
+  {
+    "id": "v-manuscript",
+    "term": "manuscript",
+    "phonetic": "/ˈmænjəsˌkɹɪpt/",
+    "difficulty": "Medium",
+    "definition": "the form of a literary work submitted for publication"
+  },
+  {
+    "id": "v-transmit",
+    "term": "transmit",
+    "phonetic": "/tɹænzˈmɪt/",
+    "difficulty": "Hard",
+    "definition": "transfer to another",
+    "example": "communicate a disease"
+  },
+  {
+    "id": "v-molecule",
+    "term": "molecule",
+    "phonetic": "/ˈmɑɫəkˌjuɫ/",
+    "difficulty": "Hard",
+    "definition": "(physics and chemistry) the simplest structural unit of an element or compound"
+  },
+  {
+    "id": "v-bacteria",
+    "term": "bacteria",
+    "phonetic": "/bækˈtɪɹiə/",
+    "difficulty": "Easy",
+    "definition": "(microbiology) single-celled or noncellular spherical or spiral or rod-shaped organisms lacking chlorophyll that reproduce by fission; important as pathogens and for biochemical properties; taxonomy is difficult; often considered to be plants"
+  },
+  {
+    "id": "v-sufficiently",
+    "term": "sufficiently",
+    "phonetic": "/səˈfɪʃəntɫi/",
+    "difficulty": "Hard",
+    "definition": "to a sufficient degree",
+    "example": "she was sufficiently fluent in Mandarin"
+  },
+  {
+    "id": "v-stack",
+    "term": "stack",
+    "phonetic": "/ˈstæk/",
+    "difficulty": "Medium",
+    "definition": "load or cover with stacks",
+    "example": "stack a truck with boxes"
+  },
+  {
+    "id": "v-nasty",
+    "term": "nasty",
+    "phonetic": "/ˈnæsti/",
+    "difficulty": "Easy",
+    "definition": "offensive or even (of persons) malicious",
+    "example": "in a nasty mood"
+  },
+  {
+    "id": "v-explicit",
+    "term": "explicit",
+    "phonetic": "/ɪksˈpɫɪsət/",
+    "difficulty": "Medium",
+    "definition": "precisely and clearly expressed or readily observable; leaving nothing to implication",
+    "example": "explicit instructions"
+  },
+  {
+    "id": "v-revolutionary",
+    "term": "revolutionary",
+    "phonetic": "/ˌɹɛvəˈɫuʃəˌnɛɹi/",
+    "difficulty": "Easy",
+    "definition": "markedly new or introducing radical change",
+    "example": "a revolutionary discovery"
+  },
+  {
+    "id": "v-projection",
+    "term": "projection",
+    "phonetic": "/pɹəˈdʒɛkʃən/",
+    "difficulty": "Hard",
+    "definition": "a prediction made by extrapolating from past observations"
+  },
+  {
+    "id": "v-essence",
+    "term": "essence",
+    "phonetic": "/ˈɛsəns/",
+    "difficulty": "Medium",
+    "definition": "the choicest or most essential or most vital part of some idea or experience",
+    "example": "the gist of the prosecutor's argument"
+  },
+  {
+    "id": "v-sensitivity",
+    "term": "sensitivity",
+    "phonetic": "/ˌsɛnsɪˈtɪvɪti/",
+    "difficulty": "Medium",
+    "definition": "(physiology) responsiveness to external stimuli; the faculty of sensation",
+    "example": "sensitivity to pain"
+  },
+  {
+    "id": "v-spray",
+    "term": "spray",
+    "phonetic": "/ˈspɹeɪ/",
+    "difficulty": "Easy",
+    "definition": "be discharged in sprays of liquid",
+    "example": "Water sprayed all over the floor"
+  },
+  {
+    "id": "v-usage",
+    "term": "usage",
+    "phonetic": "/ˈjusədʒ/",
+    "difficulty": "Easy",
+    "definition": "the act of using",
+    "example": "he warned against the use of narcotic drugs"
+  },
+  {
+    "id": "v-bang",
+    "term": "bang",
+    "phonetic": "/ˈbæŋ/",
+    "difficulty": "Easy",
+    "definition": "strike violently",
+    "example": "slam the ball"
+  },
+  {
+    "id": "v-bullet",
+    "term": "bullet",
+    "phonetic": "/ˈbʊɫət/",
+    "difficulty": "Easy",
+    "definition": "a projectile that is fired from a gun"
+  },
+  {
+    "id": "v-progressive",
+    "term": "progressive",
+    "phonetic": "/pɹəˈɡɹɛsɪv/",
+    "difficulty": "Easy",
+    "definition": "favoring or promoting progress",
+    "example": "progressive schools"
+  },
+  {
+    "id": "v-breakdown",
+    "term": "breakdown",
+    "phonetic": "/ˈbɹeɪkˌdaʊn/",
+    "difficulty": "Medium",
+    "definition": "the act of disrupting an established order so it fails to continue",
+    "example": "the social dislocations resulting from government policies"
+  },
+  {
+    "id": "v-consciousness",
+    "term": "consciousness",
+    "phonetic": "/ˈkɑnʃəsnəs/",
+    "difficulty": "Medium",
+    "definition": "an alert cognitive state in which you are aware of yourself and your situation",
+    "example": "he lost consciousness"
+  },
+  {
+    "id": "v-influential",
+    "term": "influential",
+    "phonetic": "/ˌɪnfɫuˈɛnʃəɫ/",
+    "difficulty": "Medium",
+    "definition": "having or exercising influence or power",
+    "example": "an influential newspaper"
+  },
+  {
+    "id": "v-insect",
+    "term": "insect",
+    "phonetic": "/ˈɪnˌsɛkt/",
+    "difficulty": "Hard",
+    "definition": "small air-breathing arthropod"
+  },
+  {
+    "id": "v-underneath",
+    "term": "underneath",
+    "phonetic": "/ˌəndɝˈniθ/",
+    "difficulty": "Medium",
+    "definition": "on the lower or downward side; on the underside of",
+    "example": "a chest of drawers all scratched underneath"
+  },
+  {
+    "id": "v-interfere",
+    "term": "interfere",
+    "phonetic": "/ˌɪnɝˈfɪɹ/",
+    "difficulty": "Medium",
+    "definition": "come between so as to be hindrance or obstacle",
+    "example": "Your talking interferes with my work!"
+  },
+  {
+    "id": "v-surplus",
+    "term": "surplus",
+    "phonetic": "/ˈsɝpɫəs/",
+    "difficulty": "Medium",
+    "definition": "more than is needed, desired, or required",
+    "example": "trying to lose excess weight"
+  },
+  {
+    "id": "v-bundle",
+    "term": "bundle",
+    "phonetic": "/ˈbəndəɫ/",
+    "difficulty": "Medium",
+    "definition": "make into a bundle",
+    "example": "he bundled up his few possessions"
+  },
+  {
+    "id": "v-accuracy",
+    "term": "accuracy",
+    "phonetic": "/ˈækjɝəsi/",
+    "difficulty": "Easy",
+    "definition": "the quality of being near to the true value",
+    "example": "he was beginning to doubt the accuracy of his compass"
+  },
+  {
+    "id": "v-accelerate",
+    "term": "accelerate",
+    "phonetic": "/ækˈsɛɫɝˌeɪt/",
+    "difficulty": "Hard",
+    "definition": "move faster",
+    "example": "The car accelerated"
+  },
+  {
+    "id": "v-oral",
+    "term": "oral",
+    "phonetic": "/ˈɔɹəɫ/",
+    "difficulty": "Easy",
+    "definition": "using speech rather than writing",
+    "example": "an oral tradition"
+  },
+  {
+    "id": "v-diagram",
+    "term": "diagram",
+    "phonetic": "/ˈdaɪəˌɡɹæm/",
+    "difficulty": "Medium",
+    "definition": "make a schematic or technical drawing that shows interactions among variables or how something is constructed"
+  },
+  {
+    "id": "v-defect",
+    "term": "defect",
+    "phonetic": "/ˈdifɛkt/",
+    "difficulty": "Hard",
+    "definition": "desert (a cause, a country or an army), often in order to join the opposing cause, country, or army",
+    "example": "If soldiers deserted Hitler's army, they were shot"
+  },
+  {
+    "id": "v-bubble",
+    "term": "bubble",
+    "phonetic": "/ˈbəbəɫ/",
+    "difficulty": "Easy",
+    "definition": "form, produce, or emit bubbles",
+    "example": "The soup was bubbling"
+  },
+  {
+    "id": "v-portray",
+    "term": "portray",
+    "phonetic": "/pɔɹˈtɹeɪ/",
+    "difficulty": "Hard",
+    "definition": "portray in words",
+    "example": "The book portrays the actor as a selfish person"
+  },
+  {
+    "id": "v-thread",
+    "term": "thread",
+    "phonetic": "/ˈθɹɛd/",
+    "difficulty": "Easy",
+    "definition": "to move or cause to move in a sinuous, spiral, or circular course",
+    "example": "the river winds through the hills"
+  },
+  {
+    "id": "v-machinery",
+    "term": "machinery",
+    "phonetic": "/məˈʃinɝi/",
+    "difficulty": "Medium",
+    "definition": "machines or machine systems collectively"
+  },
+  {
+    "id": "v-barrel",
+    "term": "barrel",
+    "phonetic": "/ˈbæɹəɫ/",
+    "difficulty": "Easy",
+    "definition": "put in barrels"
+  },
+  {
+    "id": "v-array",
+    "term": "array",
+    "phonetic": "/ɝˈeɪ/",
+    "difficulty": "Medium",
+    "definition": "lay out orderly or logically in a line or as if in a line",
+    "example": "lay out the clothes"
+  },
+  {
+    "id": "v-stance",
+    "term": "stance",
+    "phonetic": "/ˈstæns/",
+    "difficulty": "Medium",
+    "definition": "standing posture"
+  },
+  {
+    "id": "v-radiation",
+    "term": "radiation",
+    "phonetic": "/ˌɹeɪdiˈeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "energy that is radiated or transmitted in the form of rays or waves or particles"
+  },
+  {
+    "id": "v-competence",
+    "term": "competence",
+    "phonetic": "/ˈkɑmpətɪns/",
+    "difficulty": "Hard",
+    "definition": "the quality of being adequately or well qualified physically and intellectually"
+  },
+  {
+    "id": "v-reliability",
+    "term": "reliability",
+    "phonetic": "/ɹiˌɫaɪəˈbɪɫəti/",
+    "difficulty": "Medium",
+    "definition": "the quality of being dependable or reliable"
+  },
+  {
+    "id": "v-solar",
+    "term": "solar",
+    "phonetic": "/ˈsoʊɫɝ/",
+    "difficulty": "Easy",
+    "definition": "relating to or derived from the sun or utilizing the energies of the sun",
+    "example": "solar eclipse"
+  },
+  {
+    "id": "v-conservation",
+    "term": "conservation",
+    "phonetic": "/ˌkɑnsɝˈveɪʃən/",
+    "difficulty": "Easy",
+    "definition": "an occurrence of improvement by virtue of preventing loss or injury or other change"
+  },
+  {
+    "id": "v-sometime",
+    "term": "sometime",
+    "phonetic": "/ˈsəmˌtaɪm/",
+    "difficulty": "Easy",
+    "definition": "belonging to some prior time",
+    "example": "erstwhile friend"
+  },
+  {
+    "id": "v-injection",
+    "term": "injection",
+    "phonetic": "/ˌɪnˈdʒɛkʃən/",
+    "difficulty": "Medium",
+    "definition": "the forceful insertion of a substance under pressure"
+  },
+  {
+    "id": "v-freely",
+    "term": "freely",
+    "phonetic": "/ˈfɹiɫi/",
+    "difficulty": "Medium",
+    "definition": "in a free manner",
+    "example": "the painting featured freely brushed strokes"
+  },
+  {
+    "id": "v-specification",
+    "term": "specification",
+    "phonetic": "/ˌspɛsɪfɪˈkeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "a detailed description of design criteria for a piece of work"
+  },
+  {
+    "id": "v-wheat",
+    "term": "wheat",
+    "phonetic": "/ˈhwit/",
+    "difficulty": "Medium",
+    "definition": "annual or biennial grass having erect flower spikes and light brown grains"
+  },
+  {
+    "id": "v-vertical",
+    "term": "vertical",
+    "phonetic": "/ˈvɝtɪkəɫ/",
+    "difficulty": "Easy",
+    "definition": "at right angles to the plane of the horizon or a base line",
+    "example": "a vertical camera angle"
+  },
+  {
+    "id": "v-incredibly",
+    "term": "incredibly",
+    "phonetic": "/ˌɪnˈkɹɛdəbɫi/",
+    "difficulty": "Easy",
+    "definition": "not easy to believe",
+    "example": "incredibly, she survived the crash"
+  },
+  {
+    "id": "v-flesh",
+    "term": "flesh",
+    "phonetic": "/ˈfɫɛʃ/",
+    "difficulty": "Easy",
+    "definition": "remove adhering flesh from (hides) when preparing leather manufacture"
+  },
+  {
+    "id": "v-donor",
+    "term": "donor",
+    "phonetic": "/ˈdoʊnɝ/",
+    "difficulty": "Medium",
+    "definition": "person who makes a gift of property"
+  },
+  {
+    "id": "v-intervene",
+    "term": "intervene",
+    "phonetic": "/ˌɪntɝˈvin/",
+    "difficulty": "Hard",
+    "definition": "get involved, so as to alter or hinder an action, or through force or threat of force",
+    "example": "Why did the U.S. not intervene earlier in WW II?"
+  },
+  {
+    "id": "v-tropical",
+    "term": "tropical",
+    "phonetic": "/ˈtɹɑpɪkəɫ/",
+    "difficulty": "Easy",
+    "definition": "relating to or situated in or characteristic of the tropics (the region on either side of the equator)",
+    "example": "tropical islands"
+  },
+  {
+    "id": "v-sketch",
+    "term": "sketch",
+    "phonetic": "/ˈskɛtʃ/",
+    "difficulty": "Medium",
+    "definition": "make a sketch of",
+    "example": "sketch the building"
+  },
+  {
+    "id": "v-profound",
+    "term": "profound",
+    "phonetic": "/pɹoʊˈfaʊnd/",
+    "difficulty": "Medium",
+    "definition": "showing intellectual penetration or emotional depth",
+    "example": "the differences are profound"
+  },
+  {
+    "id": "v-transmission",
+    "term": "transmission",
+    "phonetic": "/tɹænsˈmɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the act of sending a message; causing a message to be transmitted"
+  },
+  {
+    "id": "v-meaningful",
+    "term": "meaningful",
+    "phonetic": "/ˈminɪŋfəɫ/",
+    "difficulty": "Medium",
+    "definition": "having a meaning or purpose",
+    "example": "a meaningful explanation"
+  },
+  {
+    "id": "v-incline",
+    "term": "incline",
+    "phonetic": "/ˈɪnkɫaɪn/",
+    "difficulty": "Hard",
+    "definition": "have a tendency or disposition to do or be something; be inclined",
+    "example": "She tends to be nervous before her lectures"
+  },
+  {
+    "id": "v-artistic",
+    "term": "artistic",
+    "phonetic": "/ɑɹˈtɪstɪk/",
+    "difficulty": "Easy",
+    "definition": "relating to or characteristic of art or artists",
+    "example": "his artistic background"
+  },
+  {
+    "id": "v-crystal",
+    "term": "crystal",
+    "phonetic": "/ˈkɹɪstəɫ/",
+    "difficulty": "Easy",
+    "definition": "a solid formed by the solidification of a chemical and having a highly regular atomic structure"
+  },
+  {
+    "id": "v-commodity",
+    "term": "commodity",
+    "phonetic": "/kəˈmɑdəti/",
+    "difficulty": "Medium",
+    "definition": "a raw material that is sold in large quantities, usually to other businesses for manufacturing or production purposes"
+  },
+  {
+    "id": "v-prejudice",
+    "term": "prejudice",
+    "phonetic": "/ˈpɹɛdʒədɪs/",
+    "difficulty": "Hard",
+    "definition": "disadvantage by prejudice"
+  },
+  {
+    "id": "v-questionnaire",
+    "term": "questionnaire",
+    "phonetic": "/ˌkwɛstʃəˈnɛɹ/",
+    "difficulty": "Hard",
+    "definition": "a form containing a set of questions; submitted to people to gain statistical information"
+  },
+  {
+    "id": "v-actively",
+    "term": "actively",
+    "phonetic": "/ˈæktɪvɫi/",
+    "difficulty": "Easy",
+    "definition": "in an active manner",
+    "example": "he participated actively in the war"
+  },
+  {
+    "id": "v-terribly",
+    "term": "terribly",
+    "phonetic": "/ˈtɛɹəbɫi/",
+    "difficulty": "Medium",
+    "definition": "used as intensifiers",
+    "example": "terribly interesting"
+  },
+  {
+    "id": "v-consultation",
+    "term": "consultation",
+    "phonetic": "/ˌkɑnsəɫˈteɪʃən/",
+    "difficulty": "Medium",
+    "definition": "a conference (usually with someone important)",
+    "example": "he had a consultation with the judge"
+  },
+  {
+    "id": "v-auction",
+    "term": "auction",
+    "phonetic": "/ˈɑkʃən/",
+    "difficulty": "Easy",
+    "definition": "sell at an auction"
+  },
+  {
+    "id": "v-republic",
+    "term": "republic",
+    "phonetic": "/ɹiˈpəbɫək/",
+    "difficulty": "Easy",
+    "definition": "a political system in which the supreme power lies in a body of citizens who can elect people to represent them"
+  },
+  {
+    "id": "v-mortality",
+    "term": "mortality",
+    "phonetic": "/mɔɹˈtæɫəti/",
+    "difficulty": "Medium",
+    "definition": "the quality or state of being mortal"
+  },
+  {
+    "id": "v-overhead",
+    "term": "overhead",
+    "phonetic": "/ˈoʊvɝˈhɛd/",
+    "difficulty": "Medium",
+    "definition": "located or originating from above",
+    "example": "an overhead crossing"
+  },
+  {
+    "id": "v-formally",
+    "term": "formally",
+    "phonetic": "/ˈfɔɹməɫi/",
+    "difficulty": "Medium",
+    "definition": "with official authorization",
+    "example": "the club will be formally recognized"
+  },
+  {
+    "id": "v-verbal",
+    "term": "verbal",
+    "phonetic": "/ˈvɝbəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or relating to or formed from words in general",
+    "example": "verbal ability"
+  },
+  {
+    "id": "v-ideology",
+    "term": "ideology",
+    "phonetic": "/ˌaɪdiˈɑɫədʒi/",
+    "difficulty": "Medium",
+    "definition": "an orientation that characterizes the thinking of a group or nation"
+  },
+  {
+    "id": "v-practitioner",
+    "term": "practitioner",
+    "phonetic": "/pɹækˈtɪʃənɝ/",
+    "difficulty": "Hard",
+    "definition": "someone who practices a learned profession"
+  },
+  {
+    "id": "v-minimal",
+    "term": "minimal",
+    "phonetic": "/ˈmɪnəməɫ/",
+    "difficulty": "Medium",
+    "definition": "the least possible",
+    "example": "needed to enforce minimal standards"
+  },
+  {
+    "id": "v-goodness",
+    "term": "goodness",
+    "phonetic": "/ˈɡʊdnəs/",
+    "difficulty": "Medium",
+    "definition": "that which is pleasing or valuable or useful",
+    "example": "weigh the good against the bad"
+  },
+  {
+    "id": "v-loop",
+    "term": "loop",
+    "phonetic": "/ˈɫup/",
+    "difficulty": "Easy",
+    "definition": "move in loops",
+    "example": "The bicycle looped around the tree"
+  },
+  {
+    "id": "v-allocation",
+    "term": "allocation",
+    "phonetic": "/ˌæɫəˈkeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "a share set aside for a specific purpose"
+  },
+  {
+    "id": "v-mechanical",
+    "term": "mechanical",
+    "phonetic": "/məˈkænɪkəɫ/",
+    "difficulty": "Easy",
+    "definition": "using (or as if using) mechanisms or tools or devices",
+    "example": "a mechanical process"
+  },
+  {
+    "id": "v-straightforward",
+    "term": "straightforward",
+    "phonetic": "/ˈstɹeɪtˈfɔɹwɝd/",
+    "difficulty": "Hard",
+    "definition": "free from ambiguity",
+    "example": "a straightforward set of instructions"
+  },
+  {
+    "id": "v-chemistry",
+    "term": "chemistry",
+    "phonetic": "/ˈkɛməstɹi/",
+    "difficulty": "Easy",
+    "definition": "the science of matter; the branch of the natural sciences dealing with the composition of substances and their properties and reactions"
+  },
+  {
+    "id": "v-obscure",
+    "term": "obscure",
+    "phonetic": "/əbˈskjʊɹ/",
+    "difficulty": "Medium",
+    "definition": "make less visible or unclear",
+    "example": "The stars are obscured by the clouds"
+  },
+  {
+    "id": "v-powder",
+    "term": "powder",
+    "phonetic": "/ˈpaʊdɝ/",
+    "difficulty": "Easy",
+    "definition": "make into a powder by breaking up or cause to become dust",
+    "example": "pulverize the grains"
+  },
+  {
+    "id": "v-alien",
+    "term": "alien",
+    "phonetic": "/ˈeɪɫiən/",
+    "difficulty": "Easy",
+    "definition": "transfer property or ownership",
+    "example": "The will aliened the property to the heirs"
+  },
+  {
+    "id": "v-neutral",
+    "term": "neutral",
+    "phonetic": "/ˈnutɹəɫ/",
+    "difficulty": "Easy",
+    "definition": "having no personal preference",
+    "example": "impersonal criticism"
+  },
+  {
+    "id": "v-historically",
+    "term": "historically",
+    "phonetic": "/hɪˈstɔɹɪkəɫi/",
+    "difficulty": "Medium",
+    "definition": "throughout history",
+    "example": "historically they have never coexisted peacefully"
+  },
+  {
+    "id": "v-compensate",
+    "term": "compensate",
+    "phonetic": "/ˈkɑmpənˌseɪt/",
+    "difficulty": "Hard",
+    "definition": "adjust for",
+    "example": "engineers will work to correct the effects of air resistance"
+  },
+  {
+    "id": "v-accumulate",
+    "term": "accumulate",
+    "phonetic": "/əkˈjumjəˌɫeɪt/",
+    "difficulty": "Hard",
+    "definition": "get or gather together",
+    "example": "I am accumulating evidence for the man's unfaithfulness to his wife"
+  },
+  {
+    "id": "v-marker",
+    "term": "marker",
+    "phonetic": "/ˈmɑɹkɝ/",
+    "difficulty": "Medium",
+    "definition": "some conspicuous object used to distinguish or mark something",
+    "example": "the buoys were markers for the channel"
+  },
+  {
+    "id": "v-utilize",
+    "term": "utilize",
+    "phonetic": "/ˈjutəˌɫaɪz/",
+    "difficulty": "Hard",
+    "definition": "put into service; make work or employ for a particular purpose or for its inherent or natural purpose",
+    "example": "use your head!"
+  },
+  {
+    "id": "v-surgeon",
+    "term": "surgeon",
+    "phonetic": "/ˈsɝdʒən/",
+    "difficulty": "Medium",
+    "definition": "a physician who specializes in surgery"
+  },
+  {
+    "id": "v-pulse",
+    "term": "pulse",
+    "phonetic": "/ˈpəɫs/",
+    "difficulty": "Medium",
+    "definition": "expand and contract rhythmically; beat rhythmically",
+    "example": "The baby's heart was pulsating again after the surgeon massaged it"
+  },
+  {
+    "id": "v-embed",
+    "term": "embed",
+    "phonetic": "/ɪmˈbɛd/",
+    "difficulty": "Hard",
+    "definition": "fix or set securely or deeply",
+    "example": "He planted a knee in the back of his opponent"
+  },
+  {
+    "id": "v-bleed",
+    "term": "bleed",
+    "phonetic": "/ˈbɫid/",
+    "difficulty": "Hard",
+    "definition": "lose blood from one's body"
+  },
+  {
+    "id": "v-ruler",
+    "term": "ruler",
+    "phonetic": "/ˈɹuɫɝ/",
+    "difficulty": "Hard",
+    "definition": "a person who rules or commands",
+    "example": "swayer of the universe"
+  },
+  {
+    "id": "v-leaf",
+    "term": "leaf",
+    "phonetic": "/ˈɫif/",
+    "difficulty": "Easy",
+    "definition": "look through a book or other written material",
+    "example": "He thumbed through the report"
+  },
+  {
+    "id": "v-partially",
+    "term": "partially",
+    "phonetic": "/ˈpɑɹʃəɫi/",
+    "difficulty": "Easy",
+    "definition": "to some extent; in some degree; not wholly",
+    "example": "I felt partly to blame"
+  },
+  {
+    "id": "v-aggregate",
+    "term": "aggregate",
+    "phonetic": "/ˈæɡɹəɡeɪt/",
+    "difficulty": "Medium",
+    "definition": "amount in the aggregate to"
+  },
+  {
+    "id": "v-thesis",
+    "term": "thesis",
+    "phonetic": "/ˈθisəs/",
+    "difficulty": "Medium",
+    "definition": "an unproved statement put forward as a premise in an argument"
+  },
+  {
+    "id": "v-monkey",
+    "term": "monkey",
+    "phonetic": "/ˈməŋki/",
+    "difficulty": "Medium",
+    "definition": "play around with or alter or falsify, usually secretively or dishonestly",
+    "example": "Someone tampered with the documents on my desk"
+  },
+  {
+    "id": "v-activate",
+    "term": "activate",
+    "phonetic": "/ˈæktəˌveɪt/",
+    "difficulty": "Hard",
+    "definition": "put in motion or move to act",
+    "example": "trigger a reaction"
+  },
+  {
+    "id": "v-conceive",
+    "term": "conceive",
+    "phonetic": "/kənˈsiv/",
+    "difficulty": "Hard",
+    "definition": "have the idea for",
+    "example": "He conceived of a robot that would help paralyzed patients"
+  },
+  {
+    "id": "v-intensive",
+    "term": "intensive",
+    "phonetic": "/ˌɪnˈtɛnsɪv/",
+    "difficulty": "Medium",
+    "definition": "characterized by a high degree or intensity; often used as a combining form",
+    "example": "the questioning was intensive"
+  },
+  {
+    "id": "v-overlap",
+    "term": "overlap",
+    "phonetic": "/ˈoʊvɝˌɫæp/",
+    "difficulty": "Hard",
+    "definition": "coincide partially or wholly",
+    "example": "Our vacations overlap"
+  },
+  {
+    "id": "v-manipulate",
+    "term": "manipulate",
+    "phonetic": "/məˈnɪpjəˌɫeɪt/",
+    "difficulty": "Hard",
+    "definition": "influence or control shrewdly or deviously",
+    "example": "He manipulated public opinion in his favor"
+  },
+  {
+    "id": "v-skip",
+    "term": "skip",
+    "phonetic": "/ˈskɪp/",
+    "difficulty": "Easy",
+    "definition": "bypass",
+    "example": "He skipped a row in the text and so the sentence was incomprehensible"
+  },
+  {
+    "id": "v-orientation",
+    "term": "orientation",
+    "phonetic": "/ˌɔɹiɛnˈteɪʃən/",
+    "difficulty": "Medium",
+    "definition": "the act of orienting"
+  },
+  {
+    "id": "v-equality",
+    "term": "equality",
+    "phonetic": "/ɪˈkwɑɫəti/",
+    "difficulty": "Easy",
+    "definition": "the quality of being the same in quantity or measure or value or status"
+  },
+  {
+    "id": "v-developmental",
+    "term": "developmental",
+    "phonetic": "/dɪˌvɛɫəpˈmɛnəɫ/",
+    "difficulty": "Hard",
+    "definition": "of or relating to or constituting development",
+    "example": "developmental psychology"
+  },
+  {
+    "id": "v-articulate",
+    "term": "articulate",
+    "phonetic": "/ɑɹˈtɪkjəˌɫeɪt/",
+    "difficulty": "Hard",
+    "definition": "provide with a joint",
+    "example": "the carpenter jointed two pieces of wood"
+  },
+  {
+    "id": "v-ethical",
+    "term": "ethical",
+    "phonetic": "/ˈɛθɪkəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or relating to the philosophical study of ethics",
+    "example": "ethical codes"
+  },
+  {
+    "id": "v-weave",
+    "term": "weave",
+    "phonetic": "/ˈwiv/",
+    "difficulty": "Hard",
+    "definition": "interlace by or as if by weaving"
+  },
+  {
+    "id": "v-locally",
+    "term": "locally",
+    "phonetic": "/ˈɫoʊkəɫi/",
+    "difficulty": "Medium",
+    "definition": "by a particular locality",
+    "example": "it was locally decided"
+  },
+  {
+    "id": "v-presume",
+    "term": "presume",
+    "phonetic": "/pɹɪˈzum/",
+    "difficulty": "Hard",
+    "definition": "take to be the case or to be true; accept without verification or proof",
+    "example": "I assume his train was late"
+  },
+  {
+    "id": "v-parental",
+    "term": "parental",
+    "phonetic": "/pɝˈɛntəɫ/",
+    "difficulty": "Hard",
+    "definition": "designating the generation of organisms from which hybrid offspring are produced"
+  },
+  {
+    "id": "v-peasant",
+    "term": "peasant",
+    "phonetic": "/ˈpɛzənt/",
+    "difficulty": "Hard",
+    "definition": "a country person"
+  },
+  {
+    "id": "v-chronic",
+    "term": "chronic",
+    "phonetic": "/ˈkɹɑnɪk/",
+    "difficulty": "Easy",
+    "definition": "being long-lasting and recurrent or characterized by long suffering",
+    "example": "chronic indigestion"
+  },
+  {
+    "id": "v-flip",
+    "term": "flip",
+    "phonetic": "/ˈfɫɪp/",
+    "difficulty": "Easy",
+    "definition": "lightly throw to see which side comes up",
+    "example": "I don't know what to do — I may as well flip a coin!"
+  },
+  {
+    "id": "v-sensation",
+    "term": "sensation",
+    "phonetic": "/sɛnˈseɪʃən/",
+    "difficulty": "Medium",
+    "definition": "an unelaborated elementary awareness of stimulation",
+    "example": "a sensation of touch"
+  },
+  {
+    "id": "v-organism",
+    "term": "organism",
+    "phonetic": "/ˈɔɹɡəˌnɪzəm/",
+    "difficulty": "Hard",
+    "definition": "a living thing that has (or can develop) the ability to act or function independently"
+  },
+  {
+    "id": "v-acute",
+    "term": "acute",
+    "phonetic": "/əkˈjut/",
+    "difficulty": "Medium",
+    "definition": "having or experiencing a rapid onset and short but severe course",
+    "example": "acute appendicitis"
+  },
+  {
+    "id": "v-unity",
+    "term": "unity",
+    "phonetic": "/ˈjunəti/",
+    "difficulty": "Easy",
+    "definition": "an undivided or unbroken completeness or totality with nothing wanting",
+    "example": "the integrity of the nervous system is required for normal development"
+  },
+  {
+    "id": "v-tumor",
+    "term": "tumor",
+    "phonetic": "/ˈtumɝ/",
+    "difficulty": "Medium",
+    "definition": "an abnormal new mass of tissue that serves no purpose"
+  },
+  {
+    "id": "v-trait",
+    "term": "trait",
+    "phonetic": "/ˈtɹeɪt/",
+    "difficulty": "Hard",
+    "definition": "a distinguishing feature of your personal nature"
+  },
+  {
+    "id": "v-compact",
+    "term": "compact",
+    "phonetic": "/ˈkɑmpækt/",
+    "difficulty": "Medium",
+    "definition": "have the property of being packable or of compacting easily",
+    "example": "This powder compacts easily"
+  },
+  {
+    "id": "v-commentary",
+    "term": "commentary",
+    "phonetic": "/ˈkɑmənˌtɛɹi/",
+    "difficulty": "Easy",
+    "definition": "a written explanation or criticism or illustration that is added to a book or other textual material",
+    "example": "he wrote an extended comment on the proposal"
+  },
+  {
+    "id": "v-configuration",
+    "term": "configuration",
+    "phonetic": "/kənˌfɪɡjɝˈeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "an arrangement of parts or elements",
+    "example": "the outcome depends on the configuration of influences at the time"
+  },
+  {
+    "id": "v-modification",
+    "term": "modification",
+    "phonetic": "/ˌmɑdəfəˈkeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "the act of making something different (as e.g. the size of a garment)"
+  },
+  {
+    "id": "v-instinct",
+    "term": "instinct",
+    "phonetic": "/ˈɪnstɪŋkt/",
+    "difficulty": "Medium",
+    "definition": "(followed by ‘with’) deeply filled or permeated",
+    "example": "imbued with the spirit of the Reformation"
+  },
+  {
+    "id": "v-container",
+    "term": "container",
+    "phonetic": "/kənˈteɪnɝ/",
+    "difficulty": "Medium",
+    "definition": "any object that can be used to hold things (especially a large metal boxlike object of standardized dimensions that can be loaded from one form of transport to another)"
+  },
+  {
+    "id": "v-likelihood",
+    "term": "likelihood",
+    "phonetic": "/ˈɫaɪkɫiˌhʊd/",
+    "difficulty": "Medium",
+    "definition": "the probability of a specified outcome"
+  },
+  {
+    "id": "v-conception",
+    "term": "conception",
+    "phonetic": "/kənˈsɛpʃən/",
+    "difficulty": "Hard",
+    "definition": "an abstract or general idea inferred or derived from specific instances"
+  },
+  {
+    "id": "v-biology",
+    "term": "biology",
+    "phonetic": "/baɪˈɑɫədʒi/",
+    "difficulty": "Easy",
+    "definition": "the science that studies living organisms"
+  },
+  {
+    "id": "v-metaphor",
+    "term": "metaphor",
+    "phonetic": "/ˈmɛtəfɔɹ/",
+    "difficulty": "Hard",
+    "definition": "a figure of speech in which an expression is used to refer to something that it does not literally denote in order to suggest a similarity"
+  },
+  {
+    "id": "v-audio",
+    "term": "audio",
+    "phonetic": "/ˈɑdiˌoʊ/",
+    "difficulty": "Easy",
+    "definition": "the audible part of a transmitted signal",
+    "example": "they always raise the audio for commercials"
+  },
+  {
+    "id": "v-closure",
+    "term": "closure",
+    "phonetic": "/ˈkɫoʊʒɝ/",
+    "difficulty": "Medium",
+    "definition": "terminate debate by calling for a vote",
+    "example": "debate was closured"
+  },
+  {
+    "id": "v-dilemma",
+    "term": "dilemma",
+    "phonetic": "/dɪˈɫɛmə/",
+    "difficulty": "Hard",
+    "definition": "state of uncertainty or perplexity especially as requiring a choice between equally unfavorable options"
+  },
+  {
+    "id": "v-colonial",
+    "term": "colonial",
+    "phonetic": "/kəˈɫoʊniəɫ/",
+    "difficulty": "Easy",
+    "definition": "of or relating to or characteristic of or inhabiting a colony"
+  },
+  {
+    "id": "v-diagnose",
+    "term": "diagnose",
+    "phonetic": "/ˌdaɪəɡˈnoʊs/",
+    "difficulty": "Hard",
+    "definition": "determine or distinguish the nature of a problem or an illness through a diagnostic analysis"
+  },
+  {
+    "id": "v-invade",
+    "term": "invade",
+    "phonetic": "/ˌɪnˈveɪd/",
+    "difficulty": "Hard",
+    "definition": "march aggressively into another's territory by military force for the purposes of conquest and occupation",
+    "example": "Hitler invaded Poland on September 1, 1939"
+  },
+  {
+    "id": "v-accurately",
+    "term": "accurately",
+    "phonetic": "/ˈækjɝətɫi/",
+    "difficulty": "Medium",
+    "definition": "with few mistakes",
+    "example": "he works very accurately"
+  },
+  {
+    "id": "v-stereotype",
+    "term": "stereotype",
+    "phonetic": "/ˈstɛɹiəˌtaɪp/",
+    "difficulty": "Hard",
+    "definition": "treat or classify according to a mental stereotype",
+    "example": "I was stereotyped as a lazy Southern European"
+  },
+  {
+    "id": "v-specialty",
+    "term": "specialty",
+    "phonetic": "/ˈspeɪʃəɫti/",
+    "difficulty": "Medium",
+    "definition": "an asset of special worth or utility",
+    "example": "cooking is his forte"
+  },
+  {
+    "id": "v-positively",
+    "term": "positively",
+    "phonetic": "/ˈpɑzətɪvɫi/",
+    "difficulty": "Medium",
+    "definition": "downright",
+    "example": "it was positively monumental"
+  },
+  {
+    "id": "v-threshold",
+    "term": "threshold",
+    "phonetic": "/ˈθɹɛˌʃoʊɫd/",
+    "difficulty": "Medium",
+    "definition": "the starting point for a new state or experience",
+    "example": "on the threshold of manhood"
+  },
+  {
+    "id": "v-systematic",
+    "term": "systematic",
+    "phonetic": "/ˌsɪstəˈmætɪk/",
+    "difficulty": "Medium",
+    "definition": "characterized by order and planning",
+    "example": "the investigation was very systematic"
+  },
+  {
+    "id": "v-inject",
+    "term": "inject",
+    "phonetic": "/ˌɪnˈdʒɛkt/",
+    "difficulty": "Hard",
+    "definition": "give an injection to",
+    "example": "We injected the glucose into the patient's vein"
+  },
+  {
+    "id": "v-likewise",
+    "term": "likewise",
+    "phonetic": "/ˈɫaɪˌkwaɪz/",
+    "difficulty": "Medium",
+    "definition": "in like or similar manner",
+    "example": "He was similarly affected"
+  },
+  {
+    "id": "v-liver",
+    "term": "liver",
+    "phonetic": "/ˈɫɪvɝ/",
+    "difficulty": "Easy",
+    "definition": "having a reddish-brown color"
+  },
+  {
+    "id": "v-hormone",
+    "term": "hormone",
+    "phonetic": "/ˈhɔɹˌmoʊn/",
+    "difficulty": "Hard",
+    "definition": "the secretion of an endocrine gland that is transmitted by the blood to the tissue on which it has a specific effect"
+  },
+  {
+    "id": "v-thumb",
+    "term": "thumb",
+    "phonetic": "/ˈθəm/",
+    "difficulty": "Medium",
+    "definition": "travel by getting free rides from motorists"
+  },
+  {
+    "id": "v-quotation",
+    "term": "quotation",
+    "phonetic": "/kwoʊˈteɪʃən/",
+    "difficulty": "Hard",
+    "definition": "a short note recognizing a source of information or of a quoted passage",
+    "example": "the student's essay failed to list several important citations"
+  },
+  {
+    "id": "v-independently",
+    "term": "independently",
+    "phonetic": "/ˌɪndɪˈpɛndəntɫi/",
+    "difficulty": "Medium",
+    "definition": "on your own; without outside help",
+    "example": "the children worked on the project independently"
+  },
+  {
+    "id": "v-cheat",
+    "term": "cheat",
+    "phonetic": "/ˈtʃit/",
+    "difficulty": "Medium",
+    "definition": "deprive somebody of something by deceit",
+    "example": "The con-man beat me out of $50"
+  },
+  {
+    "id": "v-super",
+    "term": "super",
+    "phonetic": "/ˈsupɝ/",
+    "difficulty": "Easy",
+    "definition": "of the highest quality",
+    "example": "an ace reporter"
+  },
+  {
+    "id": "v-individually",
+    "term": "individually",
+    "phonetic": "/ˌɪndɪˈvɪdʒəɫi/",
+    "difficulty": "Medium",
+    "definition": "apart from others",
+    "example": "taken individually, the rooms were, in fact, square"
+  },
+  {
+    "id": "v-reproduce",
+    "term": "reproduce",
+    "phonetic": "/ˌɹipɹəˈdus/",
+    "difficulty": "Hard",
+    "definition": "make a copy or equivalent of",
+    "example": "reproduce the painting"
+  },
+  {
+    "id": "v-immune",
+    "term": "immune",
+    "phonetic": "/ˌɪmˈjun/",
+    "difficulty": "Medium",
+    "definition": "relating to the condition of immunity",
+    "example": "the immune system"
+  },
+  {
+    "id": "v-sphere",
+    "term": "sphere",
+    "phonetic": "/ˈsfɪɹ/",
+    "difficulty": "Medium",
+    "definition": "a particular environment or walk of life",
+    "example": "his social sphere is limited"
+  },
+  {
+    "id": "v-clay",
+    "term": "clay",
+    "phonetic": "/ˈkɫeɪ/",
+    "difficulty": "Easy",
+    "definition": "a very fine-grained soil that is plastic when moist but hard when fired"
+  },
+  {
+    "id": "v-dictate",
+    "term": "dictate",
+    "phonetic": "/ˈdɪkˌteɪt/",
+    "difficulty": "Hard",
+    "definition": "issue commands or orders for"
+  },
+  {
+    "id": "v-nucleus",
+    "term": "nucleus",
+    "phonetic": "/ˈnukɫiəs/",
+    "difficulty": "Hard",
+    "definition": "a part of the cell containing DNA and RNA and responsible for growth and reproduction"
+  },
+  {
+    "id": "v-noisy",
+    "term": "noisy",
+    "phonetic": "/ˈnɔɪzi/",
+    "difficulty": "Hard",
+    "definition": "full of or characterized by loud and nonmusical sounds",
+    "example": "a noisy cafeteria"
+  },
+  {
+    "id": "v-slavery",
+    "term": "slavery",
+    "phonetic": "/ˈsɫeɪvɝi/",
+    "difficulty": "Easy",
+    "definition": "the state of being under the control of another person"
+  },
+  {
+    "id": "v-justification",
+    "term": "justification",
+    "phonetic": "/ˌdʒəstəfəˈkeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "something (such as a fact or circumstance) that shows an action to be reasonable or necessary",
+    "example": "he considered misrule a justification for revolution"
+  },
+  {
+    "id": "v-symbolic",
+    "term": "symbolic",
+    "phonetic": "/sɪmˈbɑɫɪk/",
+    "difficulty": "Medium",
+    "definition": "relating to or using or proceeding by means of symbols",
+    "example": "symbolic logic"
+  },
+  {
+    "id": "v-broadly",
+    "term": "broadly",
+    "phonetic": "/ˈbɹɔdɫi/",
+    "difficulty": "Hard",
+    "definition": "without regard to specific details or exceptions",
+    "example": "he interprets the law broadly"
+  },
+  {
+    "id": "v-adjacent",
+    "term": "adjacent",
+    "phonetic": "/əˈdʒeɪsənt/",
+    "difficulty": "Medium",
+    "definition": "nearest in space or position; immediately adjoining without intervening space",
+    "example": "had adjacent rooms"
+  },
+  {
+    "id": "v-specimen",
+    "term": "specimen",
+    "phonetic": "/ˈspɛsəmən/",
+    "difficulty": "Hard",
+    "definition": "an example regarded as typical of its class"
+  },
+  {
+    "id": "v-behavioral",
+    "term": "behavioral",
+    "phonetic": "/biˈheɪvjɝəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or relating to behavior",
+    "example": "behavioral sciences"
+  },
+  {
+    "id": "v-ancestor",
+    "term": "ancestor",
+    "phonetic": "/ˈænˌsɛstɝ/",
+    "difficulty": "Hard",
+    "definition": "someone from whom you are descended (but usually more remote than a grandparent)"
+  },
+  {
+    "id": "v-hierarchy",
+    "term": "hierarchy",
+    "phonetic": "/ˈhaɪˌɹɑɹki/",
+    "difficulty": "Hard",
+    "definition": "a series of ordered groupings of people or things within a system",
+    "example": "put honesty first in her hierarchy of values"
+  },
+  {
+    "id": "v-electron",
+    "term": "electron",
+    "phonetic": "/ˌɪˈɫɛktɹɑn/",
+    "difficulty": "Hard",
+    "definition": "an elementary particle with negative charge"
+  },
+  {
+    "id": "v-rhetoric",
+    "term": "rhetoric",
+    "phonetic": "/ˈɹɛtɝɪk/",
+    "difficulty": "Medium",
+    "definition": "using language effectively to please or persuade"
+  },
+  {
+    "id": "v-mathematical",
+    "term": "mathematical",
+    "phonetic": "/ˌmæθəˈmætɪkəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or pertaining to or of the nature of mathematics",
+    "example": "a mathematical textbook"
+  },
+  {
+    "id": "v-snake",
+    "term": "snake",
+    "phonetic": "/ˈsneɪk/",
+    "difficulty": "Easy",
+    "definition": "move smoothly and sinuously, like a snake"
+  },
+  {
+    "id": "v-classification",
+    "term": "classification",
+    "phonetic": "/ˌkɫæsəfəˈkeɪʃən/",
+    "difficulty": "Easy",
+    "definition": "the act of distributing things into classes or categories of the same type"
+  },
+  {
+    "id": "v-arrow",
+    "term": "arrow",
+    "phonetic": "/ˈæɹoʊ/",
+    "difficulty": "Medium",
+    "definition": "a mark to indicate a direction or relation"
+  },
+  {
+    "id": "v-comparative",
+    "term": "comparative",
+    "phonetic": "/kəmˈpɛɹətɪv/",
+    "difficulty": "Hard",
+    "definition": "relating to or based on or involving comparison",
+    "example": "comparative linguistics"
+  },
+  {
+    "id": "v-matrix",
+    "term": "matrix",
+    "phonetic": "/ˈmeɪtɹɪks/",
+    "difficulty": "Medium",
+    "definition": "(mathematics) a rectangular array of quantities or expressions set out by rows and columns; treated as a single element and manipulated according to rules"
+  },
+  {
+    "id": "v-socially",
+    "term": "socially",
+    "phonetic": "/ˈsoʊʃəɫi/",
+    "difficulty": "Medium",
+    "definition": "by or with respect to society",
+    "example": "socially accepted norms"
+  },
+  {
+    "id": "v-calcium",
+    "term": "calcium",
+    "phonetic": "/ˈkæɫsiəm/",
+    "difficulty": "Hard",
+    "definition": "a white metallic element that burns with a brilliant light; the fifth most abundant element in the earth's crust; an important component of most plants and animals"
+  },
+  {
+    "id": "v-migration",
+    "term": "migration",
+    "phonetic": "/maɪˈɡɹeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "the movement of persons from one country or locality to another"
+  },
+  {
+    "id": "v-vein",
+    "term": "vein",
+    "phonetic": "/ˈveɪn/",
+    "difficulty": "Hard",
+    "definition": "make a veinlike pattern"
+  },
+  {
+    "id": "v-correction",
+    "term": "correction",
+    "phonetic": "/kɝˈɛkʃən/",
+    "difficulty": "Medium",
+    "definition": "the act of offering an improvement to replace a mistake; setting right"
+  },
+  {
+    "id": "v-vitamin",
+    "term": "vitamin",
+    "phonetic": "/ˈvaɪtəmən/",
+    "difficulty": "Medium",
+    "definition": "any of a group of organic substances essential in small quantities to normal metabolism"
+  },
+  {
+    "id": "v-adaptation",
+    "term": "adaptation",
+    "phonetic": "/ˌædəpˈteɪʃən/",
+    "difficulty": "Medium",
+    "definition": "a written work (as a novel) that has been recast in a new form",
+    "example": "the play is an adaptation of a short novel"
+  },
+  {
+    "id": "v-tutor",
+    "term": "tutor",
+    "phonetic": "/ˈtutɝ/",
+    "difficulty": "Hard",
+    "definition": "be a tutor to someone; give individual instruction",
+    "example": "She tutored me in Spanish"
+  },
+  {
+    "id": "v-grid",
+    "term": "grid",
+    "phonetic": "/ˈɡɹɪd/",
+    "difficulty": "Easy",
+    "definition": "a pattern of regularly spaced horizontal and vertical lines"
+  },
+  {
+    "id": "v-magnetic",
+    "term": "magnetic",
+    "phonetic": "/mæɡˈnɛtɪk/",
+    "difficulty": "Easy",
+    "definition": "of or relating to or caused by magnetism",
+    "example": "magnetic forces"
+  },
+  {
+    "id": "v-monetary",
+    "term": "monetary",
+    "phonetic": "/ˈmɑnəˌtɛɹi/",
+    "difficulty": "Medium",
+    "definition": "relating to or involving money",
+    "example": "monetary rewards"
+  },
+  {
+    "id": "v-complement",
+    "term": "complement",
+    "phonetic": "/ˈkɑmpɫəmənt/",
+    "difficulty": "Hard",
+    "definition": "make complete or perfect; supply what is wanting or form the complement to",
+    "example": "I need some pepper to complement the sweet touch in the soup"
+  },
+  {
+    "id": "v-crude",
+    "term": "crude",
+    "phonetic": "/ˈkɹud/",
+    "difficulty": "Medium",
+    "definition": "not carefully or expertly made",
+    "example": "managed to make a crude splint"
+  },
+  {
+    "id": "v-fever",
+    "term": "fever",
+    "phonetic": "/ˈfivɝ/",
+    "difficulty": "Easy",
+    "definition": "a rise in the temperature of the body; frequently a symptom of infection"
+  },
+  {
+    "id": "v-explicitly",
+    "term": "explicitly",
+    "phonetic": "/ɪksˈpɫɪsətɫi/",
+    "difficulty": "Medium",
+    "definition": "in an explicit manner",
+    "example": "in his foreword Professor Clark puts it explicitly"
+  },
+  {
+    "id": "v-vague",
+    "term": "vague",
+    "phonetic": "/ˈveɪɡ/",
+    "difficulty": "Medium",
+    "definition": "not clearly expressed or understood",
+    "example": "an obscure turn of phrase"
+  },
+  {
+    "id": "v-credibility",
+    "term": "credibility",
+    "phonetic": "/ˌkɹɛdəˈbɪɫɪti/",
+    "difficulty": "Medium",
+    "definition": "the quality of being believable or trustworthy"
+  },
+  {
+    "id": "v-differentiate",
+    "term": "differentiate",
+    "phonetic": "/ˌdɪfɝˈɛnʃiˌeɪt/",
+    "difficulty": "Hard",
+    "definition": "mark as different",
+    "example": "We distinguish several kinds of maple"
+  },
+  {
+    "id": "v-rack",
+    "term": "rack",
+    "phonetic": "/ˈɹæk/",
+    "difficulty": "Medium",
+    "definition": "go at a rack",
+    "example": "the horses single-footed"
+  },
+  {
+    "id": "v-psychologist",
+    "term": "psychologist",
+    "phonetic": "/saɪˈkɑɫədʒəst/",
+    "difficulty": "Hard",
+    "definition": "a scientist trained in psychology"
+  },
+  {
+    "id": "v-noble",
+    "term": "noble",
+    "phonetic": "/ˈnoʊbəɫ/",
+    "difficulty": "Easy",
+    "definition": "impressive in size, manner, or appearance",
+    "example": "a baronial mansion"
+  },
+  {
+    "id": "v-conceptual",
+    "term": "conceptual",
+    "phonetic": "/kənˈsɛptʃuəɫ/",
+    "difficulty": "Hard",
+    "definition": "being or characterized by concepts or their formation",
+    "example": "conceptual discussions"
+  },
+  {
+    "id": "v-lump",
+    "term": "lump",
+    "phonetic": "/ˈɫəmp/",
+    "difficulty": "Hard",
+    "definition": "put together indiscriminately",
+    "example": "lump together all the applicants"
+  },
+  {
+    "id": "v-limb",
+    "term": "limb",
+    "phonetic": "/ˈɫɪm/",
+    "difficulty": "Hard",
+    "definition": "one of the jointed appendages of an animal used for locomotion or grasping: arm, leg, wing, flipper"
+  },
+  {
+    "id": "v-autonomy",
+    "term": "autonomy",
+    "phonetic": "/əˈtɑnəmi/",
+    "difficulty": "Medium",
+    "definition": "immunity from arbitrary exercise of authority: political independence"
+  },
+  {
+    "id": "v-membrane",
+    "term": "membrane",
+    "phonetic": "/ˈmɛmˌbɹeɪn/",
+    "difficulty": "Hard",
+    "definition": "a thin pliable sheet of material"
+  },
+  {
+    "id": "v-realm",
+    "term": "realm",
+    "phonetic": "/ˈɹɛɫm/",
+    "difficulty": "Medium",
+    "definition": "a domain in which something is dominant",
+    "example": "the untroubled kingdom of reason"
+  },
+  {
+    "id": "v-definite",
+    "term": "definite",
+    "phonetic": "/ˈdɛfənət/",
+    "difficulty": "Hard",
+    "definition": "precise; explicit and clearly defined",
+    "example": "I want a definite answer"
+  },
+  {
+    "id": "v-elementary",
+    "term": "elementary",
+    "phonetic": "/ˌɛɫəˈmɛntɝɹi/",
+    "difficulty": "Easy",
+    "definition": "easy and not involved or complicated",
+    "example": "an elementary problem in statistics"
+  },
+  {
+    "id": "v-overview",
+    "term": "overview",
+    "phonetic": "/ˈoʊvɝvˌju/",
+    "difficulty": "Medium",
+    "definition": "a general summary of a subject",
+    "example": "the treasurer gave a brief overview of the financial consequences"
+  },
+  {
+    "id": "v-dense",
+    "term": "dense",
+    "phonetic": "/ˈdɛns/",
+    "difficulty": "Medium",
+    "definition": "permitting little if any light to pass through because of denseness of matter",
+    "example": "dense smoke"
+  },
+  {
+    "id": "v-dissolve",
+    "term": "dissolve",
+    "phonetic": "/dɪˈzɑɫv/",
+    "difficulty": "Hard",
+    "definition": "grow less and less substantial until it disappears",
+    "example": "The sound faded out"
+  },
+  {
+    "id": "v-magnitude",
+    "term": "magnitude",
+    "phonetic": "/ˈmæɡnəˌtud/",
+    "difficulty": "Medium",
+    "definition": "the property of relative size or extent (whether large or small)",
+    "example": "they tried to predict the magnitude of the explosion"
+  },
+  {
+    "id": "v-adverse",
+    "term": "adverse",
+    "phonetic": "/ˈædˌvɝs/",
+    "difficulty": "Medium",
+    "definition": "contrary to your interests or welfare",
+    "example": "adverse circumstances"
+  },
+  {
+    "id": "v-sustainable",
+    "term": "sustainable",
+    "phonetic": "/səˈsteɪnəbəɫ/",
+    "difficulty": "Easy",
+    "definition": "capable of being sustained"
+  },
+  {
+    "id": "v-diameter",
+    "term": "diameter",
+    "phonetic": "/daɪˈæmətɝ/",
+    "difficulty": "Medium",
+    "definition": "the length of a straight line passing through the center of a circle and connecting two points on the circumference"
+  },
+  {
+    "id": "v-rejection",
+    "term": "rejection",
+    "phonetic": "/ɹiˈdʒɛkʃən/",
+    "difficulty": "Medium",
+    "definition": "the act of rejecting something",
+    "example": "his proposals were met with rejection"
+  },
+  {
+    "id": "v-circulate",
+    "term": "circulate",
+    "phonetic": "/ˈsɝkjəˌɫeɪt/",
+    "difficulty": "Hard",
+    "definition": "become widely known and passed on",
+    "example": "the rumor spread"
+  },
+  {
+    "id": "v-shallow",
+    "term": "shallow",
+    "phonetic": "/ˈʃæɫoʊ/",
+    "difficulty": "Medium",
+    "definition": "make shallow",
+    "example": "The silt shallowed the canal"
+  },
+  {
+    "id": "v-semantic",
+    "term": "semantic",
+    "phonetic": "/sɪˈmæntɪk/",
+    "difficulty": "Hard",
+    "definition": "of or relating to meaning or the study of meaning",
+    "example": "semantic analysis"
+  },
+  {
+    "id": "v-indirect",
+    "term": "indirect",
+    "phonetic": "/ˌɪndɝˈɛkt/",
+    "difficulty": "Medium",
+    "definition": "having intervening factors or persons or influences",
+    "example": "reflection from the ceiling provided a soft indirect light"
+  },
+  {
+    "id": "v-emergence",
+    "term": "emergence",
+    "phonetic": "/ˈimɝdʒəns/",
+    "difficulty": "Hard",
+    "definition": "the gradual beginning or coming forth",
+    "example": "figurines presage the emergence of sculpture in Greece"
+  },
+  {
+    "id": "v-circulation",
+    "term": "circulation",
+    "phonetic": "/ˈsɝkjəˌɫeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "the dissemination of copies of periodicals (as newspapers or magazines)"
+  },
+  {
+    "id": "v-maximize",
+    "term": "maximize",
+    "phonetic": "/ˈmæksəˌmaɪz/",
+    "difficulty": "Hard",
+    "definition": "make as big or large as possible",
+    "example": "Maximize your profits!"
+  },
+  {
+    "id": "v-layout",
+    "term": "layout",
+    "phonetic": "/ˈɫeɪˌaʊt/",
+    "difficulty": "Medium",
+    "definition": "a plan or design of something that is laid out"
+  },
+  {
+    "id": "v-competent",
+    "term": "competent",
+    "phonetic": "/ˈkɑmpətɪnt/",
+    "difficulty": "Medium",
+    "definition": "properly or sufficiently qualified or capable or efficient",
+    "example": "a competent typist"
+  },
+  {
+    "id": "v-damp",
+    "term": "damp",
+    "phonetic": "/ˈdæmp/",
+    "difficulty": "Hard",
+    "definition": "deaden (a sound or noise), especially by wrapping"
+  },
+  {
+    "id": "v-occurrence",
+    "term": "occurrence",
+    "phonetic": "/əˈkɝəns/",
+    "difficulty": "Hard",
+    "definition": "an event that happens"
+  },
+  {
+    "id": "v-marble",
+    "term": "marble",
+    "phonetic": "/ˈmɑɹbəɫ/",
+    "difficulty": "Medium",
+    "definition": "paint or stain like marble",
+    "example": "marble paper"
+  },
+  {
+    "id": "v-momentum",
+    "term": "momentum",
+    "phonetic": "/moʊˈmɛntəm/",
+    "difficulty": "Medium",
+    "definition": "an impelling force or strength",
+    "example": "the car's momentum carried it off the road"
+  },
+  {
+    "id": "v-simplify",
+    "term": "simplify",
+    "phonetic": "/ˈsɪmpɫəˌfaɪ/",
+    "difficulty": "Hard",
+    "definition": "make simpler or easier or reduce in complexity or extent",
+    "example": "We had to simplify the instructions"
+  },
+  {
+    "id": "v-syndrome",
+    "term": "syndrome",
+    "phonetic": "/ˈsɪnˌdɹoʊm/",
+    "difficulty": "Easy",
+    "definition": "a complex of concurrent things",
+    "example": "every word has a syndrome of meanings"
+  },
+  {
+    "id": "v-complication",
+    "term": "complication",
+    "phonetic": "/ˌkɑmpɫəˈkeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "the act or process of complicating"
+  },
+  {
+    "id": "v-supposedly",
+    "term": "supposedly",
+    "phonetic": "/səˈpoʊzədɫi/",
+    "difficulty": "Medium",
+    "definition": "believed or reputed to be the case",
+    "example": "The document purportedly proves the conspiracy, but its authenticity is still under question."
+  },
+  {
+    "id": "v-molecular",
+    "term": "molecular",
+    "phonetic": "/məˈɫɛkjəɫɝ/",
+    "difficulty": "Medium",
+    "definition": "relating to or produced by or consisting of molecules",
+    "example": "molecular structure"
+  },
+  {
+    "id": "v-marginal",
+    "term": "marginal",
+    "phonetic": "/ˈmɑɹdʒənəɫ/",
+    "difficulty": "Hard",
+    "definition": "at or constituting a border or edge",
+    "example": "the marginal strip of beach"
+  },
+  {
+    "id": "v-philosophical",
+    "term": "philosophical",
+    "phonetic": "/ˌfɪɫəˈsɑfɪkəɫ/",
+    "difficulty": "Medium",
+    "definition": "of or relating to philosophy or philosophers",
+    "example": "philosophical writing"
+  },
+  {
+    "id": "v-goat",
+    "term": "goat",
+    "phonetic": "/ˈɡoʊt/",
+    "difficulty": "Medium",
+    "definition": "any of numerous agile ruminants related to sheep but having a beard and straight horns"
+  },
+  {
+    "id": "v-forum",
+    "term": "forum",
+    "phonetic": "/ˈfɔɹəm/",
+    "difficulty": "Easy",
+    "definition": "a public meeting or assembly for open discussion"
+  },
+  {
+    "id": "v-capitalism",
+    "term": "capitalism",
+    "phonetic": "/ˈkæpɪtəˌɫɪzəm/",
+    "difficulty": "Medium",
+    "definition": "an economic system based on private ownership of capital"
+  },
+  {
+    "id": "v-tolerance",
+    "term": "tolerance",
+    "phonetic": "/ˈtɑɫɝəns/",
+    "difficulty": "Medium",
+    "definition": "the power or capacity of an organism to tolerate unfavorable environmental conditions"
+  },
+  {
+    "id": "v-habitat",
+    "term": "habitat",
+    "phonetic": "/ˈhæbəˌtæt/",
+    "difficulty": "Medium",
+    "definition": "the type of environment in which an organism or group normally lives or occurs",
+    "example": "a marine habitat"
+  },
+  {
+    "id": "v-elevate",
+    "term": "elevate",
+    "phonetic": "/ˈɛɫəˌveɪt/",
+    "difficulty": "Hard",
+    "definition": "give a promotion to or assign to a higher position",
+    "example": "John was kicked upstairs when a replacement was hired"
+  },
+  {
+    "id": "v-viable",
+    "term": "viable",
+    "phonetic": "/ˈvaɪəbəɫ/",
+    "difficulty": "Medium",
+    "definition": "capable of being done with means at hand and circumstances as they are"
+  },
+  {
+    "id": "v-maternal",
+    "term": "maternal",
+    "phonetic": "/məˈtɝnəɫ/",
+    "difficulty": "Hard",
+    "definition": "characteristic of a mother",
+    "example": "{'source': 'Dorothy Sayers', 'text': 'warm maternal affection for her guest'}"
+  },
+  {
+    "id": "v-linear",
+    "term": "linear",
+    "phonetic": "/ˈɫɪniɝ/",
+    "difficulty": "Medium",
+    "definition": "designating or involving an equation whose terms are of the first degree"
+  },
+  {
+    "id": "v-halfway",
+    "term": "halfway",
+    "phonetic": "/ˈhæfˈweɪ/",
+    "difficulty": "Medium",
+    "definition": "equally distant from the extremes"
+  },
+  {
+    "id": "v-bizarre",
+    "term": "bizarre",
+    "phonetic": "/bəˈzɑɹ/",
+    "difficulty": "Medium",
+    "definition": "conspicuously or grossly unconventional or unusual",
+    "example": "restaurants of bizarre design — one like a hat, another like a rabbit"
+  },
+  {
+    "id": "v-atom",
+    "term": "atom",
+    "phonetic": "/ˈætəm/",
+    "difficulty": "Hard",
+    "definition": "(physics and chemistry) the smallest component of an element having the chemical properties of the element"
+  },
+  {
+    "id": "v-impulse",
+    "term": "impulse",
+    "phonetic": "/ˈɪmpəɫs/",
+    "difficulty": "Hard",
+    "definition": "an instinctive motive",
+    "example": "profound religious impulses"
+  },
+  {
+    "id": "v-pardon",
+    "term": "pardon",
+    "phonetic": "/ˈpɑɹdən/",
+    "difficulty": "Hard",
+    "definition": "accept an excuse for",
+    "example": "Please excuse my dirty hands"
+  },
+  {
+    "id": "v-inclusion",
+    "term": "inclusion",
+    "phonetic": "/ˌɪnˈkɫuʒən/",
+    "difficulty": "Medium",
+    "definition": "the state of being included"
+  },
+  {
+    "id": "v-toxic",
+    "term": "toxic",
+    "phonetic": "/ˈtɑksɪk/",
+    "difficulty": "Easy",
+    "definition": "of or relating to or caused by a toxin or poison",
+    "example": "suffering from exposure to toxic substances"
+  },
+  {
+    "id": "v-methodology",
+    "term": "methodology",
+    "phonetic": "/ˌmɛθəˈdɑɫədʒi/",
+    "difficulty": "Hard",
+    "definition": "the branch of philosophy that analyzes the principles and procedures of inquiry in a particular discipline"
+  },
+  {
+    "id": "v-validity",
+    "term": "validity",
+    "phonetic": "/vəˈɫɪdəti/",
+    "difficulty": "Hard",
+    "definition": "the quality of being valid and rigorous"
+  },
+  {
+    "id": "v-illusion",
+    "term": "illusion",
+    "phonetic": "/ˌɪˈɫuʒən/",
+    "difficulty": "Medium",
+    "definition": "an erroneous mental representation",
+    "example": "Artists use perspective in art to create an illusion of depth."
+  },
+  {
+    "id": "v-globalization",
+    "term": "globalization",
+    "phonetic": "/ˌɡɫoʊbəɫɪˈzeɪʃən/",
+    "difficulty": "Hard",
+    "definition": "growth to a global or worldwide scale",
+    "example": "the globalization of the communication industry"
+  },
+  {
+    "id": "v-pathway",
+    "term": "pathway",
+    "phonetic": "/ˈpæθˌweɪ/",
+    "difficulty": "Hard",
+    "definition": "a bundle of myelinated nerve fibers following a path through the brain"
+  },
+  {
+    "id": "v-unify",
+    "term": "unify",
+    "phonetic": "/ˈjunəˌfaɪ/",
+    "difficulty": "Hard",
+    "definition": "become one",
+    "example": "Germany unified officially in 1990"
+  },
+  {
+    "id": "v-swap",
+    "term": "swap",
+    "phonetic": "/ˈswɑp/",
+    "difficulty": "Medium",
+    "definition": "exchange or give (something) in exchange for"
+  },
+  {
+    "id": "v-gravity",
+    "term": "gravity",
+    "phonetic": "/ˈɡɹævəti/",
+    "difficulty": "Easy",
+    "definition": "(physics) the force of attraction between all masses in the universe; especially the attraction of the earth's mass for bodies near its surface",
+    "example": "the more remote the body, the less the gravity"
+  },
+  {
+    "id": "v-incidence",
+    "term": "incidence",
+    "phonetic": "/ˈɪnsədəns/",
+    "difficulty": "Hard",
+    "definition": "the relative frequency of occurrence of something"
+  },
+  {
+    "id": "v-dependence",
+    "term": "dependence",
+    "phonetic": "/dɪˈpɛndəns/",
+    "difficulty": "Hard",
+    "definition": "the state of relying on or being controlled by someone or something else"
+  },
+  {
+    "id": "v-athletic",
+    "term": "athletic",
+    "phonetic": "/æθˈɫɛtɪk/",
+    "difficulty": "Medium",
+    "definition": "relating to or befitting athletics or athletes",
+    "example": "athletic facilities"
+  },
+  {
+    "id": "v-continuity",
+    "term": "continuity",
+    "phonetic": "/ˌkɑntəˈnuəti/",
+    "difficulty": "Hard",
+    "definition": "uninterrupted connection or union"
+  },
+  {
+    "id": "v-economically",
+    "term": "economically",
+    "phonetic": "/ˌɛkəˈnɑmɪkɫi/",
+    "difficulty": "Hard",
+    "definition": "with respect to economic science",
+    "example": "economically this proposal makes no sense"
+  },
+  {
+    "id": "v-mechanic",
+    "term": "mechanic",
+    "phonetic": "/məˈkænɪk/",
+    "difficulty": "Hard",
+    "definition": "resembling the action of a machine",
+    "example": "{'source': 'Emily Dickenson', 'text': 'from blank to blank a threadless way I pushed mechanic feet'}"
+  },
+  {
+    "id": "v-horizontal",
+    "term": "horizontal",
+    "phonetic": "/ˌhɔɹəˈzɑntəɫ/",
+    "difficulty": "Medium",
+    "definition": "parallel to or in the plane of the horizon or a base line",
+    "example": "a horizontal surface"
+  },
+  {
+    "id": "v-sword",
+    "term": "sword",
+    "phonetic": "/ˈsɔɹd/",
+    "difficulty": "Easy",
+    "definition": "a cutting or thrusting weapon that has a long metal blade and a hilt with a hand guard"
+  },
+  {
+    "id": "v-aesthetic",
+    "term": "aesthetic",
+    "phonetic": "/ɛsˈθɛtɪk/",
+    "difficulty": "Medium",
+    "definition": "relating to or dealing with the subject of aesthetics",
+    "example": "esthetic values"
+  },
+  {
+    "id": "v-disturbance",
+    "term": "disturbance",
+    "phonetic": "/dɪˈstɝbəns/",
+    "difficulty": "Hard",
+    "definition": "activity that is a malfunction, intrusion, or interruption",
+    "example": "the term ‘distress’ connotes some degree of perturbation and emotional upset"
+  },
+  {
+    "id": "v-irrelevant",
+    "term": "irrelevant",
+    "phonetic": "/ˌɪˈɹɛɫəvənt/",
+    "difficulty": "Medium",
+    "definition": "having no bearing on or connection with the subject at issue",
+    "example": "an irrelevant comment"
+  },
+  {
+    "id": "v-contradiction",
+    "term": "contradiction",
+    "phonetic": "/ˌkɑntɹəˈdɪkʃən/",
+    "difficulty": "Hard",
+    "definition": "opposition between two conflicting forces or ideas"
+  },
+  {
+    "id": "v-orient",
+    "term": "orient",
+    "phonetic": "/ˈɔɹiˌɛnt/",
+    "difficulty": "Hard",
+    "definition": "be oriented",
+    "example": "The weather vane points North"
+  },
+  {
+    "id": "v-monopoly",
+    "term": "monopoly",
+    "phonetic": "/məˈnɑpəɫi/",
+    "difficulty": "Hard",
+    "definition": "(economics) a market in which there are many buyers but only one seller",
+    "example": "a monopoly on silver"
+  },
+  {
+    "id": "v-protocol",
+    "term": "protocol",
+    "phonetic": "/ˈpɹoʊtəˌkɑɫ/",
+    "difficulty": "Easy",
+    "definition": "(computer science) rules determining the format and transmission of data"
+  },
+  {
+    "id": "v-primitive",
+    "term": "primitive",
+    "phonetic": "/ˈpɹɪmətɪv/",
+    "difficulty": "Hard",
+    "definition": "belonging to an early stage of technical development; characterized by simplicity and (often) crudeness",
+    "example": "the crude weapons and rude agricultural implements of early man"
+  },
+  {
+    "id": "v-minus",
+    "term": "minus",
+    "phonetic": "/ˈmaɪnəs/",
+    "difficulty": "Medium",
+    "definition": "on the negative side or lower end of a scale",
+    "example": "minus 5 degrees"
+  },
+  {
+    "id": "v-philosopher",
+    "term": "philosopher",
+    "phonetic": "/fəˈɫɑsəfɝ/",
+    "difficulty": "Hard",
+    "definition": "a specialist in philosophy"
+  },
+  {
+    "id": "v-inhibit",
+    "term": "inhibit",
+    "phonetic": "/ˌɪnˈhɪbət/",
+    "difficulty": "Hard",
+    "definition": "prohibit, forbid, or prevent from doing something",
+    "example": "Contact between the young was inhibited by strict social customs"
+  },
+  {
+    "id": "v-hydrogen",
+    "term": "hydrogen",
+    "phonetic": "/ˈhaɪdɹədʒən/",
+    "difficulty": "Medium",
+    "definition": "a nonmetallic univalent element that is normally a colorless and odorless highly flammable diatomic gas; the simplest and lightest and most abundant element in the universe"
+  },
+  {
+    "id": "v-multiply",
+    "term": "multiply",
+    "phonetic": "/ˈməɫtəˌpɫaɪ/",
+    "difficulty": "Hard",
+    "definition": "combine by multiplication",
+    "example": "multiply 10 by 15"
+  },
+  {
+    "id": "v-dioxide",
+    "term": "dioxide",
+    "phonetic": "/daɪˈɑkˌsaɪd/",
+    "difficulty": "Hard",
+    "definition": "an oxide containing two atoms of oxygen in the molecule"
+  },
+  {
+    "id": "v-parcel",
+    "term": "parcel",
+    "phonetic": "/ˈpɑɹsəɫ/",
+    "difficulty": "Hard",
+    "definition": "divide into parts",
+    "example": "The developers parceled the land"
+  },
+  {
+    "id": "v-offspring",
+    "term": "offspring",
+    "phonetic": "/ˈɔfsˌpɹɪŋ/",
+    "difficulty": "Hard",
+    "definition": "the immediate descendants of a person",
+    "example": "she was the mother of many offspring"
+  },
+  {
+    "id": "v-technically",
+    "term": "technically",
+    "phonetic": "/ˈtɛknɪkəɫi/",
+    "difficulty": "Medium",
+    "definition": "with regard to technique",
+    "example": "technically lagging behind the Japanese"
+  },
+  {
+    "id": "v-prey",
+    "term": "prey",
+    "phonetic": "/ˈpɹeɪ/",
+    "difficulty": "Medium",
+    "definition": "profit from in an exploitatory manner",
+    "example": "He feeds on her insecurity"
+  },
+  {
+    "id": "v-valve",
+    "term": "valve",
+    "phonetic": "/ˈvæɫv/",
+    "difficulty": "Medium",
+    "definition": "a structure in a hollow organ (like the heart) with a flap to insure one-way flow of fluid through it"
+  },
+  {
+    "id": "v-shuttle",
+    "term": "shuttle",
+    "phonetic": "/ˈʃətəɫ/",
+    "difficulty": "Medium",
+    "definition": "travel back and forth between two points"
+  },
+  {
+    "id": "v-simulation",
+    "term": "simulation",
+    "phonetic": "/ˌsɪmjəˈɫeɪʃən/",
+    "difficulty": "Medium",
+    "definition": "the act of imitating the behavior of some situation or some process by means of something suitably analogous (especially for the purpose of study or personnel training)"
+  },
+  {
+    "id": "v-standardize",
+    "term": "standardize",
+    "phonetic": "/ˈstændɝˌdaɪz/",
+    "difficulty": "Hard",
+    "definition": "cause to conform to standard or norm",
+    "example": "The weights and measures were standardized"
+  },
+  {
+    "id": "v-integral",
+    "term": "integral",
+    "phonetic": "/ˈɪnəɡɹəɫ/",
+    "difficulty": "Medium",
+    "definition": "existing as an essential constituent or characteristic",
+    "example": "the Ptolemaic system with its built-in concept of periodicity"
+  },
+  {
+    "id": "v-decay",
+    "term": "decay",
+    "phonetic": "/dɪˈkeɪ/",
+    "difficulty": "Hard",
+    "definition": "lose a stored charge, magnetic flux, or current",
+    "example": "the particles disintegrated during the nuclear fission process"
+  },
+  {
+    "id": "v-nicely",
+    "term": "nicely",
+    "phonetic": "/ˈnaɪsɫi/",
+    "difficulty": "Medium",
+    "definition": "in a nice way",
+    "example": "a nicely painted house"
+  },
+  {
+    "id": "v-inequality",
+    "term": "inequality",
+    "phonetic": "/ˈɪniˈkwɑɫəti/",
+    "difficulty": "Medium",
+    "definition": "lack of equality",
+    "example": "the growing inequality between rich and poor"
+  },
+  {
+    "id": "v-predominantly",
+    "term": "predominantly",
+    "phonetic": "/ˌpɹɪˈdɑmənəntˌɫi/",
+    "difficulty": "Hard",
+    "definition": "much greater in number or influence",
+    "example": "the patients are predominantly indigenous"
+  },
+  {
+    "id": "v-artifact",
+    "term": "artifact",
+    "phonetic": "/ˈɑɹtəˌfækt/",
+    "difficulty": "Hard",
+    "definition": "a man-made object taken as a whole"
+  },
+  {
+    "id": "v-selective",
+    "term": "selective",
+    "phonetic": "/səˈɫɛktɪv/",
+    "difficulty": "Medium",
+    "definition": "tending to select; characterized by careful choice",
+    "example": "{'source': 'John Mason Brown', 'text': 'an exceptionally quick and selective reader'}"
+  },
+  {
+    "id": "v-bucket",
+    "term": "bucket",
+    "phonetic": "/ˈbəkət/",
+    "difficulty": "Medium",
+    "definition": "put into a bucket"
+  },
+  {
+    "id": "v-stripe",
+    "term": "stripe",
+    "phonetic": "/ˈstɹaɪp/",
+    "difficulty": "Hard",
+    "definition": "mark with stripes"
+  },
+  {
+    "id": "v-utterance",
+    "term": "utterance",
+    "phonetic": "/ˈətɝəns/",
+    "difficulty": "Hard",
+    "definition": "the use of uttered sounds for auditory communication"
+  },
+  {
+    "id": "v-problematic",
+    "term": "problematic",
+    "phonetic": "/ˌpɹɑbɫəˈmætɪk/",
+    "difficulty": "Medium",
+    "definition": "open to doubt or debate",
+    "example": "If you ever get married, which seems to be extremely problematic"
+  },
+  {
+    "id": "v-liable",
+    "term": "liable",
+    "phonetic": "/ˈɫaɪəbəɫ/",
+    "difficulty": "Medium",
+    "definition": "at risk of or subject to experiencing something usually unpleasant",
+    "example": "he is apt to lose"
+  },
+  {
+    "id": "v-cord",
+    "term": "cord",
+    "phonetic": "/ˈkɔɹd/",
+    "difficulty": "Medium",
+    "definition": "stack in cords",
+    "example": "cord firewood"
+  },
+  {
+    "id": "v-denote",
+    "term": "denote",
+    "phonetic": "/dɪˈnoʊt/",
+    "difficulty": "Hard",
+    "definition": "be a sign or indication of",
+    "example": "Her smile denoted that she agreed"
+  },
+  {
+    "id": "v-morality",
+    "term": "morality",
+    "phonetic": "/mɝˈæɫəti/",
+    "difficulty": "Medium",
+    "definition": "concern with the distinction between good and evil or right and wrong; right or good conduct"
+  },
+  {
+    "id": "v-static",
+    "term": "static",
+    "phonetic": "/ˈstætɪk/",
+    "difficulty": "Medium",
+    "definition": "not in physical motion",
+    "example": "She remained motionless, yet poised to take flight"
+  },
+  {
+    "id": "v-axis",
+    "term": "axis",
+    "phonetic": "/ˈæksəs/",
+    "difficulty": "Medium",
+    "definition": "a straight line through a body or figure that satisfies certain conditions"
+  },
+  {
+    "id": "v-dialect",
+    "term": "dialect",
+    "phonetic": "/ˈdaɪəˌɫɛkt/",
+    "difficulty": "Hard",
+    "definition": "the usage or vocabulary that is characteristic of a specific group of people",
+    "example": "the immigrants spoke an odd dialect of English"
+  },
+  {
+    "id": "v-fringe",
+    "term": "fringe",
+    "phonetic": "/ˈfɹɪndʒ/",
+    "difficulty": "Medium",
+    "definition": "adorn with a fringe",
+    "example": "The weaver fringed the scarf"
+  },
+  {
+    "id": "v-textbook",
+    "term": "textbook",
+    "phonetic": "/ˈtɛkstˌbʊk/",
+    "difficulty": "Hard",
+    "definition": "according to or characteristic of a casebook or textbook; typical",
+    "example": "a casebook schizophrenic"
+  },
+  {
+    "id": "v-unintelligible",
+    "term": "unintelligible",
+    "phonetic": "/ˌənɪnˈtɛɫədʒəbəɫ/",
+    "difficulty": "Hard",
+    "definition": "poorly articulated or enunciated, or drowned by noise",
+    "example": "unintelligible speech"
+  },
+  {
+    "id": "v-antibody",
+    "term": "antibody",
+    "phonetic": "/ˈæntiˌbɑdi/",
+    "difficulty": "Hard",
+    "definition": "any of a large variety of proteins normally present in the body or produced in response to an antigen which it neutralizes, thus producing an immune response"
+  },
+  {
+    "id": "v-bracket",
+    "term": "bracket",
+    "phonetic": "/ˈbɹækɪt/",
+    "difficulty": "Hard",
+    "definition": "support with brackets",
+    "example": "bracket bookshelves"
+  },
+  {
+    "id": "v-spontaneous",
+    "term": "spontaneous",
+    "phonetic": "/spɑnˈteɪniəs/",
+    "difficulty": "Hard",
+    "definition": "happening or arising without apparent external cause",
+    "example": "spontaneous laughter"
+  },
+  {
+    "id": "v-fundamentally",
+    "term": "fundamentally",
+    "phonetic": "/ˌfəndəˈmɛnəɫi/",
+    "difficulty": "Hard",
+    "definition": "in essence; at bottom or by one's (or its) very nature",
+    "example": "He is basically dishonest"
+  },
+  {
+    "id": "v-fusion",
+    "term": "fusion",
+    "phonetic": "/ˈfjuʒən/",
+    "difficulty": "Medium",
+    "definition": "an occurrence that involves the production of a union"
+  },
+  {
+    "id": "v-correlate",
+    "term": "correlate",
+    "phonetic": "/ˈkɔɹəˌɫeɪt/",
+    "difficulty": "Hard",
+    "definition": "to bear a reciprocal or mutual relation",
+    "example": "Do these facts correlate?"
+  },
+  {
+    "id": "v-onset",
+    "term": "onset",
+    "phonetic": "/ˈɑnˌsɛt/",
+    "difficulty": "Hard",
+    "definition": "the beginning or early stages",
+    "example": "the onset of pneumonia"
+  },
+  {
+    "id": "v-sniff",
+    "term": "sniff",
+    "phonetic": "/ˈsnɪf/",
+    "difficulty": "Hard",
+    "definition": "perceive by inhaling through the nose",
+    "example": "sniff the perfume"
+  },
+  {
+    "id": "v-retrieve",
+    "term": "retrieve",
+    "phonetic": "/ɹiˈtɹiv/",
+    "difficulty": "Hard",
+    "definition": "get or find back; recover the use of",
+    "example": "She regained control of herself"
+  },
+  {
+    "id": "v-sexuality",
+    "term": "sexuality",
+    "phonetic": "/ˌsɛkʃuˈæɫəti/",
+    "difficulty": "Medium",
+    "definition": "the properties that distinguish organisms on the basis of their reproductive roles",
+    "example": "she didn't want to know the sex of the foetus"
+  }
+]

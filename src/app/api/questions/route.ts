@@ -7,12 +7,14 @@ import {
   fetchQuestionsByIds,
   queryQuestions,
 } from "@/lib/server-questions";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const sp = new URL(req.url).searchParams;
     const domain = sp.get("domain");
     const skill = sp.get("skill");
@@ -25,16 +27,23 @@ export async function GET(req: Request) {
     const page = Math.max(1, Number(sp.get("page") ?? 1) || 1);
     const pageSize = Math.min(Math.max(1, Number(sp.get("pageSize") ?? 48) || 48), 200);
 
-    const where = buildQuestionFilters({ domain, skill, subskill, difficulty, search, favoritesOnly });
+    const where = buildQuestionFilters({
+      domain, skill, subskill, difficulty, search, favoritesOnly, userId: user.id,
+    });
 
     if (random && limit > 0) {
-      const questions = await queryQuestions({ where, orderBy: sql`ORDER BY random()`, limit });
+      const questions = await queryQuestions({
+        userId: user.id,
+        where,
+        orderBy: sql`ORDER BY random()`,
+        limit,
+      });
       return NextResponse.json({ total: questions.length, page: 1, pageSize: limit, questions });
     }
 
     const [total, questions] = await Promise.all([
       countQuestions(where),
-      queryQuestions({ where, limit: pageSize, offset: (page - 1) * pageSize }),
+      queryQuestions({ userId: user.id, where, limit: pageSize, offset: (page - 1) * pageSize }),
     ]);
     return NextResponse.json({ total, page, pageSize, questions });
   } catch (e) {
@@ -43,12 +52,12 @@ export async function GET(req: Request) {
   }
 }
 
-/** Batch fetch by explicit ids (order preserved) */
 export async function POST(req: Request) {
   try {
+    const user = await getRequestUser(req);
     const body = await req.json();
     const ids: string[] = Array.isArray(body?.ids) ? body.ids.slice(0, 500).map(String) : [];
-    const questions = await fetchQuestionsByIds(ids);
+    const questions = await fetchQuestionsByIds(ids, user.id);
     return NextResponse.json({ total: questions.length, page: 1, pageSize: questions.length, questions });
   } catch (e) {
     console.error("[api/questions] POST failed:", e);

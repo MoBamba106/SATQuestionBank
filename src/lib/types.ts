@@ -41,6 +41,7 @@ export interface StudyCollection {
   id: string;
   name: string;
   description: string | null;
+  icon: string;
   questionIds: string[];
   questionCount: number;
   createdAt: string;
@@ -52,6 +53,7 @@ export interface PracticeTestInfo {
   testNumber: number;
   title: string;
   releaseLabel: string | null;
+  isCustom?: boolean;
   rwMinutes: number;
   mathMinutes: number;
   totalQuestions: number;
@@ -59,13 +61,30 @@ export interface PracticeTestInfo {
   mathQuestions: number;
 }
 
+export type AdaptiveRoute = "easier" | "harder";
+
+export interface AdaptivePath {
+  rw: AdaptiveRoute;
+  math: AdaptiveRoute;
+}
+
 export interface PracticeTestDetail extends PracticeTestInfo {
   modules: {
     rw1: SATQuestion[];
-    rw2: SATQuestion[];
+    rw2Easy: SATQuestion[];
+    rw2Hard: SATQuestion[];
     math1: SATQuestion[];
-    math2: SATQuestion[];
+    math2Easy: SATQuestion[];
+    math2Hard: SATQuestion[];
   };
+}
+
+export interface SkillBand {
+  domain: string;
+  section: "Reading & Writing" | "Math" | string;
+  correct: number;
+  total: number;
+  band: number;
 }
 
 export interface SessionSummary {
@@ -76,6 +95,11 @@ export interface SessionSummary {
   totalQuestions: number;
   correctCount: number | null;
   answeredCount: number | null;
+  adaptivePath: AdaptivePath | null;
+  totalScore: number | null;
+  rwScore: number | null;
+  mathScore: number | null;
+  skillBands: SkillBand[] | null;
   startedAt: string;
   finishedAt: string | null;
   attempts: {

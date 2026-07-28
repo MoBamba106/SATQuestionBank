@@ -1,10 +1,21 @@
 "use client";
 
-import * as React from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
-import { cn } from "@/lib/utils";
+import { useSettings } from "@/components/settings-provider";
+import { answersMatch, cn, resolveCorrectAnswer } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
+
+/** Pretty-print accepted keys like "0|3" → "0 or 3". */
+function formatAcceptedAnswer(answer: string): string {
+  const parts = String(answer || "")
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length <= 1) return answer || "—";
+  if (parts.length === 2) return `${parts[0]} or ${parts[1]}`;
+  return `${parts.slice(0, -1).join(", ")}, or ${parts.at(-1)}`;
+}
 
 /**
  * Shared question renderer used by practice, exam and Bluebook modes.
@@ -26,14 +37,20 @@ export function QuestionView({
   lockSelection?: boolean;
   showExplanation?: boolean;
 }) {
-  const [draft, setDraft] = React.useState(selected ?? "");
-  React.useEffect(() => setDraft(selected ?? ""), [selected, question.id]);
+  const { settings } = useSettings();
+  const correctKey = resolveCorrectAnswer(question.correctAnswer, question.explanation);
+  const expandPassages = settings.expandPassages;
 
   return (
     <div className="space-y-4">
       {question.passageHtml && (
-        <div className="glass-subtle max-h-[380px] overflow-y-auto p-4 sm:p-5 scrollbar-thin">
-          <SafeHtml html={question.passageHtml} className="sat-content text-[14.5px] text-[#3a3833]" />
+        <div
+          className={cn(
+            "glass-subtle p-4 sm:p-5 scrollbar-thin",
+            expandPassages ? "overflow-visible" : "max-h-[380px] overflow-y-auto",
+          )}
+        >
+          <SafeHtml html={question.passageHtml} className="sat-content text-[14.5px] text-[var(--ink-soft)]" />
         </div>
       )}
 
@@ -43,32 +60,25 @@ export function QuestionView({
         <div className="space-y-2.5 pt-1">
           {question.choices.map((c) => {
             const isSel = selected === c.key;
-            const isAnswer = c.key.toUpperCase() === question.correctAnswer.toUpperCase();
+            const isAnswer = c.key.toUpperCase() === correctKey.toUpperCase();
             const wasCheckedWrong = graded && isSel && !isAnswer;
+            const answerState = graded
+              ? isAnswer ? "correct" : wasCheckedWrong ? "wrong" : "muted"
+              : isSel ? "selected" : "idle";
             return (
               <button
                 key={c.key}
                 disabled={lockSelection}
                 onClick={() => onSelect(c.key)}
+                data-answer-state={answerState}
                 className={cn(
-                  "flex w-full items-start gap-3.5 rounded-2xl border-[1.5px] px-4 py-3 text-left transition-all duration-150",
-                  !graded && !isSel && "border-[#e7e0d0] bg-white hover:border-[#b9c9f2] hover:bg-[#f7f9fe]",
-                  !graded && isSel && "border-[#3a5fc8] bg-[#eef2fd] shadow-[0_0_0_3px_rgba(58,95,200,0.10)]",
-                  graded && isAnswer && "border-[#2ca974] bg-[#ecf8f1]",
-                  wasCheckedWrong && "border-[#d95670] bg-[#fdf0f2]",
-                  graded && !isAnswer && !isSel && "border-[#e7e0d0] bg-white opacity-70",
+                  "answer-choice flex w-full items-start gap-3.5 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
                   lockSelection && "cursor-default",
                 )}
               >
                 <span
-                  className={cn(
-                    "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-[1.5px] font-mono text-[12.5px] font-bold transition-colors",
-                    !graded && !isSel && "border-[#d5cfc0] bg-[#faf8f3] text-[#8a8680]",
-                    !graded && isSel && "border-[#3a5fc8] bg-[#3a5fc8] text-white",
-                    graded && isAnswer && "border-[#2ca974] bg-[#2ca974] text-white",
-                    wasCheckedWrong && "border-[#d95670] bg-[#d95670] text-white",
-                    graded && !isAnswer && !isSel && "border-[#e0d9c8] bg-white text-[#b0aa98]",
-                  )}
+                  data-answer-state={answerState}
+                  className="answer-letter mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border font-mono text-[12.5px] font-bold transition-colors"
                 >
                   {c.key}
                 </span>
@@ -82,38 +92,36 @@ export function QuestionView({
           })}
         </div>
       ) : (
-        // free response (student-produced response)
         <div className="pt-1">
-          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[#8a8680]">
+          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
             Your answer
           </label>
           <div className="flex max-w-sm items-center gap-3">
             <input
               className={cn(
                 "input grow font-mono text-[15px]",
-                graded && selected && selected.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase()
-                  ? "border-[#2ca974] bg-[#ecf8f1]"
+                graded && selected && answersMatch(selected, correctKey)
+                  ? "answer-input-correct"
                   : graded
-                    ? "border-[#d95670] bg-[#fdf0f2]"
+                    ? "answer-input-wrong"
                     : "",
               )}
-              value={draft}
+              value={selected ?? ""}
               disabled={lockSelection}
               placeholder="Type your answer…"
-              onChange={(e) => {
-                setDraft(e.target.value);
-                onSelect(e.target.value);
-              }}
+              onChange={(e) => onSelect(e.target.value)}
             />
             {graded && (
-              <span className="text-[13px] font-semibold text-[#238a5e]">Answer: {question.correctAnswer}</span>
+              <span className="text-[13px] font-semibold text-[#238a5e]">
+                Answer: {formatAcceptedAnswer(correctKey)}
+              </span>
             )}
           </div>
         </div>
       )}
 
       {graded && showExplanation && question.explanation && (
-        <div className="rounded-2xl border border-[#cfe5d8] bg-[#f2faf5] p-4 sm:p-5">
+        <div className="answer-explanation rounded-[6px] border p-4 sm:p-5">
           <p className="mb-2 text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#238a5e]">Explanation</p>
           <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
         </div>
