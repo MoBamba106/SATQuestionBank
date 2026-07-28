@@ -18,10 +18,12 @@ import {
   Settings2,
   Menu,
   X,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { FloatingStudyTimer } from "@/components/floating-study-timer";
+import { CommandPalette, useCommandPaletteHotkey } from "@/components/command-palette";
 
 const NAV_GROUPS = [
   {
@@ -95,10 +97,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 export function NavShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [paletteOpen, setPaletteOpen] = React.useState(false);
+  useCommandPaletteHotkey(setPaletteOpen);
 
   return (
-    <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[236px] flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex">
+    <div className="min-h-screen" data-shell>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[236px] flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex shell-aside">
         <Link href="/" className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-5">
           <div className="brand-mark flex h-9 w-9 items-center justify-center rounded-[6px]">
             <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
@@ -118,6 +122,17 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         <div className="border-t border-[var(--line)] px-3 py-3">
           <button
             type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="mb-1 flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+          >
+            <Search className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+            Go to…
+            <kbd className="ml-auto rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">
+              /
+            </kbd>
+          </button>
+          <button
+            type="button"
             onClick={() => setSettingsOpen(true)}
             className="flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
           >
@@ -130,7 +145,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden shell-header">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
           <div className="brand-mark flex h-8 w-8 items-center justify-center rounded-[5px]">
             <BookOpenText className="h-4 w-4 text-white" />
@@ -138,6 +153,14 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           <span className="font-display text-[18px] font-bold text-[var(--ink)]">SAT Nexus</span>
         </Link>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
+            aria-label="Open navigation"
+          >
+            <Search className="h-4 w-4" />
+          </button>
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
@@ -169,11 +192,16 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="px-4 py-6 sm:px-6 md:ml-[236px] md:px-8 md:py-8">
+      <main className="px-4 py-6 sm:px-6 md:ml-[236px] md:px-8 md:py-8 shell-main">
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
       <FloatingStudyTimer />
     </div>
   );

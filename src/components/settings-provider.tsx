@@ -5,6 +5,7 @@ import * as React from "react";
 export type AppTheme = "light" | "dark" | "obsidian" | "highlighter" | "liquid-glass" | "soft-paper" | "paper" | "cardboard";
 export type FontScale = "small" | "default" | "large";
 export type QuizModeSetting = "practice" | "exam";
+export type PassageLayout = "scroll" | "expand";
 
 export type AppSettings = {
   theme: AppTheme;
@@ -15,6 +16,10 @@ export type AppSettings = {
   soundEffects: boolean;
   defaultQuizSize: number;
   defaultQuizMode: QuizModeSetting;
+  /** When true, reading passages grow to full height instead of a fixed scroll box. */
+  expandPassages: boolean;
+  /** Default focus mode for Bluebook practice tests (hide chrome, fullscreen-like). */
+  focusModeDefault: boolean;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -26,10 +31,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   soundEffects: true,
   defaultQuizSize: 10,
   defaultQuizMode: "practice",
+  expandPassages: false,
+  focusModeDefault: false,
 };
 
-const STORAGE_KEY = "sat-nexus-settings-v2";
-const LEGACY_STORAGE_KEY = "sat-nexus-settings-v1";
+const STORAGE_KEY = "sat-nexus-settings-v3";
+const LEGACY_STORAGE_KEYS = ["sat-nexus-settings-v2", "sat-nexus-settings-v1"];
 
 type SettingsContextValue = {
   settings: AppSettings;
@@ -46,6 +53,7 @@ function applySettings(settings: AppSettings) {
   root.dataset.fontScale = settings.fontScale;
   root.dataset.density = settings.compactMode ? "compact" : "comfortable";
   root.dataset.reduceMotion = settings.reducedMotion ? "true" : "false";
+  root.dataset.expandPassages = settings.expandPassages ? "true" : "false";
   root.style.colorScheme = ["dark", "obsidian"].includes(settings.theme) ? "dark" : "light";
 }
 
@@ -56,14 +64,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const currentRaw = window.localStorage.getItem(STORAGE_KEY);
-        const legacyRaw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
-        const raw = currentRaw ?? legacyRaw;
+        let raw = window.localStorage.getItem(STORAGE_KEY);
+        let fromLegacy = false;
+        if (!raw) {
+          for (const key of LEGACY_STORAGE_KEYS) {
+            raw = window.localStorage.getItem(key);
+            if (raw) {
+              fromLegacy = true;
+              break;
+            }
+          }
+        }
         if (raw) {
           const saved = JSON.parse(raw) as Partial<AppSettings>;
-          // v1 shipped muted sounds as its implicit default. The v2 migration
-          // preserves every other preference while enabling the new default.
-          setSettings({ ...DEFAULT_SETTINGS, ...saved, ...(!currentRaw && { soundEffects: true }) });
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...saved,
+            // v1 shipped muted sounds; enable when migrating from that only.
+            ...(fromLegacy && saved.soundEffects == null ? { soundEffects: true } : {}),
+          });
         }
       } catch {
         // Invalid or unavailable local storage falls back to safe defaults.
@@ -119,7 +138,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings(DEFAULT_SETTINGS);
     try {
       window.localStorage.removeItem(STORAGE_KEY);
-      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+      for (const key of LEGACY_STORAGE_KEYS) window.localStorage.removeItem(key);
     } catch {
       // Nothing else to do.
     }

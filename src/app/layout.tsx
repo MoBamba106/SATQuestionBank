@@ -12,12 +12,18 @@ export const metadata: Metadata = {
 
 const themeBootScript = `
 try {
-  const saved = JSON.parse(localStorage.getItem('sat-nexus-settings-v2') || localStorage.getItem('sat-nexus-settings-v1') || '{}');
+  const saved = JSON.parse(
+    localStorage.getItem('sat-nexus-settings-v3')
+      || localStorage.getItem('sat-nexus-settings-v2')
+      || localStorage.getItem('sat-nexus-settings-v1')
+      || '{}'
+  );
   const root = document.documentElement;
   root.dataset.theme = saved.theme || 'soft-paper';
   root.dataset.fontScale = saved.fontScale || 'default';
   root.dataset.density = saved.compactMode ? 'compact' : 'comfortable';
   root.dataset.reduceMotion = saved.reducedMotion ? 'true' : 'false';
+  root.dataset.expandPassages = saved.expandPassages ? 'true' : 'false';
 } catch (_) {}
 `;
 

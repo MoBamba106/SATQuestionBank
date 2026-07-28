@@ -1,12 +1,19 @@
 {
-  "name": "nextjs-postgresql-template",
+  "name": "sat-nexus",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "desktop": "node desktop-launcher.js",
+    "desktop:install": "npm install --no-save electron@31 electron-builder@24",
+    "desktop:build": "npm run build && npx electron-builder --win --x64",
+    "tauri": "tauri",
+    "tauri:dev": "cross-env TAURI=1 next dev -p 1420",
+    "tauri:build": "node scripts/tauri-prebuild.js && cross-env TAURI=1 next build && node scripts/tauri-postbuild.js && tauri build",
+    "tauri:build:frontend": "node scripts/tauri-prebuild.js && cross-env TAURI=1 next build && node scripts/tauri-postbuild.js"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
@@ -38,6 +45,8 @@
     "eslint-config-next": "16.2.6",
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "@tauri-apps/cli": "^2.5.0",
+    "cross-env": "^7.0.3"
   }
 }

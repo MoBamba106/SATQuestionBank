@@ -2,6 +2,7 @@
 
 import { CheckCircle2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
+import { useSettings } from "@/components/settings-provider";
 import { answersMatch, cn, resolveCorrectAnswer } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
@@ -36,12 +37,19 @@ export function QuestionView({
   lockSelection?: boolean;
   showExplanation?: boolean;
 }) {
+  const { settings } = useSettings();
   const correctKey = resolveCorrectAnswer(question.correctAnswer, question.explanation);
+  const expandPassages = settings.expandPassages;
 
   return (
     <div className="space-y-4">
       {question.passageHtml && (
-        <div className="glass-subtle max-h-[380px] overflow-y-auto p-4 sm:p-5 scrollbar-thin">
+        <div
+          className={cn(
+            "glass-subtle p-4 sm:p-5 scrollbar-thin",
+            expandPassages ? "overflow-visible" : "max-h-[380px] overflow-y-auto",
+          )}
+        >
           <SafeHtml html={question.passageHtml} className="sat-content text-[14.5px] text-[var(--ink-soft)]" />
         </div>
       )}
@@ -84,7 +92,6 @@ export function QuestionView({
           })}
         </div>
       ) : (
-        // free response (student-produced response)
         <div className="pt-1">
           <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
             Your answer

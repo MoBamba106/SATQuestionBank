@@ -116,8 +116,8 @@ export function AddToCollectionButton({
                 className={cn(
                   "flex w-full items-center justify-between gap-3 rounded-[6px] border px-4 py-3 text-left transition-colors duration-150",
                   inCol
-                    ? "border-[#b9c9f2] bg-[#eef2fd] hover:bg-[#e4ebfc]"
-                    : "border-[var(--line-soft)] bg-white hover:border-[#cfc5ae] hover:bg-[#faf7ee]",
+                    ? "border-[var(--accent)] bg-[var(--accent-soft)] hover:brightness-110"
+                    : "border-[var(--line)] bg-[var(--paper-raised)] hover:border-[var(--accent)] hover:bg-[var(--paper-soft)]",
                 )}
               >
                 <CollectionIcon icon={c.icon} className="!h-8 !w-8" />
@@ -132,7 +132,9 @@ export function AddToCollectionButton({
                   <span
                     className={cn(
                       "flex h-6 w-6 items-center justify-center rounded-full border transition-all",
-                      inCol ? "border-[#3a5fc8] bg-[#3a5fc8] text-white" : "border-[var(--line)] bg-white text-transparent",
+                      inCol
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                        : "border-[var(--line)] bg-[var(--paper-soft)] text-transparent",
                     )}
                   >
                     {busyId === c.id ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--ink-faint)]" /> : <Check className="h-3.5 w-3.5" strokeWidth={3} />}

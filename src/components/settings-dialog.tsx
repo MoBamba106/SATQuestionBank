@@ -7,8 +7,10 @@ import {
   Clock3,
   Database,
   Eye,
+  Focus,
   LayoutGrid,
   Loader2,
+  Maximize2,
   RotateCcw,
   Settings2,
   ShieldCheck,
@@ -182,6 +184,8 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.compactMode} onChange={(compactMode) => updateSettings({ compactMode })} label="Compact layout" description="Fits more questions and controls on screen." icon={LayoutGrid} />
             <Toggle checked={settings.showTimer} onChange={(showTimer) => updateSettings({ showTimer })} label="Show practice timers" description="Hide elapsed time during ordinary quizzes to reduce pressure." icon={Clock3} />
             <Toggle checked={settings.soundEffects} onChange={(soundEffects) => updateSettings({ soundEffects })} label="Subtle interface sounds" description="Quiet tactile cues for buttons and toggles. On by default." icon={Volume2} />
+            <Toggle checked={settings.expandPassages} onChange={(expandPassages) => updateSettings({ expandPassages })} label="Expand reading passages" description="Show the full passage without an inner scroll box. Turn off to keep a compact scroll window." icon={Maximize2} />
+            <Toggle checked={settings.focusModeDefault} onChange={(focusModeDefault) => updateSettings({ focusModeDefault })} label="Focus mode for practice tests" description="Start Bluebook tests fullscreen-style: hide the sidebar and chrome. Leave test with the red exit button." icon={Focus} />
           </div>
         </section>
 

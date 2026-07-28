@@ -1,11 +1,19 @@
-const fs = require('fs');
-const path = require('path');
-const api = path.join(__dirname, '..', 'app', 'api');
-const bak = path.join(__dirname, '..', 'app', '_api_disabled');
+/**
+ * Prepare a static Next export for Tauri packaging.
+ * API routes cannot ship in a pure static export — they are moved aside
+ * for the build and restored afterwards. Prefer Electron (`npm run desktop`)
+ * if you need the full local PGlite/API stack inside the .exe.
+ */
+const fs = require("fs");
+const path = require("path");
+
+const api = path.join(__dirname, "..", "src", "app", "api");
+const bak = path.join(__dirname, "..", "src", "app", "_api_disabled");
+
 if (fs.existsSync(api)) {
   if (fs.existsSync(bak)) fs.rmSync(bak, { recursive: true, force: true });
   fs.renameSync(api, bak);
-  console.log('→ app/api → app/_api_disabled (for static export)');
+  console.log("→ src/app/api → src/app/_api_disabled (static export)");
 } else {
-  console.log('app/api already disabled');
+  console.log("src/app/api already disabled");
 }

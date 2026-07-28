@@ -88,7 +88,7 @@ export function PracticeRunner({
 
   /** Grade current question. Server dedupes by (session, question) so hammering
    *  "Check Answer" on the SAME question can never inflate counters. */
-  const doCheck = async () => {
+  const doCheck = React.useCallback(async () => {
     if (!current || !chosen || chosen.trim() === "" || checking || isGraded) return;
     setChecking(true);
     const isCorrect = answersMatch(chosen, resolveCorrectAnswer(current.correctAnswer, current.explanation));
@@ -110,7 +110,7 @@ export function PracticeRunner({
     } finally {
       setChecking(false);
     }
-  };
+  }, [checking, chosen, current, isGraded, mode, sid]);
 
   /** Finish = grade EVERYTHING with an entered answer, even questions the user
    *  never pressed "Check" on. "Unanswered" therefore means literally nothing
@@ -157,29 +157,48 @@ export function PracticeRunner({
     }
   };
 
-  // keyboard shortcuts
+  // keyboard shortcuts — stable deps so practice tests / exam mode keep them alive
   React.useEffect(() => {
     if (done) return;
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (["INPUT", "TEXTAREA"].includes(tag)) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target?.isContentEditable) return;
+      // Don't steal keys while a dialog / command palette is open.
+      if (target?.closest("[role='dialog'], [data-radix-dialog-content]")) return;
       if (!current) return;
       const k = e.key.toLowerCase();
-      if (k === "n" || k === "arrowright") { e.preventDefault(); setIdx((i) => Math.min(pool.length - 1, i + 1)); }
-      if (k === "p" || k === "arrowleft") { e.preventDefault(); setIdx((i) => Math.max(0, i - 1)); }
-      if (k === "f") { e.preventDefault(); setFlags((f) => ({ ...f, [current.id]: !f[current.id] })); }
+      if (k === "n" || k === "arrowright") {
+        e.preventDefault();
+        setIdx((i) => Math.min(pool.length - 1, i + 1));
+        return;
+      }
+      if (k === "p" || k === "arrowleft") {
+        e.preventDefault();
+        setIdx((i) => Math.max(0, i - 1));
+        return;
+      }
+      if (k === "f" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setFlags((f) => ({ ...f, [current.id]: !f[current.id] }));
+        return;
+      }
       if (["a", "b", "c", "d"].includes(k) && current.choices?.some((c) => c.key.toLowerCase() === k)) {
         e.preventDefault();
-        setAnswer(k.toUpperCase());
+        if (!isExam && isGraded) return;
+        setAnswers((a) => ({ ...a, [current.id]: k.toUpperCase() }));
+        return;
       }
-      if (e.code === "Space") {
-        e.preventDefault();
-        if (!isExam) doCheck();
+      if (e.code === "Space" || k === "enter") {
+        if (!isExam && chosen && !isGraded) {
+          e.preventDefault();
+          void doCheck();
+        }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }); // intentionally no dep array — always fresh closures
+  }, [chosen, current, doCheck, done, isExam, isGraded, pool.length]);
 
   if (done) {
     return (

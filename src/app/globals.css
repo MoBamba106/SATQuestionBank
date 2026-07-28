@@ -439,26 +439,64 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   line-height: normal !important;
 }
 
-/* Inline CB math PNGs in explanations should sit on the baseline. */
+/*
+ * College Board ships many formulas as tiny pixel PNGs (often 14–28px tall).
+ * Capping them at 1.6em made multi-line equations unreadable and left short
+ * sprites looking like fine print. Scale the container instead.
+ */
+.sat-content .math_expression,
+.sat-content .math-container,
+.sat-content span.math_expression {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+  max-width: 100%;
+}
 .sat-content img.math-img,
-.sat-content .math-container img {
-  display: inline !important;
+.sat-content .math-container img,
+.sat-content .math_expression img {
+  display: inline-block !important;
   vertical-align: middle !important;
-  margin: 0 0.15em !important;
-  max-height: 1.6em !important;
+  margin: 0.12em 0.18em !important;
   width: auto !important;
+  height: auto !important;
+  max-width: min(100%, 36rem) !important;
+  /* Readable body size for single-line sprites; tall formulas keep aspect. */
+  min-height: 1.55em !important;
+  max-height: 5.5em !important;
+  object-fit: contain !important;
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
   border-radius: 0 !important;
   filter: none !important;
+  image-rendering: -webkit-optimize-contrast;
+}
+/* Stem / choice formulas that are still undersized get a gentle zoom. */
+.sat-content .math_expression {
+  zoom: 1.28;
+}
+@supports not (zoom: 1) {
+  .sat-content .math_expression {
+    transform: scale(1.28);
+    transform-origin: left center;
+  }
+}
+/* Answer choices: keep math aligned with the letter circle. */
+.answer-choice .sat-content .math_expression {
+  zoom: 1.35;
+}
+.answer-choice .sat-content img.math-img {
+  min-height: 1.7em !important;
 }
 
 /* Dark themes: invert black-on-transparent CB math PNGs so they stay readable. */
 html[data-theme="dark"] .sat-content img.math-img,
 html[data-theme="dark"] .sat-content .math-container img,
+html[data-theme="dark"] .sat-content .math_expression img,
 html[data-theme="obsidian"] .sat-content img.math-img,
-html[data-theme="obsidian"] .sat-content .math-container img {
+html[data-theme="obsidian"] .sat-content .math-container img,
+html[data-theme="obsidian"] .sat-content .math_expression img {
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
@@ -1005,6 +1043,24 @@ html[data-reduce-motion="true"] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+
+/* Bluebook focus mode: hide app chrome so the test fills the window. */
+html[data-focus-mode="true"] .shell-aside,
+html[data-focus-mode="true"] .shell-header {
+  display: none !important;
+}
+html[data-focus-mode="true"] .shell-main {
+  margin-left: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+html[data-focus-mode="true"] .shell-main > div {
+  max-width: none !important;
+  animation: none !important;
+}
+html[data-focus-mode="true"] body {
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
