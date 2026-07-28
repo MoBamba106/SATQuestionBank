@@ -226,9 +226,11 @@ async function doSeed() {
       .insert(practiceTests)
       .values({
         id: testId,
+        userId: null,
         testNumber: meta.testNumber,
         title: meta.title,
         releaseLabel: meta.releaseLabel,
+        isCustom: false,
         rwMinutes: 64,
         mathMinutes: 70,
       })

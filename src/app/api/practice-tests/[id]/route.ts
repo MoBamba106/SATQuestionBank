@@ -2,14 +2,16 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
-import { QUESTION_SELECT, QUESTION_JOINS, mapRow } from "@/lib/server-questions";
+import { getRequestUser } from "@/lib/auth/server";
+import { questionSelect, questionJoins, mapRow } from "@/lib/server-questions";
 import type { PracticeTestDetail, SATQuestion } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const { id } = await ctx.params;
 
     const metaRes = await db.execute(sql`
@@ -21,10 +23,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     if (!meta) return NextResponse.json({ error: "Practice test not found" }, { status: 404 });
 
     const qRes = await db.execute(sql`
-      SELECT p.module, p.position, ${QUESTION_SELECT}
+      SELECT p.module, p.position, ${questionSelect(user.id)}
       FROM practice_test_questions p
       JOIN questions q ON q.id = p.question_id
-      ${QUESTION_JOINS}
+      ${questionJoins(user.id)}
       WHERE p.test_id = ${id}
       ORDER BY p.position ASC
     `);
@@ -67,9 +69,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 }
 
 /** Delete a generated (custom) practice test. Official Bluebook tests are protected. */
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const { id } = await ctx.params;
 
     const metaRes = await db.execute(sql`
@@ -85,8 +88,14 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
       );
     }
 
-    // Cascades to practice_test_questions via FK.
-    await db.execute(sql`DELETE FROM practice_tests WHERE id = ${id}`);
+    const own = await db.execute(sql`
+      SELECT 1 FROM practice_tests WHERE id = ${id} AND user_id = ${user.id} LIMIT 1
+    `);
+    if (((own as unknown as { rows: unknown[] }).rows ?? []).length === 0) {
+      return NextResponse.json({ error: "Practice test not found" }, { status: 404 });
+    }
+
+    await db.execute(sql`DELETE FROM practice_tests WHERE id = ${id} AND user_id = ${user.id}`);
     return NextResponse.json({ ok: true, id, title: meta.title });
   } catch (e) {
     console.error("[api/practice-tests/id] DELETE failed:", e);

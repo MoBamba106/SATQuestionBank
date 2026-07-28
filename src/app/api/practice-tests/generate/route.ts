@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { practiceTestQuestions, practiceTests } from "@/db/schema";
 import { ensureSeeded } from "@/lib/seed";
+import { getRequestUser } from "@/lib/auth/server";
 import { queryQuestions } from "@/lib/server-questions";
 import type { SATQuestion } from "@/lib/types";
 
@@ -46,9 +47,10 @@ function buildModule(
   return output;
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const skills = [...RW_SKILLS, ...MATH_SKILLS].map(([skill]) => skill);
     const results = await Promise.all(
       skills.map(async (skill) => [
@@ -79,6 +81,7 @@ export async function POST() {
     await db.transaction(async (tx) => {
       await tx.insert(practiceTests).values({
         id,
+        userId: user.id,
         testNumber: 1_000_000 + Number(String(Date.now()).slice(-6)),
         title,
         releaseLabel: "Algorithmically generated from the official question bank",

@@ -1,12 +1,8 @@
 /** @type {import('next').NextConfig} */
-const isTauri = process.env.TAURI === "1" || process.env.TAURI === "true";
-
 const nextConfig = {
   reactStrictMode: true,
-  // Electron desktop uses standalone. Tauri static shell uses export.
-  output: isTauri ? "export" : "standalone",
-  trailingSlash: isTauri,
-  skipTrailingSlashRedirect: true,
+  // Default Next.js server output — works on Vercel and `next start`.
+  // Do not use `export` or Electron/Tauri packaging modes.
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -14,10 +10,8 @@ const nextConfig = {
       { protocol: "http", hostname: "**" },
     ],
   },
-  serverExternalPackages: ["pg", "@electric-sql/pglite"],
+  serverExternalPackages: ["pg", "@electric-sql/pglite", "@cloudbase/node-sdk"],
   turbopack: {
-    // Prevent a parent-directory package-lock.json from being selected as the
-    // workspace root (common when the repo lives under Downloads on Windows).
     root: process.cwd(),
   },
 };

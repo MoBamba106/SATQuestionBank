@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const res = await db.execute(sql`
       SELECT t.id, t.test_number AS "testNumber", t.title,
              t.release_label AS "releaseLabel", t.is_custom AS "isCustom",
@@ -17,8 +19,9 @@ export async function GET() {
              COUNT(*) FILTER (WHERE p.module IN ('math1', 'math2_hard'))::int AS "mathQuestions"
       FROM practice_tests t
       LEFT JOIN practice_test_questions p ON p.test_id = t.id
+      WHERE (t.is_custom = false) OR (t.is_custom = true AND t.user_id = ${user.id})
       GROUP BY t.id
-      ORDER BY t.test_number
+      ORDER BY t.is_custom ASC, t.test_number
     `);
     return NextResponse.json({ tests: (res as unknown as { rows: unknown[] }).rows ?? [] });
   } catch (e) {

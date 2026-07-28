@@ -3,12 +3,14 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { uid } from "@/lib/utils";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const body = await req.json();
     const id = uid("quiz");
     const mode = String(body?.mode ?? "practice");
@@ -16,10 +18,10 @@ export async function POST(req: Request) {
     const testId = body?.testId ? String(body.testId) : null;
     const totalQuestions = Math.max(0, Number(body?.totalQuestions ?? 0) || 0);
     await db.execute(sql`
-      INSERT INTO quiz_sessions (id, mode, label, test_id, total_questions)
-      VALUES (${id}, ${mode}, ${label}, ${testId}, ${totalQuestions})
+      INSERT INTO quiz_sessions (id, user_id, mode, label, test_id, total_questions)
+      VALUES (${id}, ${user.id}, ${mode}, ${label}, ${testId}, ${totalQuestions})
     `);
-    return NextResponse.json({ id, mode, label, testId, totalQuestions });
+    return NextResponse.json({ id, mode, label, testId, totalQuestions, userId: user.id });
   } catch (e) {
     console.error("[api/sessions] POST failed:", e);
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to start session" }, { status: 500 });

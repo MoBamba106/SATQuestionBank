@@ -1,9 +1,39 @@
 import { db } from "@/db";
 import { sql, SQL } from "drizzle-orm";
 import { ensureSeeded } from "@/lib/seed";
+import { GUEST_USER_ID } from "@/lib/auth/types";
 import type { SATQuestion, Choice } from "@/lib/types";
 
-/** Columns shared by every question query: question + favorite + attempt stats + note */
+/** Columns shared by every question query: question + per-user favorite/note + attempt stats */
+export function questionSelect(userId: string) {
+  return sql`
+  q.id, q.question_text, q.question_html, q.passage, q.passage_html,
+  q.correct_answer, q.explanation, q.difficulty, q.domain, q.skill, q.subskill,
+  q.source, q.type, q.choices,
+  (f.question_id IS NOT NULL) AS favorite,
+  n.note AS note,
+  COALESCE(a.cnt, 0)::int AS times_answered,
+  COALESCE(a.correct_cnt, 0)::int AS times_correct,
+  a.last_at AS last_attempt_at
+`;
+}
+
+export function questionJoins(userId: string) {
+  return sql`
+  LEFT JOIN favorites f ON f.question_id = q.id AND f.user_id = ${userId}
+  LEFT JOIN notes n ON n.question_id = q.id AND n.user_id = ${userId}
+  LEFT JOIN (
+    SELECT at.question_id, COUNT(*) AS cnt,
+           SUM(CASE WHEN at.is_correct THEN 1 ELSE 0 END) AS correct_cnt,
+           MAX(at.created_at) AS last_at
+    FROM attempts at
+    INNER JOIN quiz_sessions qs ON qs.id = at.session_id AND qs.user_id = ${userId}
+    GROUP BY at.question_id
+  ) a ON a.question_id = q.id
+`;
+}
+
+/** @deprecated use questionSelect(userId) — kept for import compatibility during migration */
 export const QUESTION_SELECT = sql`
   q.id, q.question_text, q.question_html, q.passage, q.passage_html,
   q.correct_answer, q.explanation, q.difficulty, q.domain, q.skill, q.subskill,
@@ -16,13 +46,15 @@ export const QUESTION_SELECT = sql`
 `;
 
 export const QUESTION_JOINS = sql`
-  LEFT JOIN favorites f ON f.question_id = q.id
-  LEFT JOIN notes n ON n.question_id = q.id
+  LEFT JOIN favorites f ON f.question_id = q.id AND f.user_id = ${GUEST_USER_ID}
+  LEFT JOIN notes n ON n.question_id = q.id AND n.user_id = ${GUEST_USER_ID}
   LEFT JOIN (
-    SELECT question_id, COUNT(*) AS cnt,
-           SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) AS correct_cnt,
-           MAX(created_at) AS last_at
-    FROM attempts GROUP BY question_id
+    SELECT at.question_id, COUNT(*) AS cnt,
+           SUM(CASE WHEN at.is_correct THEN 1 ELSE 0 END) AS correct_cnt,
+           MAX(at.created_at) AS last_at
+    FROM attempts at
+    INNER JOIN quiz_sessions qs ON qs.id = at.session_id AND qs.user_id = ${GUEST_USER_ID}
+    GROUP BY at.question_id
   ) a ON a.question_id = q.id
 `;
 
@@ -56,16 +88,18 @@ export function mapRow(r: Row): SATQuestion {
 }
 
 export async function queryQuestions(opts: {
+  userId?: string;
   where?: SQL;
   orderBy?: SQL;
   limit?: number;
   offset?: number;
 }): Promise<SATQuestion[]> {
   await ensureSeeded();
+  const userId = opts.userId || GUEST_USER_ID;
   const stmt = sql`
-    SELECT ${QUESTION_SELECT}
+    SELECT ${questionSelect(userId)}
     FROM questions q
-    ${QUESTION_JOINS}
+    ${questionJoins(userId)}
     ${opts.where ? sql`WHERE ${opts.where}` : sql``}
     ${opts.orderBy ?? sql`ORDER BY q.id`}
     ${opts.limit != null ? sql`LIMIT ${opts.limit}` : sql``}
@@ -91,6 +125,7 @@ export function buildQuestionFilters(p: {
   difficulty?: string | null;
   search?: string | null;
   favoritesOnly?: boolean;
+  userId?: string;
 }): SQL | undefined {
   const conds: SQL[] = [];
   const eq = (v?: string | null) => v && v !== "All" && v !== "all";
@@ -102,28 +137,31 @@ export function buildQuestionFilters(p: {
     const s = `%${p.search.trim()}%`;
     conds.push(sql`(q.question_text ILIKE ${s} OR q.id ILIKE ${s} OR q.skill ILIKE ${s} OR q.subskill ILIKE ${s})`);
   }
-  if (p.favoritesOnly) conds.push(sql`q.id IN (SELECT question_id FROM favorites)`);
+  if (p.favoritesOnly) {
+    const uid = p.userId || GUEST_USER_ID;
+    conds.push(sql`q.id IN (SELECT question_id FROM favorites WHERE user_id = ${uid})`);
+  }
   if (conds.length === 0) return undefined;
   return sql.join(conds, sql` AND `);
 }
 
-export async function fetchQuestionsByIds(ids: string[]): Promise<SATQuestion[]> {
+export async function fetchQuestionsByIds(ids: string[], userId = GUEST_USER_ID): Promise<SATQuestion[]> {
   const requestedIds = ids.slice(0, 500).map(String).filter(Boolean);
   if (requestedIds.length === 0) return [];
   await ensureSeeded();
 
-  // Bind each ID separately. Passing a JavaScript array to Postgres' unnest()
-  // is driver-dependent and failed under the embedded PGlite database used by
-  // local/Tauri builds. A parameterized IN list works with both database modes.
   const uniqueIds = Array.from(new Set(requestedIds));
-  const idParams = sql.join(uniqueIds.map((id) => sql`${id}`), sql`, `);
+  const idParams = sql.join(
+    uniqueIds.map((id) => sql`${id}`),
+    sql`, `,
+  );
   const res = await db.execute(sql`
-    SELECT ${QUESTION_SELECT}
+    SELECT ${questionSelect(userId)}
     FROM questions q
-    ${QUESTION_JOINS}
+    ${questionJoins(userId)}
     WHERE q.id IN (${idParams})
   `);
   const rows = ((res as unknown as { rows: Row[] }).rows ?? []).map(mapRow);
-  const byId = new Map(rows.map((question) => [question.id, question]));
-  return requestedIds.map((id) => byId.get(id)).filter((question): question is SATQuestion => !!question);
+  const byId = new Map(rows.map((q) => [q.id, q]));
+  return uniqueIds.map((id) => byId.get(id)).filter(Boolean) as SATQuestion[];
 }

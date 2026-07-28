@@ -1,20 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readStoredAuth } from "@/lib/auth/client";
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const { accessToken } = readStoredAuth();
   const res = await fetch(url, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(init?.headers ?? {}),
+    },
   });
   if (!res.ok) {
     let msg = `Request failed (${res.status})`;
     try {
       const data = await res.json();
       if (data?.error) msg = data.error;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     throw new Error(msg);
   }
+  // 204 / empty
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
@@ -58,18 +68,12 @@ export async function apiDelete<T>(url: string): Promise<T> {
   return value;
 }
 
-// ------- tiny cross-component revalidation bus -------
 const BUS_EVENT = "sat-api-mutate";
 export function mutateKey(key: string) {
   clearGetCache();
-  if (typeof window !== "undefined")
-    window.dispatchEvent(new CustomEvent(BUS_EVENT, { detail: key }));
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(BUS_EVENT, { detail: key }));
 }
 
-/**
- * Simple SWR-lite hook. `key` doubles as the cache-invalidation channel:
- * calling mutateKey("favorites") revalidates any hook whose url contains it.
- */
 export function useApi<T>(url: string | null, key?: string) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
