@@ -1,6 +1,10 @@
 {
   "name": "sat-nexus",
   "private": true,
+  "version": "1.9.0",
+  "description": "SAT Nexus – College Board question bank and practice tests",
+  "author": "SAT Nexus",
+  "main": "electron-main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -8,12 +12,13 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "desktop": "node desktop-launcher.js",
-    "desktop:install": "npm install --no-save electron@31 electron-builder@24",
-    "desktop:build": "npm run build && npx electron-builder --win --x64",
-    "tauri": "tauri",
-    "tauri:dev": "cross-env TAURI=1 next dev -p 1420",
-    "tauri:build": "node scripts/tauri-prebuild.js && cross-env TAURI=1 next build && node scripts/tauri-postbuild.js && tauri build",
-    "tauri:build:frontend": "node scripts/tauri-prebuild.js && cross-env TAURI=1 next build && node scripts/tauri-postbuild.js"
+    "desktop:install": "npm install --save-dev electron@31 electron-builder@24 --no-audit --no-fund",
+    "desktop:build": "node scripts/build-desktop.js",
+    "app:build": "node scripts/build-desktop.js",
+    "tauri": "node node_modules/@tauri-apps/cli/tauri.js",
+    "tauri:dev": "node scripts/with-env.js TAURI=1 -- next dev -p 1420",
+    "tauri:build": "node scripts/build-tauri.js",
+    "tauri:build:frontend": "node scripts/tauri-prebuild.js && node scripts/with-env.js TAURI=1 -- next build && node scripts/tauri-postbuild.js"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
@@ -36,6 +41,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.17",
+    "@tauri-apps/cli": "^2.5.0",
     "@types/node": "22.19.15",
     "@types/pg": "8.18.0",
     "@types/react": "19.2.14",
@@ -45,8 +51,86 @@
     "eslint-config-next": "16.2.6",
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
-    "typescript": "5.9.3",
-    "@tauri-apps/cli": "^2.5.0",
-    "cross-env": "^7.0.3"
+    "typescript": "5.9.3"
+  },
+  "build": {
+    "appId": "ai.arena.satnexus",
+    "productName": "SAT Nexus",
+    "copyright": "Copyright © SAT Nexus",
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "src-tauri/icons"
+    },
+    "files": [
+      "electron-main.js",
+      "package.json",
+      "public/**/*",
+      "src/data/**/*",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*",
+      "!.next/cache/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "standalone",
+        "filter": ["**/*"]
+      },
+      {
+        "from": ".next/static",
+        "to": "standalone/.next/static",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "public",
+        "to": "standalone/public",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "src/data",
+        "to": "standalone/src/data",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "src-tauri/icons/icon.ico",
+        "to": "icon.ico"
+      },
+      {
+        "from": "src-tauri/icons/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@electric-sql/**/*",
+      "node_modules/pg/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "src-tauri/icons/icon.ico",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SAT Nexus",
+      "installerIcon": "src-tauri/icons/icon.ico",
+      "uninstallerIcon": "src-tauri/icons/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    }
   }
 }

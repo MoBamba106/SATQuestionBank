@@ -1,142 +1,134 @@
-# SAT Nexus – Build a real desktop app (double-click installer)
+# Build SAT Nexus as a Windows app (.exe)
 
-v1.8.2 – Soft Paper – Windows / Mac / Linux
+You do **not** need Tauri or Rust for a normal desktop installer.
 
-You asked: “make it so it is a real app. Like one that I can click on the desktop icon and it opens up it runs but in the developer way. I want to turn it into an app that I can download and click. Like an official app.”
+## Recommended: Electron (full app, works offline)
 
-You have **2 official build pipelines** – both produce a real installer with Start Menu + Desktop icon.
+This packages the real Next.js server + embedded question database into a
+double-clickable Windows installer.
 
----
-
-## FASTEST – Electron (1 command, ~5 min)
-
-No Rust needed. Produces:
-- `dist-electron/SAT-Nexus-Setup-1.8.2.exe` – NSIS installer, Start Menu + Desktop shortcut
-- `dist-electron/SAT-Nexus-Portable-1.8.2.exe` – portable, no install, double-click to run
+### One-time setup
 
 ```powershell
-cd sat-question-bank
+cd $env:USERPROFILE\Downloads\SATQuestionBank
+# If you cloned from GitHub, pull the latest build fixes first:
+git pull
 
-# 1. install
 npm install
-
-# 2. (optional) load full CB bank
-# npm run cb:full
-
-# 3. build web app
-npm run build
-
-# 4. package
-npm run desktop:build
-# → dist-electron/SAT-Nexus-Setup-1.8.2.exe   (~140 MB)
-# → dist-electron/SAT-Nexus-Portable-1.8.2.exe
 ```
 
-Double-click the Setup → installs → Desktop icon “SAT Nexus” → opens Soft Paper app, no terminal, no `npm run dev`.
+### Build the installer
 
-What’s inside:
-- Electron 31 – Chromium shell
-- Next.js 14 production server (`next start`) auto-spawned, hidden
-- SQLite + Prisma bundled
-- Icon: `src-tauri/icons/icon.ico`
-- Auto-updater ready (electron-builder)
+```powershell
+npm run app:build
+```
 
-Uninstall: Windows Settings → Apps → SAT Nexus → Uninstall
+That single command:
+
+1. Builds the web app
+2. Installs Electron tooling if needed
+3. Creates installers under `dist-electron\`
+
+### What you get
+
+| File | What it is |
+|------|------------|
+| `dist-electron\SAT Nexus-Setup-1.9.0.exe` | Installer (Start Menu + Desktop shortcut) |
+| `dist-electron\SAT Nexus-Portable-1.9.0.exe` | Portable – no install, just double-click |
+
+Double-click **Setup** → install → open **SAT Nexus** from the Desktop.
+
+Your practice data is stored under your user profile (not inside Program Files),
+so it survives app updates.
+
+### Dev desktop window (no installer)
+
+```powershell
+npm run desktop
+```
+
+Opens Electron against `next dev` for day-to-day coding.
 
 ---
 
-## SMALL – Tauri v2 (~8 MB installer, needs Rust)
+## Optional: Tauri (small binary, incomplete backend)
+
+Tauri builds a **static** front-end shell. API routes are disabled during that
+build, so the question bank / practice tests will **not** fully work.
+
+Only use this if you specifically want a tiny WebView wrapper and already have:
+
+- Rust (`rustup`)
+- Visual Studio Build Tools (C++ workload)
+- WebView2 (included on Windows 11)
 
 ```powershell
-# prerequisites (once):
-# - Rust: https://rustup.rs
-# - VS Build Tools C++
-# - WebView2 (built into Win11)
-
-cd sat-question-bank
 npm install
 npm run tauri:build
 ```
 
-Output:
+Output (if successful):
+
 ```
-src-tauri/target/release/bundle/
-  msi/SAT Nexus_1.8.2_x64_en-US.msi
-  nsis/SAT Nexus_1.8.2_x64-setup.exe
+src-tauri\target\release\bundle\nsis\
+src-tauri\target\release\bundle\msi\
 ```
 
-Double-click MSI → installs → Start Menu “SAT Nexus”.
+If you previously saw:
 
-Tauri uses the system WebView – much smaller.
+```
+'cross-env' is not recognized...
+```
 
----
+that is fixed — the scripts no longer depend on a global `cross-env`.
 
-## What changed in v1.8.2 to make it “real app”
-
-- `next.config.mjs`: `output: 'standalone'`
-- `electron-main.js`:
-  - Detects `app.isPackaged`
-  - Dev: spawns `next dev`
-  - Prod: spawns `next start`
-  - Waits for http://localhost:3000 ready, then shows window
-  - Hides menu bar, Soft Paper `#faf8f3` background, proper icon
-  - Clean shutdown kills Next server
-- `package.json`:
-  ```
-  "desktop:build": "npm run build && npx electron-builder --win --x64"
-  "app:build": "npm run build && npm run desktop:build"
-  ```
-  electron-builder config:
-  - appId `ai.arena.satnexus`
-  - asar: true
-  - NSIS oneClick, Desktop + Start Menu shortcuts
-  - icon `src-tauri/icons/icon.ico`
-  - output `dist-electron/`
-- Tauri:
-  - `src-tauri/` full Cargo project
-  - `tauri.conf.json` v1.8.2, background `#faf8f3`
-  - icons: `.ico`, `.png`, `32x32`, `128x128`
-- Version bumped everywhere: `1.8.2`
-
----
-
-## Quick test (no installer)
+If a failed Tauri build left the API disabled, run:
 
 ```powershell
-npm run desktop:go
+node scripts/tauri-postbuild.js
 ```
-→ starts Next, opens Electron, looks exactly like the installed app.
 
----
+or simply:
 
-## Distribute to friends
+```powershell
+npm run app:build
+```
 
-Send them:
-- `dist-electron/SAT-Nexus-Setup-1.8.2.exe`  (~140 MB – Electron)
-or
-- `src-tauri/target/release/bundle/msi/SAT Nexus_1.8.2_x64_en-US.msi` (~8 MB – Tauri)
-
-They double-click → Next → Finish → Desktop icon “SAT Nexus” → launches instantly, offline, no Node, no `npm`.
+which restores `src/app/api` automatically.
 
 ---
 
 ## Troubleshooting
 
-**`icons/icon.ico not found`**
-→ you’re on an old checkout. Download `sat-nexus-desktop-fix-v181.zip` – or run:
+### `npm run tauri:build` / `cross-env` errors
+Use Electron instead:
+
+```powershell
+npm run app:build
 ```
-npx @tauri-apps/cli icon src-tauri/icons/icon.png
+
+### Build fails on `next build`
+```powershell
+Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue
+npm install
+npm run build
 ```
 
-**`Cannot find module @tauri-apps/cli/tauri.js`**
-→ use `npm run tauri:dev` (now runs `npx tauri dev`), NOT `tauri dev` directly. Or just use Electron: `npm run desktop:go`.
+### Installer builds but app window is blank
+Wait ~10–20 seconds on first launch while the local server starts and the
+question bank seeds. Check Task Manager for a `node`/`SAT Nexus` process.
 
-**Blank white window**
-→ Next server didn’t start in time. electron-main.js now waits up to 45s – check http://localhost:3000 in browser.
+### Antivirus quarantines the .exe
+Unsigned Electron apps are often flagged the first time. Allow the file, or
+right-click → Properties → Unblock.
 
-**Build fails “node_modules …” too big**
-→ Normal. electron-builder packs ~180 MB node_modules → ~140 MB installer, ~350 MB installed. Tauri build is ~8 MB.
+### Still on an old download folder
+Make sure you pulled the latest branch:
 
----
-
-Enjoy – SAT Nexus v1.8.2 is now a real, installable Windows app with Desktop icon, Start Menu entry, proper uninstaller, Soft Paper UI, CB HTML rendering fixed.
+```powershell
+git fetch origin
+git checkout arena/019fa463-satquestionbank
+git pull origin arena/019fa463-satquestionbank
+npm install
+npm run app:build
+```

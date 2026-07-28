@@ -3,6 +3,7 @@ const isTauri = process.env.TAURI === "1" || process.env.TAURI === "true";
 
 const nextConfig = {
   reactStrictMode: true,
+  // Electron desktop uses standalone. Tauri static shell uses export.
   output: isTauri ? "export" : "standalone",
   trailingSlash: isTauri,
   skipTrailingSlashRedirect: true,
