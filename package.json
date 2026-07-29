@@ -10,8 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "seed:check": "node -e \"console.log('Seed runs automatically via ensureSeeded on first API request.')\"",
-    "postinstall": "prisma generate"
+    "seed:check": "node -e \"console.log('Seed runs automatically via ensureSeeded on first API request.')\""
   },
   "dependencies": {
     "@cloudbase/js-sdk": "^2.17.0",
