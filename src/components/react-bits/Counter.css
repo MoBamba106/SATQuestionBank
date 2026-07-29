@@ -1,6 +1,7 @@
 .counter-container {
   position: relative;
   display: inline-block;
+  contain: content;
 }
 
 .counter-counter {
@@ -17,22 +18,18 @@
 
 .counter-number {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .gradient-container {
   pointer-events: none;
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
 }
 
 .bottom-gradient {

@@ -54,7 +54,6 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
 
 async function verifyCloudBaseToken(accessToken: string): Promise<AuthUser | null> {
   // Lazy-load so local/dev without CloudBase deps still builds.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let tcb: any;
   try {
     tcb = await import("@cloudbase/node-sdk");

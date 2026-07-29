@@ -36,10 +36,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const cloudBaseEnabled = isCloudBaseEnabled();
 
   React.useEffect(() => {
-    const stored = readStoredAuth();
-    setUser(stored.user);
-    setAccessToken(stored.accessToken);
-    setReady(true);
+    const timer = window.setTimeout(() => {
+      const stored = readStoredAuth();
+      setUser(stored.user);
+      setAccessToken(stored.accessToken);
+      setReady(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const applySession = React.useCallback((next: AuthUser, token: string | null) => {

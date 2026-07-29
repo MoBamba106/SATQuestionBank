@@ -76,15 +76,13 @@ export function CommandPalette({
 
   React.useEffect(() => {
     if (!open) return;
-    setQuery("");
-    setActive(0);
-    const t = window.setTimeout(() => inputRef.current?.focus(), 10);
+    const t = window.setTimeout(() => {
+      setQuery("");
+      setActive(0);
+      inputRef.current?.focus();
+    }, 10);
     return () => window.clearTimeout(t);
   }, [open]);
-
-  React.useEffect(() => {
-    setActive(0);
-  }, [query]);
 
   const run = React.useCallback(
     (item: CommandItem) => {
@@ -113,7 +111,10 @@ export function CommandPalette({
           <input
             ref={inputRef}
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActive(0);
+            }}
             onKeyDown={(event) => {
               if (event.key === "Escape") {
                 event.preventDefault();
