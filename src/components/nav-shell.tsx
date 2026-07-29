@@ -59,16 +59,18 @@ const NAV_GROUPS = [
   },
 ];
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({ onNavigate, compact = false }: { onNavigate?: () => void; compact?: boolean }) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Primary navigation" className="space-y-5">
       {NAV_GROUPS.map((group) => (
         <div key={group.label}>
-          <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">
-            {group.label}
-          </div>
+          {!compact && (
+            <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">
+              {group.label}
+            </div>
+          )}
           <div className="space-y-0.5">
             {group.items.map(({ href, label, icon: Icon }) => {
               const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -78,8 +80,11 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                   href={href}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
+                  title={label}
+                  aria-label={compact ? label : undefined}
                   className={cn(
-                    "relative flex min-h-10 items-center gap-3 border-l-[3px] px-3 py-2 text-[13.5px] font-semibold transition-colors",
+                    "relative flex min-h-10 items-center gap-3 border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors",
+                    compact ? "justify-center px-2" : "px-3",
                     active
                       ? "nav-link-active"
                       : "border-transparent text-[var(--ink-soft)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
@@ -89,7 +94,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                     className={cn("nav-item-icon h-[17px] w-[17px] shrink-0", active ? "text-[var(--accent)]" : "text-[var(--ink-faint)]")}
                     strokeWidth={active ? 2.3 : 2}
                   />
-                  {label}
+                  {!compact && <span className="truncate">{label}</span>}
                 </Link>
               );
             })}
@@ -103,6 +108,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 export function NavShell({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [desktopExpanded, setDesktopExpanded] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [authOpen, setAuthOpen] = React.useState(false);
@@ -114,41 +120,62 @@ export function NavShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen" data-shell>
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[236px] flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex shell-aside">
-        <Link href="/" className="flex items-center gap-3 border-b border-[var(--line)] px-5 py-5">
+      <aside
+        className={cn(
+          "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] transition-[width,box-shadow] duration-250 ease-out md:flex",
+          desktopExpanded ? "w-[236px] shadow-[0_10px_28px_rgba(20,24,34,0.16)]" : "w-[74px]",
+        )}
+        onMouseEnter={() => setDesktopExpanded(true)}
+        onMouseLeave={() => setDesktopExpanded(false)}
+      >
+        <Link href="/" className={cn("flex items-center border-b border-[var(--line)] py-5", desktopExpanded ? "gap-3 px-5" : "justify-center px-2")}>
           <div className="brand-mark flex h-9 w-9 items-center justify-center rounded-[6px]">
             <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
           </div>
-          <div>
-            <div className="font-display text-[19px] font-bold leading-none text-[var(--ink)]">SAT Nexus</div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--ink-faint)]">
-              Web practice
-            </div>
-          </div>
-        </Link>
-
-        <div className="flex-1 overflow-y-auto px-3 py-5 scrollbar-thin">
-          <NavLinks />
-        </div>
-
-        <div className="border-t border-[var(--line)] px-3 py-3">
-          <div className="mb-2 flex items-center gap-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] px-3 py-2.5">
-            <UserRound className="h-4 w-4 shrink-0 text-[var(--accent)]" />
-            <div className="min-w-0 grow">
-              <div className="truncate text-[12.5px] font-bold text-[var(--ink)]">{accountLabel}</div>
-              <div className="truncate text-[10.5px] text-[var(--ink-faint)]">
-                {auth.user.isGuest ? "Local guest session" : "CloudBase account"}
+          {desktopExpanded && (
+            <div>
+              <div className="font-display text-[19px] font-bold leading-none text-[var(--ink)]">SAT Nexus</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--ink-faint)]">
+                Web practice
               </div>
             </div>
+          )}
+        </Link>
+
+        <div className={cn("flex-1 overflow-y-auto py-5 scrollbar-thin", desktopExpanded ? "px-3" : "px-2")}>
+          <NavLinks compact={!desktopExpanded} />
+        </div>
+
+        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
+          <div
+            className={cn(
+              "mb-2 flex rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
+              desktopExpanded ? "items-center gap-2 px-3" : "items-center justify-center px-2",
+            )}
+            title={accountLabel}
+          >
+            <UserRound className="h-4 w-4 shrink-0 text-[var(--accent)]" />
+            {desktopExpanded && (
+              <div className="min-w-0 grow">
+                <div className="truncate text-[12.5px] font-bold text-[var(--ink)]">{accountLabel}</div>
+                <div className="truncate text-[10.5px] text-[var(--ink-faint)]">
+                  {auth.user.isGuest ? "Local guest session" : "CloudBase account"}
+                </div>
+              </div>
+            )}
           </div>
           {auth.user.isGuest ? (
             <button
               type="button"
               onClick={() => setAuthOpen(true)}
-              className="mb-1 flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              className={cn(
+                "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
+                desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+              )}
+              title="Sign in"
             >
               <LogIn className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-              Sign in
+              {desktopExpanded && "Sign in"}
             </button>
           ) : (
             <button
@@ -156,34 +183,52 @@ export function NavShell({ children }: { children: React.ReactNode }) {
               onClick={() => {
                 void auth.signOut().then(() => toast.success("Signed out"));
               }}
-              className="mb-1 flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              className={cn(
+                "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
+                desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+              )}
+              title="Sign out"
             >
               <LogOut className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-              Sign out
+              {desktopExpanded && "Sign out"}
             </button>
           )}
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="mb-1 flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            className={cn(
+              "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
+              desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+            )}
+            title="Go to"
           >
             <Search className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-            Go to…
-            <kbd className="ml-auto rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">
-              /
-            </kbd>
+            {desktopExpanded && (
+              <>
+                Go to…
+                <kbd className="ml-auto rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">
+                  /
+                </kbd>
+              </>
+            )}
           </button>
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
-            className="flex min-h-10 w-full items-center gap-3 rounded-[6px] px-3 py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            className={cn(
+              "flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
+              desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+            )}
+            title="Settings"
           >
             <Settings2 className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-            Settings
+            {desktopExpanded && "Settings"}
           </button>
-          <p className="mt-2 px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
-            Browser app · Vercel + CloudBase ready
-          </p>
+          {desktopExpanded && (
+            <p className="mt-2 px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
+              Browser app · Vercel + CloudBase ready
+            </p>
+          )}
         </div>
       </aside>
 
@@ -242,7 +287,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="px-4 py-6 sm:px-6 md:ml-[236px] md:px-8 md:py-8 shell-main">
+      <main className="shell-main px-4 py-6 sm:px-6 md:ml-[74px] md:px-8 md:py-8">
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
 
