@@ -3,15 +3,47 @@
 import * as React from "react";
 import { GripHorizontal, Maximize2, Minimize2, Pause, Play, RotateCcw, X } from "lucide-react";
 import { useSettings } from "@/components/settings-provider";
+import Counter from "@/components/react-bits/Counter";
 import { STUDY_TIMER_OPEN_EVENT } from "@/lib/study-timer";
 
 const PRESETS = [15, 25, 45, 60];
 
-function formatClock(totalSeconds: number) {
-  const safe = Math.max(0, Math.floor(totalSeconds));
-  const m = Math.floor(safe / 60);
-  const s = safe % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+function placeValuesForLength(length: number) {
+  return Array.from({ length }, (_, index) => 10 ** (length - index - 1));
+}
+
+function RollingClock({ totalSeconds, fontSize, textClassName }: { totalSeconds: number; fontSize: number; textClassName?: string }) {
+  const minutes = Math.floor(Math.max(0, totalSeconds) / 60);
+  const seconds = Math.max(0, totalSeconds) % 60;
+  const minutePlaces = placeValuesForLength(Math.max(2, String(minutes).length));
+
+  return (
+    <span className={`inline-flex items-center gap-1 tabular-nums ${textClassName ?? ""}`}>
+      <Counter
+        value={minutes}
+        fontSize={fontSize}
+        padding={0}
+        gap={0}
+        horizontalPadding={0}
+        places={minutePlaces}
+        gradientHeight={0}
+        gradientFrom="transparent"
+        gradientTo="transparent"
+      />
+      <span>:</span>
+      <Counter
+        value={seconds}
+        fontSize={fontSize}
+        padding={0}
+        gap={0}
+        horizontalPadding={0}
+        places={[10, 1]}
+        gradientHeight={0}
+        gradientFrom="transparent"
+        gradientTo="transparent"
+      />
+    </span>
+  );
 }
 
 /**
@@ -191,7 +223,7 @@ export function FloatingStudyTimer() {
       >
         <GripHorizontal className="h-4 w-4 text-[var(--ink-faint)]" />
         <span className="grow text-[13px] font-bold text-[var(--ink)]">
-          {expanded ? "Study timer" : formatClock(remaining)}
+          {expanded ? "Study timer" : <RollingClock totalSeconds={remaining} fontSize={16} />}
         </span>
         {!expanded && (
           <button
@@ -268,9 +300,11 @@ export function FloatingStudyTimer() {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="font-display text-4xl font-bold tabular-nums text-[var(--ink)]">
-                {formatClock(remaining)}
-              </span>
+              <RollingClock
+                totalSeconds={remaining}
+                fontSize={38}
+                textClassName="font-display font-bold text-[var(--ink)]"
+              />
               <span className="mt-1 text-[10px] font-bold uppercase tracking-[.14em] text-[var(--ink-faint)]">
                 focus time
               </span>
