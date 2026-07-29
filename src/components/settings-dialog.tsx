@@ -182,6 +182,8 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.compactMode} onChange={(compactMode) => updateSettings({ compactMode })} label="Compact layout" description="Fits more questions and controls on screen." icon={LayoutGrid} />
             <Toggle checked={settings.showTimer} onChange={(showTimer) => updateSettings({ showTimer })} label="Show practice timers" description="Hide elapsed time during ordinary quizzes to reduce pressure." icon={Clock3} />
             <Toggle checked={settings.soundEffects} onChange={(soundEffects) => updateSettings({ soundEffects })} label="Subtle interface sounds" description="Quiet tactile cues for buttons and toggles. On by default." icon={Volume2} />
+            <Toggle checked={settings.showDock} onChange={(showDock) => updateSettings({ showDock })} label="Show dock" description="Floating navigation dock for quick access." icon={LayoutGrid} />
+            <Toggle checked={settings.showStepperLogin} onChange={(showStepperLogin) => updateSettings({ showStepperLogin })} label="Stepper login" description="Enable stepper-based sign-in UI." icon={Accessibility} />
           </div>
         </section>
 

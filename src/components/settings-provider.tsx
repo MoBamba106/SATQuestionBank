@@ -13,6 +13,8 @@ export type AppSettings = {
   compactMode: boolean;
   showTimer: boolean;
   soundEffects: boolean;
+  showDock: boolean;
+  showStepperLogin: boolean;
   defaultQuizSize: number;
   defaultQuizMode: QuizModeSetting;
 };
@@ -24,6 +26,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   compactMode: false,
   showTimer: true,
   soundEffects: true,
+  showDock: true,
+  showStepperLogin: false,
   defaultQuizSize: 10,
   defaultQuizMode: "practice",
 };
