@@ -27,7 +27,7 @@ const darkenColor = (hex: string, percent: number): string => {
   return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 };
 
-const Folder: React.FC<FolderProps> = ({ color = '#5227FF', size = 1, items = [], className = '', isOpen }) => {
+const Folder: React.FC<FolderProps> = ({ color = 'var(--accent)', size = 1, items = [], className = '', isOpen }) => {
   const maxItems = 3;
   const papers = items.slice(0, maxItems);
   while (papers.length < maxItems) {
@@ -41,10 +41,11 @@ const Folder: React.FC<FolderProps> = ({ color = '#5227FF', size = 1, items = []
     Array.from({ length: maxItems }, () => ({ x: 0, y: 0 }))
   );
 
-  const folderBackColor = darkenColor(color, 0.08);
-  const paper1 = darkenColor('#ffffff', 0.1);
-  const paper2 = darkenColor('#ffffff', 0.05);
-  const paper3 = '#ffffff';
+  const isCssVar = color.startsWith('var(');
+  const folderBackColor = isCssVar ? `color-mix(in srgb, ${color} 92%, black)` : darkenColor(color, 0.08);
+  const paper1 = 'var(--paper-soft)';
+  const paper2 = 'var(--paper-raised)';
+  const paper3 = 'var(--paper)';
 
   const handleClick = () => {
     if (isOpen === undefined) {

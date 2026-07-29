@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
-import LineSidebar from "@/components/react-bits/LineSidebar";
 import { apiGet, useApi } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import type { QuestionSummary, SATQuestion, StatsPayload } from "@/lib/types";
@@ -25,7 +24,6 @@ type Drill = {
 export default function StudySessionsPage() {
   const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);
-  const [tab, setTab] = React.useState<number>(0);
   const { data: stats } = useApi<StatsPayload>("/api/stats", "stats");
 
   const drills: Drill[] = [
@@ -128,40 +126,26 @@ export default function StudySessionsPage() {
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-[200px] shrink-0">
-          <LineSidebar 
-            items={["Drills", "History"]}
-            onItemClick={(idx) => setTab(idx)}
-            defaultActive={0}
-            accentColor="var(--accent)"
-            textColor="var(--ink)"
-            className="md:sticky md:top-8"
-          />
-        </div>
-
-        <div className="flex-1">
-          {tab === 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-              {drills.map((d) => (
-                <GlassCard key={d.id} hover={false} className="flex flex-col p-6">
-                  <div className="flex items-center justify-between">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-[6px] border ${d.tone}`}>
-                      <d.icon className="h-5 w-5" />
-                    </div>
-                    <span className="badge">{d.duration}</span>
-                  </div>
-                  <h2 className="font-display mt-4 text-xl font-bold text-[var(--ink)]">{d.name}</h2>
-                  <p className="mt-1 grow text-[13.5px] leading-relaxed text-[var(--ink-faint)]">{d.desc}</p>
-                  <button className="btn btn-primary mt-4 w-full" onClick={() => start(d)} disabled={busy !== null}>
-                    {busy === d.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                    Start
-                  </button>
-                </GlassCard>
-              ))}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {drills.map((d) => (
+          <GlassCard key={d.id} hover={false} className="flex flex-col p-6">
+            <div className="flex items-center justify-between">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-[6px] border ${d.tone}`}>
+                <d.icon className="h-5 w-5" />
+              </div>
+              <span className="badge">{d.duration}</span>
             </div>
-          ) : (
-            <GlassCard hover={false} className="p-6">
+            <h2 className="font-display mt-4 text-xl font-bold text-[var(--ink)]">{d.name}</h2>
+            <p className="mt-1 grow text-[13.5px] leading-relaxed text-[var(--ink-faint)]">{d.desc}</p>
+            <button className="btn btn-primary mt-4 w-full" onClick={() => start(d)} disabled={busy !== null}>
+              {busy === d.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+              Start
+            </button>
+          </GlassCard>
+        ))}
+      </div>
+
+      <GlassCard hover={false} className="p-6">
         <h2 className="font-display mb-3 flex items-center gap-2 text-lg font-bold text-[var(--ink)]">
           <History className="h-5 w-5 text-[var(--ink-faint)]" /> Session history
         </h2>
@@ -188,9 +172,6 @@ export default function StudySessionsPage() {
           </p>
         )}
       </GlassCard>
-      )}
-      </div>
-      </div>
     </div>
   );
 }

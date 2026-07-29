@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  width: 12rem;
+  width: 100%;
 }
 
 .slider-wrapper {
@@ -21,7 +21,6 @@
   position: relative;
   display: flex;
   width: 100%;
-  max-width: 200px;
   flex-grow: 1;
   cursor: grab;
   touch-action: none;
@@ -37,6 +36,8 @@
 .slider-track-wrapper {
   display: flex;
   flex-grow: 1;
+  height: 12px;
+  align-items: center;
 }
 
 .slider-track {
@@ -45,31 +46,26 @@
   flex-grow: 1;
   overflow: hidden;
   border-radius: 9999px;
-  background-color: rgba(128, 128, 128, 0.4);
+  background-color: var(--line-soft);
 }
 
 .slider-range {
   position: absolute;
   height: 100%;
-  background-color: #888;
+  background-color: var(--accent);
   border-radius: 9999px;
 }
 
 .value-indicator {
-  color: #808080;
-  position: absolute;
-  transform: translateY(-1rem);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  display: none;
 }
 
 .icon {
   width: 24px;
   height: 24px;
-  color: #888;
+  color: var(--ink-soft);
 }
 
 .icon.dark {
-  color: #ddd;
+  color: var(--ink);
 }

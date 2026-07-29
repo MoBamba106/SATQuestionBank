@@ -26,15 +26,11 @@ import {
   CartesianGrid,
 } from "recharts";
 import { GlassCard } from "@/components/ui/glass-card";
-import { useRouter } from "next/navigation";
-import MagicBento from "@/components/react-bits/MagicBento";
-import Counter from "@/components/react-bits/Counter";
 import { useApi } from "@/lib/api-client";
 import type { PracticeTestInfo, StatsPayload } from "@/lib/types";
 import { openStudyTimer } from "@/lib/study-timer";
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { data: stats, loading, error } = useApi<StatsPayload>("/api/stats", "stats");
   const { data: tests } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
 
@@ -42,15 +38,13 @@ export default function DashboardPage() {
     {
       label: "Practiced",
       value: stats?.uniqueQuestions ?? 0,
-      suffix: "",
       detail: `${stats?.totalAttempts ?? 0} graded answers`,
       icon: Target,
       color: "text-[var(--accent)]",
     },
     {
       label: "Accuracy",
-      value: stats?.accuracy ?? 0,
-      suffix: "%",
+      value: `${stats?.accuracy ?? 0}%`,
       detail: `${stats?.totalCorrect ?? 0} correct`,
       icon: TrendingUp,
       color: "text-[var(--good)]",
@@ -58,7 +52,6 @@ export default function DashboardPage() {
     {
       label: "Open mistakes",
       value: stats?.mistakesCount ?? 0,
-      suffix: "",
       detail: "ready to review",
       icon: RotateCcw,
       color: "text-[var(--bad)]",
@@ -66,7 +59,6 @@ export default function DashboardPage() {
     {
       label: "Study streak",
       value: stats?.streak.current ?? 0,
-      suffix: "",
       detail: `best: ${stats?.streak.longest ?? 0} days`,
       icon: Flame,
       color: "text-[var(--warn)]",
@@ -111,20 +103,15 @@ export default function DashboardPage() {
 
       <GlassCard hover={false} className="grid grid-cols-2 divide-x divide-y divide-[#e6e1d7] lg:grid-cols-4 lg:divide-y-0">
         {metrics.map((metric) => (
-          <div key={metric.label} className="p-4 sm:p-5 flex flex-col justify-between">
+          <div key={metric.label} className="p-4 sm:p-5">
             <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink-faint)]">
               <metric.icon className={`h-4 w-4 ${metric.color}`} />
               {metric.label}
             </div>
-            <div className="font-display mt-3 text-[28px] font-bold leading-none text-[var(--ink)] flex items-center h-[32px]">
-              {loading ? "…" : (
-                <>
-                  <Counter value={metric.value} fontSize={28} padding={0} textColor="var(--ink)" gradientFrom="transparent" gradientTo="transparent" />
-                  {metric.suffix && <span>{metric.suffix}</span>}
-                </>
-              )}
+            <div className="font-display mt-2 text-[28px] font-bold leading-none text-[var(--ink)]">
+              {loading ? "…" : metric.value}
             </div>
-            <div className="mt-2 text-[11.5px] text-[var(--ink-faint)]">{metric.detail}</div>
+            <div className="mt-1 text-[11.5px] text-[var(--ink-faint)]">{metric.detail}</div>
           </div>
         ))}
       </GlassCard>
@@ -162,56 +149,26 @@ export default function DashboardPage() {
           )}
         </GlassCard>
 
-        <div className="lg:col-span-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)] mb-4">Quick actions</p>
-          <MagicBento 
-            glowColor="196, 172, 142" // A nice soft beige glow
-            cards={[
-              {
-                title: "Quick 10",
-                description: "10 random questions",
-                label: "Practice",
-                onClick: () => router.push("/study-sessions"),
-                color: "var(--paper-soft)"
-              },
-              {
-                title: "Mistakes",
-                description: `${stats?.mistakesCount ?? 0} open`,
-                label: "Review",
-                onClick: () => router.push("/mistakes"),
-                color: "var(--paper-soft)"
-              },
-              {
-                title: "Mock Test",
-                description: "Full digital format",
-                label: "Timed",
-                onClick: () => router.push("/bluebook"),
-                color: "var(--paper-soft)"
-              },
-              {
-                title: "Bank",
-                description: "Explore all questions",
-                label: "Library",
-                onClick: () => router.push("/bank"),
-                color: "var(--paper-soft)"
-              },
-              {
-                title: "Collections",
-                description: "Your saved sets",
-                label: "Organize",
-                onClick: () => router.push("/collections"),
-                color: "var(--paper-soft)"
-              },
-              {
-                title: "Analytics",
-                description: "Track progress",
-                label: "Insights",
-                onClick: () => router.push("/analytics"),
-                color: "var(--paper-soft)"
-              }
-            ]}
-          />
-        </div>
+        <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Quick start</p>
+          <h2 className="font-display text-xl font-bold text-[var(--ink)]">Choose a session</h2>
+          <div className="mt-4 divide-y divide-[#e6e1d7] border-y border-[var(--line-soft)]">
+            {[
+              { href: "/study-sessions", label: "Quick 10", detail: "10 random questions", icon: CalendarClock },
+              { href: "/mistakes", label: "Mistake review", detail: `${stats?.mistakesCount ?? 0} open`, icon: RotateCcw },
+              { href: "/bluebook", label: "Timed practice test", detail: "full digital SAT format", icon: MonitorSmartphone },
+            ].map((item) => (
+              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[var(--ink)] hover:text-[var(--accent)]">
+                <item.icon className="h-4 w-4 shrink-0 text-[var(--ink-faint)]" />
+                <div className="min-w-0 grow">
+                  <div className="text-[13.5px] font-semibold">{item.label}</div>
+                  <div className="text-[11.5px] text-[var(--ink-faint)]">{item.detail}</div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ))}
+          </div>
+        </GlassCard>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

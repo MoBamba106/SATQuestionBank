@@ -11,15 +11,12 @@ import { apiDelete, apiPost, mutateKey, useApi } from "@/lib/api-client";
 import { readBluebookProgress, removeBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import type { PracticeTestInfo } from "@/lib/types";
 
-import { TestBuilderDialog } from "@/components/test-builder-dialog";
-
 export default function BluebookPage() {
   const router = useRouter();
   const { data, loading, error } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
   const [selected, setSelected] = React.useState<PracticeTestInfo | null>(null);
   const [starting, setStarting] = React.useState(false);
   const [generating, setGenerating] = React.useState(false);
-  const [builderOpen, setBuilderOpen] = React.useState(false);
   const [saved, setSaved] = React.useState<Record<string, BluebookProgress>>({});
 
   React.useEffect(() => {
@@ -100,9 +97,9 @@ export default function BluebookPage() {
             Your Module 1 performance routes you to an easier or harder Module 2.
           </p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={() => setBuilderOpen(true)}>
-          <WandSparkles className="h-4 w-4" />
-          Build custom test
+        <button type="button" className="btn btn-primary" onClick={generateTest} disabled={generating}>
+          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <WandSparkles className="h-4 w-4" />}
+          {generating ? "Building test…" : "Generate new test"}
         </button>
       </div>
 
@@ -240,16 +237,6 @@ export default function BluebookPage() {
           </>
         )}
       </PaperDialog>
-
-      <TestBuilderDialog 
-        open={builderOpen} 
-        onClose={() => setBuilderOpen(false)} 
-        onGenerate={() => {
-          setBuilderOpen(false);
-          generateTest();
-        }} 
-        generating={generating} 
-      />
     </div>
   );
 }

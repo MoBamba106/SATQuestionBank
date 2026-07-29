@@ -30,7 +30,7 @@ export interface BentoProps {
 
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
-const DEFAULT_GLOW_COLOR = '132, 0, 255';
+const DEFAULT_GLOW_COLOR = 'var(--accent)';
 const MOBILE_BREAKPOINT = 768;
 
 const createParticleElement = (x: number, y: number, color: string = DEFAULT_GLOW_COLOR): HTMLDivElement => {
@@ -41,8 +41,8 @@ const createParticleElement = (x: number, y: number, color: string = DEFAULT_GLO
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: rgba(${color}, 1);
-    box-shadow: 0 0 6px rgba(${color}, 0.6);
+    background: ${color};
+    box-shadow: 0 0 6px ${color};
     pointer-events: none;
     z-index: 100;
     left: ${x}px;
@@ -263,7 +263,7 @@ const ParticleCard: React.FC<{
         width: ${maxDistance * 2}px;
         height: ${maxDistance * 2}px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(${glowColor}, 0.4) 0%, rgba(${glowColor}, 0.2) 30%, transparent 70%);
+        background: radial-gradient(circle, color-mix(in srgb, ${glowColor} 40%, transparent) 0%, color-mix(in srgb, ${glowColor} 20%, transparent) 30%, transparent 70%);
         left: ${x - maxDistance}px;
         top: ${y - maxDistance}px;
         pointer-events: none;
@@ -342,11 +342,11 @@ const GlobalSpotlight: React.FC<{
       border-radius: 50%;
       pointer-events: none;
       background: radial-gradient(circle,
-        rgba(${glowColor}, 0.15) 0%,
-        rgba(${glowColor}, 0.08) 15%,
-        rgba(${glowColor}, 0.04) 25%,
-        rgba(${glowColor}, 0.02) 40%,
-        rgba(${glowColor}, 0.01) 65%,
+        color-mix(in srgb, ${glowColor} 15%, transparent) 0%,
+        color-mix(in srgb, ${glowColor} 8%, transparent) 15%,
+        color-mix(in srgb, ${glowColor} 4%, transparent) 25%,
+        color-mix(in srgb, ${glowColor} 2%, transparent) 40%,
+        color-mix(in srgb, ${glowColor} 1%, transparent) 65%,
         transparent 70%
       );
       z-index: 200;
@@ -623,7 +623,7 @@ const MagicBento: React.FC<BentoProps> = ({
                     width: ${maxDistance * 2}px;
                     height: ${maxDistance * 2}px;
                     border-radius: 50%;
-                    background: radial-gradient(circle, rgba(${glowColor}, 0.4) 0%, rgba(${glowColor}, 0.2) 30%, transparent 70%);
+                    background: radial-gradient(circle, color-mix(in srgb, ${glowColor} 40%, transparent) 0%, color-mix(in srgb, ${glowColor} 20%, transparent) 30%, transparent 70%);
                     left: ${x - maxDistance}px;
                     top: ${y - maxDistance}px;
                     pointer-events: none;

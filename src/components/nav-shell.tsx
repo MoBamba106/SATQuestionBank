@@ -30,7 +30,6 @@ import { CommandPalette, useCommandPaletteHotkey } from "@/components/command-pa
 import { AuthDialog } from "@/components/auth-dialog";
 import { useAuth } from "@/components/auth-provider";
 import { toast } from "sonner";
-import { GlobalDock } from "@/components/global-dock";
 
 const NAV_GROUPS = [
   {
@@ -255,7 +254,6 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       <FloatingStudyTimer />
-      <GlobalDock />
     </div>
   );
 }
