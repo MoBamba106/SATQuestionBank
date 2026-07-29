@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
 import { NavShell } from "@/components/nav-shell";
 import { SettingsProvider } from "@/components/settings-provider";
 import { AuthProvider } from "@/components/auth-provider";
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             />
           </AuthProvider>
         </SettingsProvider>
+        <Analytics />
       </body>
     </html>
   );

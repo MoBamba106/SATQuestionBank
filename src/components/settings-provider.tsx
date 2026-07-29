@@ -14,6 +14,8 @@ export type AppSettings = {
   compactMode: boolean;
   showTimer: boolean;
   soundEffects: boolean;
+  showDock: boolean;
+  showStepperLogin: boolean;
   defaultQuizSize: number;
   defaultQuizMode: QuizModeSetting;
   /** When true, reading passages grow to full height instead of a fixed scroll box. */
@@ -29,6 +31,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   compactMode: false,
   showTimer: true,
   soundEffects: true,
+  showDock: true,
+  showStepperLogin: false,
   defaultQuizSize: 10,
   defaultQuizMode: "practice",
   expandPassages: false,
