@@ -18,10 +18,6 @@ import { Pool, type PoolConfig } from "pg";
  *   Embedded PGlite in .sat-nexus-db when DATABASE_URL is unset.
  */
 const rawDatabaseUrl = process.env.DATABASE_URL?.trim() || "";
-const rawMigrationUrl =
-  process.env.DATABASE_MIGRATION_URL?.trim() ||
-  process.env.DIRECT_DATABASE_URL?.trim() ||
-  rawDatabaseUrl;
 
 function isPostgresConnectionString(value: string) {
   return (
@@ -29,6 +25,28 @@ function isPostgresConnectionString(value: string) {
     (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:"))
   );
 }
+
+function deriveSupabaseSessionPoolerUrl(value: string): string {
+  try {
+    const parsed = new URL(value);
+    if (!/pooler\.supabase\.com$/i.test(parsed.hostname) || parsed.port !== "6543") {
+      return value;
+    }
+    parsed.port = "5432";
+    return parsed.toString();
+  } catch {
+    return value;
+  }
+}
+
+const rawMigrationUrl =
+  process.env.DATABASE_MIGRATION_URL?.trim() ||
+  process.env.DATABASE_DIRECT_URL?.trim() ||
+  process.env.DIRECT_DATABASE_URL?.trim() ||
+  process.env.POSTGRES_URL_NON_POOLING?.trim() ||
+  (isPostgresConnectionString(rawDatabaseUrl)
+    ? deriveSupabaseSessionPoolerUrl(rawDatabaseUrl)
+    : rawDatabaseUrl);
 
 const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
 const forceEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";

@@ -14,6 +14,7 @@ This guide details the complete workflow to deploy SAT Nexus using **Vercel** fo
    - Direct: `postgresql://postgres:[PASSWORD]@db.[YOUR_PROJECT_REF].supabase.co:5432/postgres`
    - Session pooler: `postgresql://postgres.[YOUR_PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres`
    - Use this second URL for `DATABASE_MIGRATION_URL`.
+   - If you omit `DATABASE_MIGRATION_URL` and `DATABASE_URL` is a Supabase `:6543` pooler URL, the repo will now auto-try the matching `:5432` session pooler during the build.
 
 ## 2. Vercel Deployment Setup
 1. Push your code to a GitHub, GitLab, or Bitbucket repository.

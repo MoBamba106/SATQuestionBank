@@ -34,6 +34,11 @@ DATABASE_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].poole
 
 Use **one** of these for `DATABASE_MIGRATION_URL`:
 
+If you leave `DATABASE_MIGRATION_URL` unset and `DATABASE_URL` is a Supabase
+`pooler.supabase.com:6543` URL, this repo now auto-derives the matching
+`pooler.supabase.com:5432` session-pooler URL during the build. Explicitly
+setting `DATABASE_MIGRATION_URL` is still safer and clearer.
+
 #### Option A — Supabase direct connection
 Best when your build environment can reach the direct database host.
 

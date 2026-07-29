@@ -53,7 +53,7 @@ No cloud credentials required. Local mode uses embedded PGlite (`.sat-nexus-db/`
 | Variable | Required | Notes |
 |----------|----------|--------|
 | `DATABASE_URL` | **Yes** | Runtime Postgres URL. For Supabase on Vercel, use the transaction pooler on port `6543`. |
-| `DATABASE_MIGRATION_URL` | Strongly recommended | Migration URL for Drizzle. For Supabase, use a direct connection or the session pooler on port `5432`. |
+| `DATABASE_MIGRATION_URL` | Strongly recommended | Migration URL for Drizzle. For Supabase, use a direct connection or the session pooler on port `5432`. If omitted, the app will auto-derive `5432` from a Supabase `DATABASE_URL` on `6543`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase API URL for the JS client |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Supabase anon key for the JS client |
 | `NEXT_PUBLIC_CLOUDBASE_ENV_ID` | Recommended | Public CloudBase env id for client auth |
