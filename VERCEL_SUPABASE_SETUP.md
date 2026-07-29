@@ -42,6 +42,8 @@ setting `DATABASE_MIGRATION_URL` is still safer and clearer.
 #### Option A — Supabase direct connection
 Best when your build environment can reach the direct database host.
 
+If Vercel logs show `ENETUNREACH` with an IPv6 address on port `5432`, the direct host is not reachable from that environment. In that case, switch to **Option B** below.
+
 ```env
 DATABASE_MIGRATION_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
 ```

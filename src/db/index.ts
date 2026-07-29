@@ -39,14 +39,17 @@ function deriveSupabaseSessionPoolerUrl(value: string): string {
   }
 }
 
+const derivedMigrationUrl = isPostgresConnectionString(rawDatabaseUrl)
+  ? deriveSupabaseSessionPoolerUrl(rawDatabaseUrl)
+  : "";
+
 const rawMigrationUrl =
   process.env.DATABASE_MIGRATION_URL?.trim() ||
+  derivedMigrationUrl ||
   process.env.DATABASE_DIRECT_URL?.trim() ||
   process.env.DIRECT_DATABASE_URL?.trim() ||
   process.env.POSTGRES_URL_NON_POOLING?.trim() ||
-  (isPostgresConnectionString(rawDatabaseUrl)
-    ? deriveSupabaseSessionPoolerUrl(rawDatabaseUrl)
-    : rawDatabaseUrl);
+  rawDatabaseUrl;
 
 const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
 const forceEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
@@ -172,6 +175,28 @@ function extractErrorDetails(error: unknown): string {
   return [...new Set(messages)].join(" | ");
 }
 
+function errorChainHasCode(error: unknown, code: string): boolean {
+  const seen = new Set<unknown>();
+  let current: unknown = error;
+
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    if (typeof current === "object" && current) {
+      const fields = current as Record<string, unknown>;
+      if (fields.code === code) return true;
+      current = fields.cause;
+    } else {
+      break;
+    }
+  }
+
+  return false;
+}
+
+function shouldTrySupabaseSessionFallback(error: unknown): boolean {
+  return errorChainHasCode(error, "ENETUNREACH") || /ENETUNREACH|network is unreachable/i.test(extractErrorDetails(error));
+}
+
 export const databaseConnectionInfo = getDatabaseConnectionInfo(databaseUrl);
 export const databaseMigrationConnectionInfo = getDatabaseConnectionInfo(migrationUrl);
 export const databaseKind = shouldUsePostgres ? "postgres" : "embedded";
@@ -284,8 +309,24 @@ export async function migrateDatabase(): Promise<void> {
   }
 
   if (migrationUrl && migrationUrl !== databaseUrl) {
-    await migrateWithDedicatedConnection(migrationUrl);
-    return;
+    try {
+      await migrateWithDedicatedConnection(migrationUrl);
+      return;
+    } catch (error) {
+      const fallbackUrl = deriveSupabaseSessionPoolerUrl(databaseUrl);
+      const canFallback =
+        databaseConnectionInfo.provider === "supabase" &&
+        fallbackUrl !== migrationUrl &&
+        shouldTrySupabaseSessionFallback(error);
+
+      if (!canFallback) throw error;
+
+      console.warn(
+        "[db] migration connection failed; retrying with derived Supabase session pooler URL (port 5432).",
+      );
+      await migrateWithDedicatedConnection(fallbackUrl);
+      return;
+    }
   }
 
   await migrateRuntimeConnection();
