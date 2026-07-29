@@ -169,10 +169,10 @@ async function main(){
   const byDomain = out.reduce((a:any,q)=>{a[q.domain]=(a[q.domain]||0)+1; return a;}, {});
   console.log("By domain:", byDomain);
 
-  const outPath = path.join(process.cwd(), "prisma", "cb-full.json");
+  const outPath = path.join(process.cwd(), "src", "data", "question-bank.json");
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2));
   console.log("Wrote", outPath, `(${(fs.statSync(outPath).size/1024/1024).toFixed(2)} MB)`);
-  console.log("\nNext:\n  npm run cb:seed\n  # then: npm run dev → Bank will auto-sync from /api/questions");
+  console.log("\nNext:\n  npm run db:seed\n  # then: npm run dev → Bank will auto-sync from /api/questions");
 }
 
 main();

@@ -1,10 +1,5 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    try {
-      const { ensureSeeded } = await import("@/lib/seed");
-      ensureSeeded().catch((e) => console.error("[seed] failed:", e));
-    } catch (e) {
-      console.error("[seed] import failed:", e);
-    }
-  }
+  // Migrations and seeding run explicitly in the Vercel build via
+  // `npm run vercel-build`, with runtime route handlers keeping an idempotent
+  // fallback through ensureSeeded(). Avoid eager DB work during cold start.
 }

@@ -1,4 +1,10 @@
-import { databaseKind, db, ensureDatabaseReady } from "@/db";
+import {
+  databaseConnectionInfo,
+  databaseKind,
+  databaseMigrationConnectionInfo,
+  db,
+  ensureDatabaseReady,
+} from "@/db";
 import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +16,12 @@ export async function GET() {
     return Response.json({
       ok: true,
       database: databaseKind,
-      cloudbase: Boolean(process.env.CLOUDBASE_ENV_ID || process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID),
+      databaseConnection: databaseConnectionInfo,
+      migrationConnection: databaseMigrationConnectionInfo,
+      supabaseAuth: Boolean(
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+          (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
+      ),
       runtime: process.env.VERCEL ? "vercel" : "node",
     });
   } catch (error) {
@@ -19,6 +30,8 @@ export async function GET() {
       {
         ok: false,
         database: databaseKind,
+        databaseConnection: databaseConnectionInfo,
+        migrationConnection: databaseMigrationConnectionInfo,
         error: error instanceof Error ? error.message : "Database unavailable",
       },
       { status: 500 },

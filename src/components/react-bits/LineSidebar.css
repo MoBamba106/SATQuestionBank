@@ -28,15 +28,11 @@
   gap: var(--item-gap);
 }
 
-/* --effect (0..1) is driven per item by a rAF lerp in JS, so every derived
-   property below reads the same continuously-animating value and stays in
-   step, with no CSS transitions to stagger. */
 .line-sidebar__item {
   position: relative;
   cursor: pointer;
 }
 
-/* Widen the pointer target so items react a touch before the cursor arrives */
 .line-sidebar__item::before {
   content: '';
   position: absolute;
@@ -50,7 +46,8 @@
   font-size: var(--font-size);
   line-height: 1.2;
   color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--text-color));
-  transform: translateX(calc(var(--effect, 0) * var(--max-shift)));
+  transform: translate3d(calc(var(--effect, 0) * var(--max-shift)), 0, 0);
+  will-change: transform, color;
 }
 
 .line-sidebar__index {
@@ -68,10 +65,10 @@
   width: var(--marker-length);
   background-color: color-mix(in srgb, var(--accent-color) calc(var(--effect, 0) * 100%), var(--marker-color));
   transform-origin: left center;
-  transform: translateY(-50%) scaleX(calc(0.7 + var(--effect, 0) * 0.5));
+  transform: translate3d(0, -50%, 0) scaleX(calc(0.7 + var(--effect, 0) * 0.5));
+  will-change: transform, background-color;
 }
 
-/* Short static tick centered in the gap between two menu items */
 .line-sidebar--markers .line-sidebar__item:not(:last-child)::after {
   content: '';
   position: absolute;
@@ -81,11 +78,10 @@
   width: calc(var(--marker-length) * var(--tick-scale));
   background-color: var(--marker-color);
   opacity: 0.5;
-  transform: translateY(-50%);
+  transform: translate3d(0, -50%, 0);
 }
 
-/* When enabled, the in-between ticks grow with cursor proximity too */
 .line-sidebar--scale-tick .line-sidebar__item:not(:last-child)::after {
   transform-origin: left center;
-  transform: translateY(-50%) scaleX(calc(0.7 + var(--effect, 0) * 0.6));
+  transform: translate3d(0, -50%, 0) scaleX(calc(0.7 + var(--effect, 0) * 0.6));
 }

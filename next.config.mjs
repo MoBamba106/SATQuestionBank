@@ -10,7 +10,10 @@ const nextConfig = {
       { protocol: "http", hostname: "**" },
     ],
   },
-  serverExternalPackages: ["pg", "@electric-sql/pglite", "@cloudbase/node-sdk"],
+  outputFileTracingIncludes: {
+    "/*": ["./drizzle/**/*", "./src/data/**/*"],
+  },
+  serverExternalPackages: ["pg", "@electric-sql/pglite"],
   turbopack: {
     root: process.cwd(),
   },

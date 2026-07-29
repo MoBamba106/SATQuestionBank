@@ -1,4 +1,5 @@
-import { useRef, useState, useCallback, useEffect, CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import './LineSidebar.css';
 
 type Falloff = 'linear' | 'smooth' | 'sharp';
@@ -69,6 +70,7 @@ const LineSidebar = ({
 }: LineSidebarProps) => {
   const listRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const centersRef = useRef<number[]>([]);
   const targetsRef = useRef<number[]>([]);
   const currentRef = useRef<number[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -77,34 +79,42 @@ const LineSidebar = ({
   const smoothingRef = useRef(smoothing);
   const [activeIndex, setActiveIndex] = useState<number | null>(defaultActive);
 
-  activeRef.current = activeIndex;
-  smoothingRef.current = smoothing;
+  const measureItems = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
 
-  // Single rAF loop that eases every item's --effect toward its target using
-  // frame-rate independent exponential smoothing, so color, shift and scale
-  // all move together without staggering CSS transitions.
-  const runFrame = useCallback((now: number) => {
+    const listRect = list.getBoundingClientRect();
+    centersRef.current = itemRefs.current.map(item => {
+      if (!item) return 0;
+      const rect = item.getBoundingClientRect();
+      return rect.top - listRect.top + rect.height / 2;
+    });
+  }, []);
+
+  const runFrame = useCallback(function animateFrame(now: number) {
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
     const tau = Math.max(smoothingRef.current, 1) / 1000;
     const k = 1 - Math.exp(-dt / tau);
 
     let moving = false;
-    const items = itemRefs.current;
-    for (let i = 0; i < items.length; i++) {
-      const el = items[i];
+    const refs = itemRefs.current;
+
+    for (let i = 0; i < refs.length; i++) {
+      const el = refs[i];
       if (!el) continue;
       const target = Math.max(targetsRef.current[i] || 0, activeRef.current === i ? 1 : 0);
-      const cur = currentRef.current[i] || 0;
-      const next = cur + (target - cur) * k;
+      const current = currentRef.current[i] || 0;
+      const next = current + (target - current) * k;
       const settled = Math.abs(target - next) < 0.0015;
       const value = settled ? target : next;
+
       currentRef.current[i] = value;
       el.style.setProperty('--effect', value.toFixed(4));
       if (!settled) moving = true;
     }
 
-    rafRef.current = moving ? requestAnimationFrame(runFrame) : null;
+    rafRef.current = moving ? requestAnimationFrame(animateFrame) : null;
   }, []);
 
   const startLoop = useCallback(() => {
@@ -113,24 +123,28 @@ const LineSidebar = ({
     rafRef.current = requestAnimationFrame(runFrame);
   }, [runFrame]);
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent<HTMLUListElement>) => {
-      const list = listRef.current;
-      if (!list) return;
-      const rect = list.getBoundingClientRect();
-      const pointerY = e.clientY - rect.top;
+  const applyTargets = useCallback(
+    (pointerY: number) => {
       const ease = FALLOFF_CURVES[falloff] ?? FALLOFF_CURVES.linear;
-      const items = itemRefs.current;
-      for (let i = 0; i < items.length; i++) {
-        const el = items[i];
-        if (!el) continue;
-        const center = el.offsetTop + el.offsetHeight / 2;
-        const distance = Math.abs(pointerY - center);
+      const centers = centersRef.current;
+      for (let i = 0; i < centers.length; i++) {
+        const distance = Math.abs(pointerY - centers[i]);
         targetsRef.current[i] = ease(Math.max(0, 1 - distance / proximityRadius));
       }
       startLoop();
     },
-    [falloff, proximityRadius, startLoop]
+    [falloff, proximityRadius, startLoop],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLUListElement>) => {
+      const list = listRef.current;
+      if (!list) return;
+      if (centersRef.current.length !== items.length) measureItems();
+      const rect = list.getBoundingClientRect();
+      applyTargets(event.clientY - rect.top);
+    },
+    [applyTargets, items.length, measureItems],
   );
 
   const handlePointerLeave = useCallback(() => {
@@ -143,18 +157,53 @@ const LineSidebar = ({
       setActiveIndex(index);
       onItemClick?.(index, label);
     },
-    [onItemClick]
+    [onItemClick],
   );
 
   useEffect(() => {
+    activeRef.current = activeIndex;
     startLoop();
   }, [activeIndex, startLoop]);
+
+  useEffect(() => {
+    smoothingRef.current = smoothing;
+  }, [smoothing]);
+
+  useEffect(() => {
+    itemRefs.current = itemRefs.current.slice(0, items.length);
+    targetsRef.current = Array.from({ length: items.length }, (_, index) => targetsRef.current[index] ?? 0);
+    currentRef.current = Array.from({ length: items.length }, (_, index) => currentRef.current[index] ?? 0);
+    const frame = requestAnimationFrame(() => {
+      measureItems();
+      startLoop();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [items.length, measureItems, startLoop]);
+
+  useEffect(() => {
+    const onResize = () => measureItems();
+    window.addEventListener('resize', onResize);
+
+    const list = listRef.current;
+    const observer =
+      typeof ResizeObserver !== 'undefined' && list
+        ? new ResizeObserver(() => measureItems())
+        : null;
+
+    if (list && observer) observer.observe(list);
+    itemRefs.current.forEach(item => item && observer?.observe(item));
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      observer?.disconnect();
+    };
+  }, [items.length, measureItems]);
 
   useEffect(
     () => () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     },
-    []
+    [],
   );
 
   return (
@@ -175,7 +224,13 @@ const LineSidebar = ({
         } as CSSProperties
       }
     >
-      <ul ref={listRef} className="line-sidebar__list" onPointerMove={handlePointerMove} onPointerLeave={handlePointerLeave}>
+      <ul
+        ref={listRef}
+        className="line-sidebar__list"
+        onPointerMove={handlePointerMove}
+        onPointerEnter={measureItems}
+        onPointerLeave={handlePointerLeave}
+      >
         {items.map((label, index) => (
           <li
             key={`${label}-${index}`}

@@ -3,7 +3,7 @@ import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
-/** Current identity as seen by the server (guest or CloudBase user). */
+/** Current identity as seen by the server (guest or Supabase user). */
 export async function GET(req: Request) {
   try {
     const user = await getRequestUser(req);

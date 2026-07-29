@@ -38,6 +38,7 @@
   flex-grow: 1;
   height: 12px;
   align-items: center;
+  will-change: transform;
 }
 
 .slider-track {
@@ -54,6 +55,7 @@
   height: 100%;
   background-color: var(--accent);
   border-radius: 9999px;
+  will-change: width;
 }
 
 .value-indicator {

@@ -62,17 +62,29 @@ export function FloatingStudyTimer() {
   const [running, setRunning] = React.useState(false);
   const [position, setPosition] = React.useState({ x: 24, y: 90 });
   const drag = React.useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const queuedPositionRef = React.useRef(position);
+  const dragFrameRef = React.useRef<number | null>(null);
   // Absolute end timestamp (ms) while running; null when paused/stopped.
   const deadlineRef = React.useRef<number | null>(null);
   const timerRef = React.useRef<number | null>(null);
   const remainingRef = React.useRef(remaining);
-  remainingRef.current = remaining;
+
+  React.useEffect(() => {
+    remainingRef.current = remaining;
+  }, [remaining]);
 
   React.useEffect(() => {
     const show = () => setOpen(true);
     window.addEventListener(STUDY_TIMER_OPEN_EVENT, show);
     return () => window.removeEventListener(STUDY_TIMER_OPEN_EVENT, show);
   }, []);
+
+  React.useEffect(
+    () => () => {
+      if (dragFrameRef.current != null) window.cancelAnimationFrame(dragFrameRef.current);
+    },
+    [],
+  );
 
   const clearTick = React.useCallback(() => {
     if (timerRef.current != null) {
@@ -161,6 +173,15 @@ export function FloatingStudyTimer() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [running, clearTick, finish, scheduleTick]);
 
+  const queuePosition = React.useCallback((next: { x: number; y: number }) => {
+    queuedPositionRef.current = next;
+    if (dragFrameRef.current != null) return;
+    dragFrameRef.current = window.requestAnimationFrame(() => {
+      dragFrameRef.current = null;
+      setPosition(queuedPositionRef.current);
+    });
+  }, []);
+
   if (!open) return null;
 
   const chooseDuration = (minutes: number) => {
@@ -213,7 +234,7 @@ export function FloatingStudyTimer() {
         }}
         onPointerMove={(event) => {
           if (!drag.current || drag.current.pointerId !== event.pointerId) return;
-          setPosition({
+          queuePosition({
             x: Math.max(8, Math.min(window.innerWidth - width - 8, event.clientX - drag.current.x)),
             y: Math.max(8, Math.min(window.innerHeight - 80, event.clientY - drag.current.y)),
           });

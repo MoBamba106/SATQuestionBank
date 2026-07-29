@@ -11,9 +11,9 @@ import {
   serial,
 } from "drizzle-orm/pg-core";
 
-/** CloudBase (or other IdP) user profiles mirrored into Postgres. */
+/** Auth provider user profiles mirrored into Postgres. */
 export const users = pgTable("users", {
-  id: text("id").primaryKey(), // CloudBase uid
+  id: text("id").primaryKey(), // Supabase auth uid (or guest id)
   email: text("email"),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),

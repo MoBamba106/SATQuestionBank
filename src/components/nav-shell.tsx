@@ -159,7 +159,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
               <div className="min-w-0 grow">
                 <div className="truncate text-[12.5px] font-bold text-[var(--ink)]">{accountLabel}</div>
                 <div className="truncate text-[10.5px] text-[var(--ink-faint)]">
-                  {auth.user.isGuest ? "Local guest session" : "CloudBase account"}
+                  {auth.user.isGuest ? "Local guest session" : "Supabase account"}
                 </div>
               </div>
             )}
@@ -226,7 +226,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           </button>
           {desktopExpanded && (
             <p className="mt-2 px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
-              Browser app · Vercel + CloudBase ready
+              Browser app · Vercel + Supabase ready
             </p>
           )}
         </div>
