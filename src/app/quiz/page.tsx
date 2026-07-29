@@ -109,6 +109,18 @@ function QuizInner() {
           const test = await apiGet<PracticeTestDetail>(`/api/practice-tests/${testParam}`);
           const resume = sp.get("resume") === "1" ? readBluebookProgress(test.id) : null;
           let sessionId = resume?.sessionId;
+          let resumeSafe = resume;
+          if (sessionId) {
+            try {
+              const probe = await fetch(`/api/sessions/${sessionId}`);
+              if (!probe.ok) {
+                sessionId = undefined;
+                resumeSafe = resume ? { ...resume, sessionId: "" } : null;
+              }
+            } catch {
+              sessionId = undefined;
+            }
+          }
           if (!sessionId) {
             const session = await apiPost<{ id: string }>("/api/sessions", {
               mode: "bluebook",
@@ -117,8 +129,9 @@ function QuizInner() {
               totalQuestions: test.totalQuestions,
             });
             sessionId = session.id;
+            if (resumeSafe) resumeSafe = { ...resumeSafe, sessionId };
           }
-          setPhase({ kind: "bluebook", test, sessionId, resume });
+          setPhase({ kind: "bluebook", test, sessionId, resume: resumeSafe });
           router.replace("/quiz", { scroll: false });
           return;
         }

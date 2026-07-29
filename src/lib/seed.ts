@@ -114,6 +114,39 @@ export function ensureSeeded(): Promise<unknown> {
   return seededState.promise;
 }
 
+function loadQuestionBank(): SeedQuestion[] {
+  const file = path.join(process.cwd(), "src/data/question-bank.json");
+  return JSON.parse(fs.readFileSync(file, "utf8")) as SeedQuestion[];
+}
+
+/**
+ * Patch answers that were missing/blank in older DB seeds. Safe to re-run:
+ * only overwrites rows whose correct_answer is still empty or matches a
+ * known backfill key.
+ */
+async function backfillMissingAnswers(all: SeedQuestion[]) {
+  // Only touch rows that are still blank (or the placeholder "?" from a prior seed).
+  const emptyRes = await db.execute(
+    sql`select id from questions where coalesce(trim(correct_answer), '') in ('', '?')`,
+  );
+  const emptyIds = new Set(
+    ((emptyRes as unknown as { rows?: { id: string }[] }).rows ?? []).map((row) => row.id),
+  );
+  if (emptyIds.size === 0) return;
+
+  const needs = all.filter(
+    (q) => emptyIds.has(q.id) && String(q.correctAnswer || "").trim().length > 0,
+  );
+  for (const q of needs) {
+    await db.execute(sql`
+      UPDATE questions
+      SET correct_answer = ${q.correctAnswer}
+      WHERE id = ${q.id}
+        AND coalesce(trim(correct_answer), '') in ('', '?')
+    `);
+  }
+}
+
 async function doSeed() {
   await ensureDatabaseReady();
 
@@ -123,8 +156,7 @@ async function doSeed() {
 
   let all: SeedQuestion[] = [];
   if (c === 0) {
-    const file = path.join(process.cwd(), "src/data/question-bank.json");
-    all = JSON.parse(fs.readFileSync(file, "utf8"));
+    all = loadQuestionBank();
     const BATCH = 100;
     for (let i = 0; i < all.length; i += BATCH) {
       const chunk = all.slice(i, i + BATCH).map((q) => ({
@@ -133,7 +165,7 @@ async function doSeed() {
         questionHtml: q.questionHtml,
         passage: q.passage,
         passageHtml: q.passageHtml,
-        correctAnswer: q.correctAnswer,
+        correctAnswer: q.correctAnswer || "?",
         explanation: q.explanation,
         difficulty: q.difficulty,
         domain: q.domain,
@@ -145,6 +177,10 @@ async function doSeed() {
       }));
       await db.insert(questions).values(chunk).onConflictDoNothing();
     }
+  } else {
+    // Existing DBs may predate answer backfills — fill blanks in place.
+    all = loadQuestionBank();
+    await backfillMissingAnswers(all);
   }
 
   // --- practice tests 3-11 ---
@@ -190,9 +226,11 @@ async function doSeed() {
       .insert(practiceTests)
       .values({
         id: testId,
+        userId: null,
         testNumber: meta.testNumber,
         title: meta.title,
         releaseLabel: meta.releaseLabel,
+        isCustom: false,
         rwMinutes: 64,
         mathMinutes: 70,
       })

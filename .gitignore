@@ -2,9 +2,15 @@ node_modules
 .next
 out
 dist
+dist-electron
 .env.local
+.env*.local
 *.db
 *.sqlite
 prisma/dev.db
 .sat-nexus-db/
 *.tsbuildinfo
+src/app/_api_disabled
+.vercel
+src-tauri/target
+.env

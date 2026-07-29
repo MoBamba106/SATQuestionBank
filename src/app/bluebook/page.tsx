@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, WandSparkles, X } from "lucide-react";
+import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, WandSparkles, X, Trash2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PaperDialog } from "@/components/ui/paper-dialog";
@@ -61,6 +61,27 @@ export default function BluebookPage() {
     });
     if (progress?.sessionId) {
       try { await apiDelete(`/api/sessions/${progress.sessionId}`); } catch { /* local cache is already cleared */ }
+    }
+  };
+
+  const deleteGenerated = async (test: PracticeTestInfo) => {
+    if (!test.isCustom) return;
+    if (!window.confirm(`Delete “${test.title}”? This cannot be undone.`)) return;
+    try {
+      removeBluebookProgress(test.id);
+      setSaved((current) => {
+        const next = { ...current };
+        delete next[test.id];
+        return next;
+      });
+      await apiDelete(`/api/practice-tests/${test.id}`);
+      mutateKey("tests");
+      if (selected?.id === test.id) setSelected(null);
+      toast.success("Generated test deleted");
+    } catch (error) {
+      toast.error("Could not delete test", {
+        description: error instanceof Error ? error.message : undefined,
+      });
     }
   };
 
@@ -122,9 +143,20 @@ export default function BluebookPage() {
                       onClick={(event) => { event.stopPropagation(); void discardSaved(t.id); }}
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink-faint)] hover:border-[var(--bad)] hover:text-[var(--bad)]"
                       aria-label={`Discard saved ${t.title} and restart`}
-                      title="Remove saved test"
+                      title="Remove saved progress"
                     >
                       <X className="h-4 w-4" />
+                    </button>
+                  )}
+                  {t.isCustom && (
+                    <button
+                      type="button"
+                      onClick={(event) => { event.stopPropagation(); void deleteGenerated(t); }}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink-faint)] hover:border-[var(--bad)] hover:text-[var(--bad)]"
+                      aria-label={`Delete generated test ${t.title}`}
+                      title="Delete generated test"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   )}
                   <div className="flex h-10 w-10 items-center justify-center rounded-[6px] border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)]">

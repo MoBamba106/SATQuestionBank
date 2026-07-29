@@ -72,14 +72,29 @@ html {
 *::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink-faint) 72%, var(--paper-soft)); border: 2px solid var(--paper-soft); border-radius: 999px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+/* W11 Cursor Dark Free (Jepri Creations) — files live in /public/cursors.
+   PNG fallbacks first (broad browser support); .cur for engines that honor it. */
 body {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 2l23 16-10 1 6 10-6 3-6-11-6 7z' fill='%230a0b0e' stroke='%23ffffff' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E") 4 3, auto;
+  cursor: url("/cursors/arrow.png") 2 2, url("/cursors/arrow.cur") 2 2, auto;
 }
-a, button, [role="button"], [role="option"], [role="switch"] {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 2l23 16-10 1 6 10-6 3-6-11-6 7z' fill='%230a0b0e' stroke='%23ffffff' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E") 4 3, pointer;
+a, button, [role="button"], [role="option"], [role="switch"],
+summary, label[for], .btn, select {
+  cursor: url("/cursors/hand.png") 6 1, url("/cursors/hand.cur") 6 1, pointer;
 }
 input, textarea, [contenteditable="true"], .sat-content p, .sat-content span {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 2h10M12 2v20M7 22h10' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M7 2h10M12 2v20M7 22h10' fill='none' stroke='%23171922' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 12 12, text;
+  cursor: url("/cursors/ibeam.png") 16 16, url("/cursors/ibeam.cur") 16 16, text;
+}
+button:disabled, [aria-disabled="true"], .btn:disabled {
+  cursor: url("/cursors/no.png") 16 16, url("/cursors/no.cur") 16 16, not-allowed;
+}
+[data-resize], .resize, .cursor-move, [class*="cursor-move"] {
+  cursor: url("/cursors/sizeall.png") 16 16, url("/cursors/sizeall.cur") 16 16, move;
+}
+.cursor-crosshair, [class*="cursor-crosshair"] {
+  cursor: url("/cursors/crosshair.png") 16 16, url("/cursors/crosshair.cur") 16 16, crosshair;
+}
+input[type="range"] {
+  cursor: url("/cursors/sizewe.png") 16 16, url("/cursors/sizewe.cur") 16 16, ew-resize;
 }
 
 button,
@@ -364,6 +379,12 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
 .sat-content td,
 .sat-content th { padding: 8px 14px; text-align: left; border: 1px solid var(--line); }
 .sat-content img { max-width: 100%; height: auto; margin: 0.8em 0; border-radius: 4px; }
+/*
+ * MathML must stay on the browser's math layout path.
+ * NEVER set display:inline-block/block/flex on <math> or its children —
+ * that collapses mfrac/msup/mrow into a vertical stack of digits (the
+ * "crumpled" inequalities users reported).
+ */
 .sat-content math,
 .sat-content .katex,
 .sat-content mjx-container {
@@ -376,9 +397,116 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
-html[data-theme="dark"] .sat-content img,
+
+.sat-content math {
+  /* Leave display to the UA MathML engine (inline math). Do not force
+     inline-block/block/flex — that is what stacked the inequalities. */
+  math-style: normal;
+}
+
+/* Undo any utility/preflight display rules that may leak onto MathML tokens. */
+.sat-content math mi,
+.sat-content math mn,
+.sat-content math mo,
+.sat-content math mtext,
+.sat-content math mrow,
+.sat-content math mfrac,
+.sat-content math msup,
+.sat-content math msub,
+.sat-content math msubsup,
+.sat-content math msqrt,
+.sat-content math mroot,
+.sat-content math mstyle,
+.sat-content math mspace,
+.sat-content math mtable,
+.sat-content math mtr,
+.sat-content math mtd,
+.sat-content math munder,
+.sat-content math mover,
+.sat-content math munderover,
+.sat-content math mfenced {
+  display: revert !important;
+  position: static !important;
+  float: none !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  line-height: normal !important;
+}
+
+/*
+ * College Board ships many formulas as tiny pixel PNGs (often 14–28px tall).
+ * Capping them at 1.6em made multi-line equations unreadable and left short
+ * sprites looking like fine print. Scale the container instead.
+ */
+.sat-content .math_expression,
+.sat-content .math-container,
+.sat-content span.math_expression {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+  max-width: 100%;
+}
+.sat-content img.math-img,
+.sat-content .math-container img,
+.sat-content .math_expression img {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin: 0.12em 0.18em !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: min(100%, 36rem) !important;
+  /* Readable body size for single-line sprites; tall formulas keep aspect. */
+  min-height: 1.55em !important;
+  max-height: 5.5em !important;
+  object-fit: contain !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  filter: none !important;
+  image-rendering: -webkit-optimize-contrast;
+}
+/* Stem / choice formulas that are still undersized get a gentle zoom. */
+.sat-content .math_expression {
+  zoom: 1.28;
+}
+@supports not (zoom: 1) {
+  .sat-content .math_expression {
+    transform: scale(1.28);
+    transform-origin: left center;
+  }
+}
+/* Answer choices: keep math aligned with the letter circle. */
+.answer-choice .sat-content .math_expression {
+  zoom: 1.35;
+}
+.answer-choice .sat-content img.math-img {
+  min-height: 1.7em !important;
+}
+
+/* Dark themes: invert black-on-transparent CB math PNGs so they stay readable. */
+html[data-theme="dark"] .sat-content img.math-img,
+html[data-theme="dark"] .sat-content .math-container img,
+html[data-theme="dark"] .sat-content .math_expression img,
+html[data-theme="obsidian"] .sat-content img.math-img,
+html[data-theme="obsidian"] .sat-content .math-container img,
+html[data-theme="obsidian"] .sat-content .math_expression img {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Figures/graphs get a light plate in dark themes; pure math PNGs do not. */
+html[data-theme="dark"] .sat-content img:not(.math-img),
 html[data-theme="dark"] .sat-content svg,
-html[data-theme="obsidian"] .sat-content img,
+html[data-theme="obsidian"] .sat-content img:not(.math-img),
 html[data-theme="obsidian"] .sat-content svg {
   box-sizing: border-box;
   padding: 10px;
@@ -387,6 +515,12 @@ html[data-theme="obsidian"] .sat-content svg {
   border-radius: 6px;
   filter: none !important;
   mix-blend-mode: normal;
+}
+html[data-theme="dark"] .sat-content .math-container,
+html[data-theme="obsidian"] .sat-content .math-container {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
 }
 .sat-content ul,
 .sat-content ol { margin-left: 1.4em; }
@@ -909,6 +1043,24 @@ html[data-reduce-motion="true"] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+
+/* Bluebook focus mode: hide app chrome so the test fills the window. */
+html[data-focus-mode="true"] .shell-aside,
+html[data-focus-mode="true"] .shell-header {
+  display: none !important;
+}
+html[data-focus-mode="true"] .shell-main {
+  margin-left: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+html[data-focus-mode="true"] .shell-main > div {
+  max-width: none !important;
+  animation: none !important;
+}
+html[data-focus-mode="true"] body {
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,0 +1,10 @@
+{
+  "name": "SAT Nexus",
+  "short_name": "SAT Nexus",
+  "description": "Official-style SAT question bank and practice in the browser.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eadcc7",
+  "theme_color": "#49bdb4",
+  "lang": "en"
+}

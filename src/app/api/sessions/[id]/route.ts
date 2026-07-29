@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const { id } = await ctx.params;
     const s = await db.execute(sql`
       SELECT id, mode, label, test_id AS "testId", total_questions AS "totalQuestions",
@@ -16,7 +18,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
              total_score AS "totalScore", rw_score AS "rwScore", math_score AS "mathScore",
              skill_bands AS "skillBands",
              started_at AS "startedAt", finished_at AS "finishedAt"
-      FROM quiz_sessions WHERE id = ${id} LIMIT 1
+      FROM quiz_sessions WHERE id = ${id} AND user_id = ${user.id} LIMIT 1
     `);
     const session = ((s as unknown as { rows: Record<string, unknown>[] }).rows ?? [])[0];
     if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -31,11 +33,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
 }
 
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const { id } = await ctx.params;
-    await db.execute(sql`DELETE FROM quiz_sessions WHERE id = ${id} AND finished_at IS NULL`);
+    await db.execute(sql`
+      DELETE FROM quiz_sessions
+      WHERE id = ${id} AND user_id = ${user.id} AND finished_at IS NULL
+    `);
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to discard session" }, { status: 500 });
@@ -45,6 +51,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const { id } = await ctx.params;
     const body = await req.json();
     const correct = body?.correctCount != null ? Number(body.correctCount) : null;
@@ -68,7 +75,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
           math_score = COALESCE(${mathScore}, math_score),
           skill_bands = COALESCE(${skillBands}::jsonb, skill_bands),
           finished_at = CASE WHEN ${shouldFinish} THEN COALESCE(finished_at, now()) ELSE finished_at END
-      WHERE id = ${id}
+      WHERE id = ${id} AND user_id = ${user.id}
     `);
     return NextResponse.json({ ok: true });
   } catch (e) {

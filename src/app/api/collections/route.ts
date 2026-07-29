@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { uid } from "@/lib/utils";
 import type { StudyCollection } from "@/lib/types";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +27,10 @@ function mapCollection(r: RawRow): StudyCollection {
   };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const res = await db.execute(sql`
       SELECT c.id, c.name, c.description, c.icon,
              c.created_at AS "createdAt", c.updated_at AS "updatedAt",
@@ -36,6 +38,7 @@ export async function GET() {
                FILTER (WHERE ci.question_id IS NOT NULL), '[]') AS ids
       FROM collections c
       LEFT JOIN collection_items ci ON ci.collection_id = c.id
+      WHERE c.user_id = ${user.id}
       GROUP BY c.id
       ORDER BY c.created_at ASC
     `);
@@ -50,6 +53,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const body = await req.json();
     const name = String(body?.name ?? "").trim();
     const description = body?.description ? String(body.description).trim() : null;
@@ -57,10 +61,15 @@ export async function POST(req: Request) {
     if (!name) return NextResponse.json({ error: "Collection name is required" }, { status: 400 });
     const id = uid("col");
     await db.execute(sql`
-      INSERT INTO collections (id, name, description, icon) VALUES (${id}, ${name}, ${description}, ${icon})
+      INSERT INTO collections (id, user_id, name, description, icon)
+      VALUES (${id}, ${user.id}, ${name}, ${description}, ${icon})
     `);
     return NextResponse.json({
-      collection: { id, name, description, icon, questionIds: [], questionCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      collection: {
+        id, name, description, icon,
+        questionIds: [], questionCount: 0,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      },
     });
   } catch (e) {
     console.error("[api/collections] POST failed:", e);

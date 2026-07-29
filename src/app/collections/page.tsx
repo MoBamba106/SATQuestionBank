@@ -21,12 +21,14 @@ function CollectionItemsList({
   collection,
   error,
   onRemove,
+  onOpen,
 }: {
   items: SATQuestion[] | undefined;
   loading: boolean;
   collection?: StudyCollection;
   error?: string;
   onRemove: (collection: StudyCollection, questionId: string) => void;
+  onOpen: (question: SATQuestion) => void;
 }) {
   if (loading && !items) {
     return (
@@ -56,30 +58,45 @@ function CollectionItemsList({
   return (
     <ul className="space-y-2">
       {items.map((question) => (
-        <li key={question.id} className="glass-subtle flex items-center gap-3 px-4 py-3">
-          <div className="min-w-0 grow">
-            <p className="truncate text-[13.5px] font-medium text-[var(--ink-soft)]">
-              {stripHtml(question.questionHtml || question.questionText).slice(0, 120)}
-            </p>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              <span className={cn("badge !py-0.5 !text-[10.5px]", domainColor(question.domain))}>{question.domain}</span>
-              <span className={cn("badge !py-0.5 !text-[10.5px]", skillColor(question.skill))}>{question.skill}</span>
-              <span className={cn("badge border !py-0.5 !text-[10.5px]", difficultyColor(question.difficulty))}>
-                {question.difficulty}
-              </span>
+        <li key={question.id}>
+          <button
+            type="button"
+            onClick={() => onOpen(question)}
+            className="glass-subtle flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:border-[var(--accent)] hover:bg-[var(--paper-raised)]"
+          >
+            <div className="min-w-0 grow">
+              <p className="truncate text-[13.5px] font-medium text-[var(--ink-soft)]">
+                {stripHtml(question.questionHtml || question.questionText).slice(0, 120)}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                <span className={cn("badge !py-0.5 !text-[10.5px]", domainColor(question.domain))}>{question.domain}</span>
+                <span className={cn("badge !py-0.5 !text-[10.5px]", skillColor(question.skill))}>{question.skill}</span>
+                <span className={cn("badge border !py-0.5 !text-[10.5px]", difficultyColor(question.difficulty))}>
+                  {question.difficulty}
+                </span>
+              </div>
             </div>
-          </div>
-          <FavoriteButton questionId={question.id} favorite={question.favorite} size="sm" />
-          {collection && (
-            <button
-              type="button"
-              onClick={() => onRemove(collection, question.id)}
-              title="Remove from collection"
-              className="rounded-[5px] p-1.5 text-[#8c8f92] transition-colors hover:bg-[#f9e9ec] hover:text-[#ae3d51]"
+            <span
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+              className="contents"
             >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+              <FavoriteButton questionId={question.id} favorite={question.favorite} size="sm" />
+              {collection && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRemove(collection, question.id);
+                  }}
+                  title="Remove from collection"
+                  className="rounded-[5px] p-1.5 text-[var(--ink-faint)] transition-colors hover:bg-[color-mix(in_srgb,var(--bad)_14%,var(--paper-raised))] hover:text-[var(--bad)]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </span>
+          </button>
         </li>
       ))}
     </ul>
@@ -176,6 +193,14 @@ export default function CollectionsPage() {
     launchPoolQuiz(router, { label, ids, mode });
   };
 
+  const openQuestion = (question: SATQuestion) => {
+    launchPoolQuiz(router, {
+      label: stripHtml(question.questionHtml || question.questionText).slice(0, 48) || "Collection question",
+      ids: [question.id],
+      mode: "collection",
+    });
+  };
+
 
 
   return (
@@ -227,7 +252,7 @@ export default function CollectionsPage() {
         </div>
         {favOpen && (
           <div className="border-t border-[var(--line-soft)] p-5 pt-4">
-            <CollectionItemsList items={itemCache.__fav} loading={itemsLoading} error={itemErrors.__fav} onRemove={removeItem} />
+            <CollectionItemsList items={itemCache.__fav} loading={itemsLoading} error={itemErrors.__fav} onRemove={removeItem} onOpen={openQuestion} />
           </div>
         )}
       </GlassCard>
@@ -287,7 +312,7 @@ export default function CollectionsPage() {
               </div>
               {openId === c.id && (
                 <div className="border-t border-[var(--line-soft)] p-5 pt-4">
-                  <CollectionItemsList items={itemCache[c.id]} loading={itemsLoading} collection={c} error={itemErrors[c.id]} onRemove={removeItem} />
+                  <CollectionItemsList items={itemCache[c.id]} loading={itemsLoading} collection={c} error={itemErrors[c.id]} onRemove={removeItem} onOpen={openQuestion} />
                 </div>
               )}
             </GlassCard>

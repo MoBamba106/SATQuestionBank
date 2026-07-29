@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
+import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
+    const user = await getRequestUser(req);
     const { id } = await ctx.params;
     const body = await req.json();
     const questionIds = Array.from(
@@ -22,12 +24,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       return NextResponse.json({ error: "At least one question ID is required" }, { status: 400 });
     }
 
-    const collectionResult = await db.execute(sql`SELECT 1 FROM collections WHERE id = ${id} LIMIT 1`);
+    const collectionResult = await db.execute(sql`
+      SELECT 1 FROM collections WHERE id = ${id} AND user_id = ${user.id} LIMIT 1
+    `);
     if (((collectionResult as unknown as { rows: unknown[] }).rows ?? []).length === 0) {
       return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     }
 
-    const idParams = sql.join(questionIds.map((questionId) => sql`${questionId}`), sql`, `);
+    const idParams = sql.join(
+      questionIds.map((questionId) => sql`${questionId}`),
+      sql`, `,
+    );
 
     if (body?.remove) {
       await db.execute(sql`
