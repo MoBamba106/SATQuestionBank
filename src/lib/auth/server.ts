@@ -1,4 +1,5 @@
 import { cookies, headers } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import { sql } from "drizzle-orm";
 import { db, ensureDatabaseReady } from "@/db";
 import { GUEST_USER, GUEST_USER_ID, type AuthUser } from "@/lib/auth/types";
@@ -7,15 +8,63 @@ const AUTH_COOKIE = "sat_nexus_access_token";
 
 export type RequestUser = AuthUser;
 
-function cloudbaseConfigured() {
-  return Boolean(process.env.CLOUDBASE_ENV_ID?.trim());
+function supabaseConfigured() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      (
+        process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
+      ),
+  );
+}
+
+function getSupabaseServerClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+
+  if (!url || !key) return null;
+
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+function userFromSupabasePayload(user: {
+  id: string;
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+  is_anonymous?: boolean;
+}): AuthUser {
+  const metadata = user.user_metadata ?? {};
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    displayName:
+      (typeof metadata.display_name === "string" && metadata.display_name) ||
+      (typeof metadata.full_name === "string" && metadata.full_name) ||
+      (typeof metadata.name === "string" && metadata.name) ||
+      user.email ||
+      "Student",
+    avatarUrl:
+      (typeof metadata.avatar_url === "string" && metadata.avatar_url) ||
+      (typeof metadata.picture === "string" && metadata.picture) ||
+      null,
+    isGuest: Boolean(user.is_anonymous),
+  };
 }
 
 /**
  * Resolve the current user for an API/route handler.
  * - Authorization: Bearer <token> (preferred)
  * - Cookie sat_nexus_access_token
- * - Falls back to guest when CloudBase is not configured or token is absent
+ * - Falls back to guest when Supabase Auth is not configured or token is absent
  *   (guest mode keeps the app usable for demos / local dev).
  */
 export async function getRequestUser(req?: Request): Promise<RequestUser> {
@@ -32,13 +81,13 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
     cookieStore.get(AUTH_COOKIE)?.value ||
     "";
 
-  if (!token || !cloudbaseConfigured()) {
+  if (!token || !supabaseConfigured()) {
     await ensureUserRow(GUEST_USER);
     return GUEST_USER;
   }
 
   try {
-    const verified = await verifyCloudBaseToken(token);
+    const verified = await verifySupabaseToken(token);
     if (!verified) {
       await ensureUserRow(GUEST_USER);
       return GUEST_USER;
@@ -52,42 +101,19 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
   }
 }
 
-async function verifyCloudBaseToken(accessToken: string): Promise<AuthUser | null> {
-  // Lazy-load so local/dev without CloudBase deps still builds.
-  let tcb: any;
-  try {
-    tcb = await import("@cloudbase/node-sdk");
-  } catch {
-    return null;
-  }
+async function verifySupabaseToken(accessToken: string): Promise<AuthUser | null> {
+  const client = getSupabaseServerClient();
+  if (!client) return null;
 
-  const env = process.env.CLOUDBASE_ENV_ID!.trim();
-  const secretId = process.env.CLOUDBASE_SECRET_ID?.trim();
-  const secretKey = process.env.CLOUDBASE_SECRET_KEY?.trim();
+  const { data, error } = await client.auth.getUser(accessToken);
+  if (error || !data.user) return null;
 
-  const app = tcb.default.init({
-    env,
-    ...(secretId && secretKey ? { secretId, secretKey } : {}),
+  return userFromSupabasePayload({
+    id: data.user.id,
+    email: data.user.email,
+    user_metadata: data.user.user_metadata,
+    is_anonymous: (data.user as { is_anonymous?: boolean }).is_anonymous,
   });
-
-  const auth = app.auth();
-  const info: Record<string, unknown> =
-    (await auth.getUserInfo?.({ accessToken })) ??
-    (await auth.getEndUserInfo?.(accessToken)) ??
-    {};
-
-  const nested = (info.userInfo as Record<string, unknown> | undefined) ?? {};
-  const data = (info.data as Record<string, unknown> | undefined) ?? {};
-  const uid = info.uid || nested.uid || data.uid || info.openId;
-  if (!uid) return null;
-
-  return {
-    id: String(uid),
-    email: (info.email || nested.email || null) as string | null,
-    displayName: (info.nickName || nested.nickName || info.email || nested.email || null) as string | null,
-    avatarUrl: (info.avatarUrl || nested.avatarUrl || null) as string | null,
-    isGuest: false,
-  };
 }
 
 export async function ensureUserRow(user: AuthUser): Promise<void> {

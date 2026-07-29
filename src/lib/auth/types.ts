@@ -3,7 +3,7 @@ export type AuthUser = {
   email: string | null;
   displayName: string | null;
   avatarUrl: string | null;
-  /** true when using local guest mode (no CloudBase session). */
+  /** true when using local guest mode (no synced auth session). */
   isGuest: boolean;
 };
 

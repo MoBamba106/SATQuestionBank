@@ -70,12 +70,13 @@ DATABASE_SSL_REJECT_UNAUTHORIZED=false
 
 This repo also retries migrations automatically with `rejectUnauthorized=false` when it detects that certificate-chain error, but setting the env var explicitly makes the behavior deterministic.
 
-### Optional Supabase JS client values
-These do **not** create tables. They are only for the Supabase client SDK.
+### Supabase Auth values
+These are required if you want sign-up / sign-in to work.
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://[PROJECT_REF].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_ANON_KEY]
+SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
 ```
 
 This repo also accepts:

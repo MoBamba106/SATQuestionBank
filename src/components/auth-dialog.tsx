@@ -25,9 +25,14 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       toast.success(mode === "signin" ? "Signed in" : "Account created");
       onOpenChange(false);
     } catch (error) {
-      toast.error(mode === "signin" ? "Could not sign in" : "Could not create account", {
-        description: error instanceof Error ? error.message : undefined,
-      });
+      const message = error instanceof Error ? error.message : undefined;
+      if (mode === "signup" && message?.startsWith("Account created,")) {
+        toast.message("Check your email to finish sign-up", { description: message });
+      } else {
+        toast.error(mode === "signin" ? "Could not sign in" : "Could not create account", {
+          description: message,
+        });
+      }
     } finally {
       setBusy(false);
     }
@@ -39,25 +44,29 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       onOpenChange={onOpenChange}
       title={mode === "signin" ? "Sign in" : "Create account"}
       description={
-        auth.cloudBaseEnabled
-          ? "Your progress syncs across devices via CloudBase."
-          : "CloudBase is not configured yet. You can keep practicing as a local guest."
+        auth.authEnabled
+          ? "Your progress syncs across devices via Supabase Auth."
+          : "Supabase Auth is not configured yet. You can keep practicing as a local guest."
       }
     >
       <div className="mt-4 space-y-3">
         <div>
-          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Email</label>
+          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+            Email
+          </label>
           <input
             className="input w-full"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={!auth.cloudBaseEnabled || busy}
+            disabled={!auth.authEnabled || busy}
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Password</label>
+          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+            Password
+          </label>
           <input
             className="input w-full"
             type="password"
@@ -65,14 +74,20 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && void submit()}
-            disabled={!auth.cloudBaseEnabled || busy}
+            disabled={!auth.authEnabled || busy}
           />
         </div>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2.5">
-        <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.cloudBaseEnabled || busy}>
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signin" ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+        <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.authEnabled || busy}>
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : mode === "signin" ? (
+            <LogIn className="h-4 w-4" />
+          ) : (
+            <UserPlus className="h-4 w-4" />
+          )}
           {mode === "signin" ? "Sign in" : "Create account"}
         </button>
         <button
@@ -93,7 +108,9 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           onClick={() => {
             auth.continueAsLocalGuest();
             onOpenChange(false);
-            toast.message("Continuing as guest", { description: "Progress stays on this browser until you sign in." });
+            toast.message("Continuing as guest", {
+              description: "Progress stays on this browser until you sign in.",
+            });
           }}
         >
           Continue as guest

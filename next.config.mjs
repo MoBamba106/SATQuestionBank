@@ -13,7 +13,7 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./drizzle/**/*", "./src/data/**/*"],
   },
-  serverExternalPackages: ["pg", "@electric-sql/pglite", "@cloudbase/node-sdk"],
+  serverExternalPackages: ["pg", "@electric-sql/pglite"],
   turbopack: {
     root: process.cwd(),
   },

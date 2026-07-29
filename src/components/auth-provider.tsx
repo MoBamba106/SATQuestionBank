@@ -5,13 +5,14 @@ import type { AuthUser } from "@/lib/auth/types";
 import { GUEST_USER } from "@/lib/auth/types";
 import {
   clearAuth,
-  isCloudBaseEnabled,
+  getCurrentAuthState,
+  isAuthEnabled,
   persistAuth,
-  readStoredAuth,
   signInAnonymously,
   signInWithEmail,
-  signOutCloudBase,
+  signOutSupabase,
   signUpWithEmail,
+  subscribeToAuthState,
 } from "@/lib/auth/client";
 import { mutateKey } from "@/lib/api-client";
 
@@ -19,7 +20,7 @@ type AuthContextValue = {
   user: AuthUser;
   accessToken: string | null;
   ready: boolean;
-  cloudBaseEnabled: boolean;
+  authEnabled: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInGuestCloud: () => Promise<void>;
@@ -33,17 +34,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<AuthUser>(GUEST_USER);
   const [accessToken, setAccessToken] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
-  const cloudBaseEnabled = isCloudBaseEnabled();
+  const authEnabled = isAuthEnabled();
 
   React.useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const stored = readStoredAuth();
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
+
+    const timer = window.setTimeout(async () => {
+      const stored = await getCurrentAuthState();
+      if (!active) return;
       setUser(stored.user);
       setAccessToken(stored.accessToken);
       setReady(true);
+
+      if (authEnabled) {
+        unsubscribe = subscribeToAuthState((next) => {
+          if (!active) return;
+          setUser(next.user);
+          setAccessToken(next.accessToken);
+          mutateKey("favorites");
+          mutateKey("collections");
+          mutateKey("stats");
+          mutateKey("mistakes");
+        });
+      }
     }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+      unsubscribe?.();
+    };
+  }, [authEnabled]);
 
   const applySession = React.useCallback((next: AuthUser, token: string | null) => {
     setUser(next);
@@ -60,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       accessToken,
       ready,
-      cloudBaseEnabled,
+      authEnabled,
       async signIn(email, password) {
         const session = await signInWithEmail(email, password);
         applySession(session.user, session.accessToken);
@@ -74,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         applySession(session.user, session.accessToken);
       },
       async signOut() {
-        await signOutCloudBase();
+        await signOutSupabase();
         clearAuth();
         applySession(GUEST_USER, null);
       },
@@ -83,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         applySession(GUEST_USER, null);
       },
     }),
-    [accessToken, applySession, cloudBaseEnabled, ready, user],
+    [accessToken, applySession, authEnabled, ready, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

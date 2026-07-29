@@ -1,7 +1,9 @@
 "use client";
 
+import type { Session, User } from "@supabase/supabase-js";
 import type { AuthUser } from "@/lib/auth/types";
 import { GUEST_USER } from "@/lib/auth/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 const TOKEN_KEY = "sat_nexus_access_token";
 const USER_KEY = "sat_nexus_auth_user";
@@ -11,6 +13,51 @@ export type ClientAuthState = {
   accessToken: string | null;
   ready: boolean;
 };
+
+function supabasePublicKey() {
+  return (
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+    ""
+  );
+}
+
+function userFromSupabase(user: User | null | undefined): AuthUser {
+  if (!user) return GUEST_USER;
+
+  const metadata = (user.user_metadata ?? {}) as Record<string, unknown>;
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    displayName:
+      (typeof metadata.display_name === "string" && metadata.display_name) ||
+      (typeof metadata.full_name === "string" && metadata.full_name) ||
+      (typeof metadata.name === "string" && metadata.name) ||
+      user.email ||
+      "Student",
+    avatarUrl:
+      (typeof metadata.avatar_url === "string" && metadata.avatar_url) ||
+      (typeof metadata.picture === "string" && metadata.picture) ||
+      null,
+    isGuest: Boolean((user as User & { is_anonymous?: boolean }).is_anonymous),
+  };
+}
+
+function persistSessionState(session: Session | null) {
+  if (typeof window === "undefined") return;
+
+  if (!session?.user || !session.access_token) {
+    window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.setItem(USER_KEY, JSON.stringify(GUEST_USER));
+    document.cookie = "sat_nexus_access_token=; path=/; max-age=0; samesite=lax";
+    return;
+  }
+
+  const user = userFromSupabase(session.user);
+  window.localStorage.setItem(TOKEN_KEY, session.access_token);
+  window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+  document.cookie = `sat_nexus_access_token=${encodeURIComponent(session.access_token)}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+}
 
 export function readStoredAuth(): { user: AuthUser; accessToken: string | null } {
   if (typeof window === "undefined") return { user: GUEST_USER, accessToken: null };
@@ -42,87 +89,96 @@ export function clearAuth() {
   persistAuth(GUEST_USER, null);
 }
 
-export function cloudbaseEnvId() {
-  return process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID?.trim() || "";
+export function isAuthEnabled() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && supabasePublicKey());
 }
 
-export function isCloudBaseEnabled() {
-  return Boolean(cloudbaseEnvId());
+export async function getCurrentAuthState(): Promise<{ user: AuthUser; accessToken: string | null }> {
+  if (!isAuthEnabled()) return { user: GUEST_USER, accessToken: null };
+
+  try {
+    const {
+      data: { session },
+      error,
+    } = await getSupabaseBrowserClient().auth.getSession();
+    if (error) throw error;
+    persistSessionState(session);
+    return session?.user
+      ? { user: userFromSupabase(session.user), accessToken: session.access_token }
+      : { user: GUEST_USER, accessToken: null };
+  } catch {
+    return readStoredAuth();
+  }
 }
 
-type LooseAuth = {
-  signInWithEmailAndPassword?: (email: string, password: string) => Promise<unknown>;
-  signInWithPassword?: (opts: { username: string; password: string }) => Promise<unknown>;
-  signUpWithEmailAndPassword?: (email: string, password: string) => Promise<unknown>;
-  signUp?: (opts: { email: string; password: string }) => Promise<unknown>;
-  signInAnonymously?: () => Promise<unknown>;
-  anonymousAuthProvider?: () => { signIn?: () => Promise<unknown> };
-  signOut: () => Promise<unknown>;
-  getLoginState?: () => Promise<unknown>;
-  currentUser?: unknown;
-};
+export function subscribeToAuthState(
+  callback: (state: { user: AuthUser; accessToken: string | null }) => void,
+) {
+  const {
+    data: { subscription },
+  } = getSupabaseBrowserClient().auth.onAuthStateChange((_event, session) => {
+    persistSessionState(session);
+    callback(
+      session?.user
+        ? { user: userFromSupabase(session.user), accessToken: session.access_token }
+        : { user: GUEST_USER, accessToken: null },
+    );
+  });
 
-export async function getCloudBaseApp() {
-  const env = cloudbaseEnvId();
-  if (!env) throw new Error("CloudBase is not configured (NEXT_PUBLIC_CLOUDBASE_ENV_ID).");
-  const cloudbase = (await import("@cloudbase/js-sdk")).default as {
-    init: (opts: { env: string }) => { auth: (opts?: { persistence?: string }) => LooseAuth };
-  };
-  return cloudbase.init({ env });
+  return () => subscription.unsubscribe();
 }
 
 export async function signInWithEmail(email: string, password: string) {
-  const app = await getCloudBaseApp();
-  const auth = app.auth({ persistence: "local" });
-  const result =
-    (await auth.signInWithEmailAndPassword?.(email, password)) ??
-    (await auth.signInWithPassword?.({ username: email, password }));
-  return normalizeSession(auth, result);
+  const { data, error } = await getSupabaseBrowserClient().auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  if (!data.session || !data.user) throw new Error("Sign-in succeeded but no session was returned.");
+  persistSessionState(data.session);
+  return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
 }
 
 export async function signUpWithEmail(email: string, password: string) {
-  const app = await getCloudBaseApp();
-  const auth = app.auth({ persistence: "local" });
-  const result =
-    (await auth.signUpWithEmailAndPassword?.(email, password)) ??
-    (await auth.signUp?.({ email, password }));
-  return normalizeSession(auth, result);
+  const { data, error } = await getSupabaseBrowserClient().auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        display_name: email.split("@")[0] || "Student",
+      },
+    },
+  });
+  if (error) throw error;
+  if (!data.session || !data.user) {
+    throw new Error(
+      "Account created, but email confirmation is required before you can sign in. Check your inbox or disable email confirmation in Supabase Auth settings.",
+    );
+  }
+  persistSessionState(data.session);
+  return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
 }
 
 export async function signInAnonymously() {
-  const app = await getCloudBaseApp();
-  const auth = app.auth({ persistence: "local" });
-  if (auth.signInAnonymously) await auth.signInAnonymously();
-  else await auth.anonymousAuthProvider?.().signIn?.();
-  return normalizeSession(auth, null);
-}
-
-export async function signOutCloudBase() {
-  try {
-    const app = await getCloudBaseApp();
-    await app.auth().signOut();
-  } catch {
-    /* ignore when CloudBase is disabled */
-  }
-  clearAuth();
-}
-
-async function normalizeSession(auth: LooseAuth, result: unknown) {
-  const state = ((await auth.getLoginState?.()) ?? auth.currentUser ?? result) as Record<string, unknown> | null;
-  const userInfo = ((state?.user ?? state?.userInfo ?? state) ?? {}) as Record<string, unknown>;
-  const uid = userInfo.uid || userInfo.openId || state?.uid;
-  if (!uid) throw new Error("Sign-in succeeded but no user id was returned.");
-  const credential = (state?.credential ?? {}) as Record<string, unknown>;
-  const accessToken = (credential.accessToken || state?.accessToken || null) as string | null;
-  const user: AuthUser = {
-    id: String(uid),
-    email: (userInfo.email as string) ?? null,
-    displayName: (userInfo.nickName as string) || (userInfo.email as string) || "Student",
-    avatarUrl: (userInfo.avatarUrl as string) ?? null,
-    isGuest: false,
+  const client = getSupabaseBrowserClient();
+  const auth = client.auth as typeof client.auth & {
+    signInAnonymously?: () => Promise<{ data: { session: Session | null; user: User | null }; error: Error | null }>;
   };
-  persistAuth(user, accessToken);
-  return { user, accessToken };
+  if (!auth.signInAnonymously) {
+    throw new Error("Anonymous Supabase auth is not enabled for this project.");
+  }
+  const { data, error } = await auth.signInAnonymously();
+  if (error) throw error;
+  if (!data.session || !data.user) throw new Error("Anonymous sign-in succeeded but no session was returned.");
+  persistSessionState(data.session);
+  return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
+}
+
+export async function signOutSupabase() {
+  if (!isAuthEnabled()) {
+    clearAuth();
+    return;
+  }
+  const { error } = await getSupabaseBrowserClient().auth.signOut();
+  if (error) throw error;
+  clearAuth();
 }
 
 export function authHeaders(accessToken: string | null | undefined): HeadersInit {

@@ -18,7 +18,10 @@ export async function GET() {
       database: databaseKind,
       databaseConnection: databaseConnectionInfo,
       migrationConnection: databaseMigrationConnectionInfo,
-      cloudbase: Boolean(process.env.CLOUDBASE_ENV_ID || process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID),
+      supabaseAuth: Boolean(
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+          (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
+      ),
       runtime: process.env.VERCEL ? "vercel" : "node",
     });
   } catch (error) {
