@@ -230,13 +230,28 @@ const globalForDb = globalThis as typeof globalThis & {
   __satNexusSchemaPromise?: Promise<void>;
 };
 
+function defaultRejectUnauthorized(connectionString: string): boolean {
+  if (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === "false") return false;
+  if (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === "true") return true;
+
+  const parsed = parseDatabaseUrl(connectionString);
+  const host = parsed?.hostname?.toLowerCase() || "";
+
+  // Supabase pooler connections frequently present certificate chains that
+  // Node's strict verifier rejects in hosted build environments. When the app
+  // is using the shared pooler, prefer encrypted transport without hard CA
+  // verification unless the user explicitly opts back into strict mode.
+  if (/pooler\.supabase\.com$/i.test(host)) return false;
+
+  return true;
+}
+
 function buildPoolOptions(
   connectionString: string,
   max: number,
   options?: { rejectUnauthorized?: boolean },
 ): PoolConfig {
-  const rejectUnauthorized =
-    options?.rejectUnauthorized ?? process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false";
+  const rejectUnauthorized = options?.rejectUnauthorized ?? defaultRejectUnauthorized(connectionString);
 
   return {
     connectionString,
