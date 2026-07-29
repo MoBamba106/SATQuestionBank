@@ -10,6 +10,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
+import FolderComponent from "@/components/react-bits/Folder";
 import { useApi, apiPost, apiDelete, mutateKey } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
@@ -284,7 +285,9 @@ export default function CollectionsPage() {
                   className="flex min-w-0 grow items-center gap-4 p-1 text-left"
                   aria-expanded={openId === c.id}
                 >
-                  <CollectionIcon icon={c.icon} />
+                  <div className="shrink-0 w-[50px] h-[50px] flex items-center justify-center pointer-events-none">
+                    <FolderComponent size={0.35} color="var(--accent)" isOpen={openId === c.id} />
+                  </div>
                   <div className="min-w-0 grow">
                     <div className="truncate text-[16px] font-bold text-[var(--ink)]">{c.name}</div>
                     <div className="truncate text-[12.5px] text-[var(--ink-faint)]">

@@ -6,7 +6,7 @@ import { AlertCircle, ArrowLeft, Play, Loader2, FlaskConical, PenLine, RotateCcw
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperSelect } from "@/components/ui/paper-select";
-import { PaperSlider } from "@/components/ui/paper-slider";
+import ElasticSlider from "@/components/react-bits/ElasticSidebar";
 import { PracticeRunner } from "@/components/quiz/practice-runner";
 import { useSettings } from "@/components/settings-provider";
 import { BluebookRunner } from "@/components/quiz/bluebook-runner";
@@ -319,15 +319,13 @@ function QuizInner() {
             <label className="text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Questions</label>
             <span className="font-display text-2xl font-bold text-[var(--accent)]">{count}</span>
           </div>
-          <PaperSlider
-            value={count}
-            onValueChange={setCount}
-            min={5}
-            max={40}
-            step={5}
-            ticks={[5, 10, 15, 20, 25, 30, 35, 40]}
-            formatValue={(v) => `${v}`}
-            ariaLabel="Number of questions"
+          <ElasticSlider
+            defaultValue={count}
+            onChange={setCount}
+            startingValue={5}
+            maxValue={40}
+            isStepped={true}
+            stepSize={5}
           />
           {available != null && (
             <p className={cn("mt-1 text-[12.5px] font-medium", available === 0 ? "text-[#a33046]" : "text-[var(--ink-faint)]")}>

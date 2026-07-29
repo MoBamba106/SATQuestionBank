@@ -13,6 +13,7 @@ import {
   Star,
   X,
 } from "lucide-react";
+import LineSidebar from "@/components/react-bits/LineSidebar";
 import { PaperSelect } from "@/components/ui/paper-select";
 import { QuestionCard } from "@/components/question-card";
 import { GlassCard } from "@/components/ui/glass-card";
