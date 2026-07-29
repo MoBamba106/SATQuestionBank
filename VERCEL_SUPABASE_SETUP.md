@@ -62,7 +62,13 @@ DATABASE_SSL=true
 DATABASE_SSL_REJECT_UNAUTHORIZED=true
 ```
 
-For Supabase, the default SSL behavior is usually correct, so you normally do **not** need to set these.
+If Vercel logs show `SELF_SIGNED_CERT_IN_CHAIN`, set:
+
+```env
+DATABASE_SSL_REJECT_UNAUTHORIZED=false
+```
+
+This repo also retries migrations automatically with `rejectUnauthorized=false` when it detects that certificate-chain error, but setting the env var explicitly makes the behavior deterministic.
 
 ### Optional Supabase JS client values
 These do **not** create tables. They are only for the Supabase client SDK.

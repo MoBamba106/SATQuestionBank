@@ -59,7 +59,7 @@ No cloud credentials required. Local mode uses embedded PGlite (`.sat-nexus-db/`
 | `NEXT_PUBLIC_CLOUDBASE_ENV_ID` | Recommended | Public CloudBase env id for client auth |
 | `CLOUDBASE_ENV_ID` | Recommended | Same env id on the server |
 | `CLOUDBASE_SECRET_ID` / `CLOUDBASE_SECRET_KEY` | Recommended | Server-side token verification |
-| `DATABASE_SSL_REJECT_UNAUTHORIZED` | Optional | Set `false` only if your managed Postgres uses a private CA |
+| `DATABASE_SSL_REJECT_UNAUTHORIZED` | Optional | Set `false` if your managed Postgres uses a private or self-signed CA, or if Vercel logs show `SELF_SIGNED_CERT_IN_CHAIN` |
 
 4. Deploy. Vercel now runs `npm run vercel-build`, which applies Drizzle migrations, seeds the question bank from `src/data/question-bank.json`, and then builds Next.js.
 

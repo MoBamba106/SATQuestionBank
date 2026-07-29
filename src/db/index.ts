@@ -197,6 +197,17 @@ function shouldTrySupabaseSessionFallback(error: unknown): boolean {
   return errorChainHasCode(error, "ENETUNREACH") || /ENETUNREACH|network is unreachable/i.test(extractErrorDetails(error));
 }
 
+function shouldTryRelaxedSsl(error: unknown): boolean {
+  return (
+    errorChainHasCode(error, "SELF_SIGNED_CERT_IN_CHAIN") ||
+    errorChainHasCode(error, "DEPTH_ZERO_SELF_SIGNED_CERT") ||
+    errorChainHasCode(error, "UNABLE_TO_VERIFY_LEAF_SIGNATURE") ||
+    /self-signed certificate|unable to verify the first certificate|unable to verify leaf signature/i.test(
+      extractErrorDetails(error),
+    )
+  );
+}
+
 export const databaseConnectionInfo = getDatabaseConnectionInfo(databaseUrl);
 export const databaseMigrationConnectionInfo = getDatabaseConnectionInfo(migrationUrl);
 export const databaseKind = shouldUsePostgres ? "postgres" : "embedded";
@@ -219,7 +230,14 @@ const globalForDb = globalThis as typeof globalThis & {
   __satNexusSchemaPromise?: Promise<void>;
 };
 
-function buildPoolOptions(connectionString: string, max: number): PoolConfig {
+function buildPoolOptions(
+  connectionString: string,
+  max: number,
+  options?: { rejectUnauthorized?: boolean },
+): PoolConfig {
+  const rejectUnauthorized =
+    options?.rejectUnauthorized ?? process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false";
+
   return {
     connectionString,
     max,
@@ -230,7 +248,7 @@ function buildPoolOptions(connectionString: string, max: number): PoolConfig {
       process.env.DATABASE_SSL === "false"
         ? undefined
         : !/localhost|127\.0\.0\.1/.test(connectionString)
-          ? { rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" }
+          ? { rejectUnauthorized }
           : undefined,
   };
 }
@@ -288,8 +306,11 @@ async function migrateRuntimeConnection() {
   }
 }
 
-async function migrateWithDedicatedConnection(connectionString: string) {
-  const pool = new Pool(buildPoolOptions(connectionString, 1));
+async function migrateWithDedicatedConnection(
+  connectionString: string,
+  options?: { rejectUnauthorized?: boolean },
+) {
+  const pool = new Pool(buildPoolOptions(connectionString, 1, options));
   try {
     const migrationDb = drizzlePostgres(pool);
     await migrateNodePostgres(migrationDb, migrationConfig);
@@ -309,27 +330,64 @@ export async function migrateDatabase(): Promise<void> {
   }
 
   if (migrationUrl && migrationUrl !== databaseUrl) {
-    try {
-      await migrateWithDedicatedConnection(migrationUrl);
-      return;
-    } catch (error) {
-      const fallbackUrl = deriveSupabaseSessionPoolerUrl(databaseUrl);
-      const canFallback =
-        databaseConnectionInfo.provider === "supabase" &&
-        fallbackUrl !== migrationUrl &&
-        shouldTrySupabaseSessionFallback(error);
+    const attempted = new Set<string>();
+    const queue: string[] = [migrationUrl];
+    const supabaseSessionFallback = deriveSupabaseSessionPoolerUrl(databaseUrl);
 
-      if (!canFallback) throw error;
+    while (queue.length > 0) {
+      const candidate = queue.shift();
+      if (!candidate || attempted.has(candidate)) continue;
+      attempted.add(candidate);
 
-      console.warn(
-        "[db] migration connection failed; retrying with derived Supabase session pooler URL (port 5432).",
-      );
-      await migrateWithDedicatedConnection(fallbackUrl);
-      return;
+      try {
+        await migrateWithDedicatedConnection(candidate);
+        return;
+      } catch (error) {
+        if (
+          process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" &&
+          shouldTryRelaxedSsl(error)
+        ) {
+          console.warn(
+            "[db] migration connection hit a certificate-chain validation error; retrying with rejectUnauthorized=false.",
+          );
+          await migrateWithDedicatedConnection(candidate, { rejectUnauthorized: false });
+          return;
+        }
+
+        const canFallback =
+          databaseConnectionInfo.provider === "supabase" &&
+          supabaseSessionFallback !== candidate &&
+          shouldTrySupabaseSessionFallback(error);
+
+        if (canFallback) {
+          console.warn(
+            "[db] migration connection failed; retrying with derived Supabase session pooler URL (port 5432).",
+          );
+          queue.push(supabaseSessionFallback);
+          continue;
+        }
+
+        throw error;
+      }
     }
   }
 
-  await migrateRuntimeConnection();
+  try {
+    await migrateRuntimeConnection();
+  } catch (error) {
+    if (
+      process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" &&
+      shouldTryRelaxedSsl(error) &&
+      databaseUrl
+    ) {
+      console.warn(
+        "[db] runtime migration connection hit a certificate-chain validation error; retrying with rejectUnauthorized=false.",
+      );
+      await migrateWithDedicatedConnection(databaseUrl, { rejectUnauthorized: false });
+      return;
+    }
+    throw error;
+  }
 }
 
 async function runSchema() {
