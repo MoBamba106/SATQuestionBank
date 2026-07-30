@@ -6,6 +6,7 @@ export type AppTheme = "light" | "dark" | "obsidian" | "highlighter" | "liquid-g
 export type FontScale = "small" | "default" | "large";
 export type QuizModeSetting = "practice" | "exam";
 export type PassageLayout = "scroll" | "expand";
+export type NavMode = "default" | "keyboard" | "dock";
 
 export type AppSettings = {
   theme: AppTheme;
@@ -22,6 +23,12 @@ export type AppSettings = {
   expandPassages: boolean;
   /** Default focus mode for Bluebook practice tests (hide chrome, fullscreen-like). */
   focusModeDefault: boolean;
+  /** Show the category / difficulty badges above quiz and practice-test questions. */
+  showQuestionMeta: boolean;
+  /** Questions per page in the question bank. */
+  bankPageSize: number;
+  /** Site navigation style: classic sidebar, keyboard-only, or floating dock. */
+  navMode: NavMode;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -37,6 +44,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultQuizMode: "practice",
   expandPassages: false,
   focusModeDefault: false,
+  showQuestionMeta: true,
+  bankPageSize: 48,
+  navMode: "default",
 };
 
 const STORAGE_KEY = "sat-nexus-settings-v3";
@@ -58,6 +68,7 @@ function applySettings(settings: AppSettings) {
   root.dataset.density = settings.compactMode ? "compact" : "comfortable";
   root.dataset.reduceMotion = settings.reducedMotion ? "true" : "false";
   root.dataset.expandPassages = settings.expandPassages ? "true" : "false";
+  root.dataset.navMode = settings.navMode;
   root.style.colorScheme = ["dark", "obsidian"].includes(settings.theme) ? "dark" : "light";
 }
 

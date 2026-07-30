@@ -14,13 +14,15 @@ import {
   signUpWithEmail,
   subscribeToAuthState,
 } from "@/lib/auth/client";
-import { mutateKey } from "@/lib/api-client";
+import { mutateKey, setImpersonatedUser } from "@/lib/api-client";
 
 type AuthContextValue = {
   user: AuthUser;
   accessToken: string | null;
   ready: boolean;
   authEnabled: boolean;
+  /** Server-verified admin status for the signed-in account. */
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInGuestCloud: () => Promise<void>;
@@ -34,7 +36,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<AuthUser>(GUEST_USER);
   const [accessToken, setAccessToken] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
+  const [isAdmin, setIsAdmin] = React.useState(false);
   const authEnabled = isAuthEnabled();
+
+  // Ask the server whether the signed-in account is an admin (ADMIN_EMAILS).
+  React.useEffect(() => {
+    let active = true;
+    if (!accessToken || user.isGuest) {
+      const timer = window.setTimeout(() => {
+        if (active) setIsAdmin(false);
+      }, 0);
+      return () => {
+        active = false;
+        window.clearTimeout(timer);
+      };
+    }
+    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${accessToken}` } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active) setIsAdmin(Boolean(data?.user?.isAdmin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [accessToken, user.isGuest, user.id]);
 
   React.useEffect(() => {
     let active = true;
@@ -83,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       accessToken,
       ready,
       authEnabled,
+      isAdmin,
       async signIn(email, password) {
         const session = await signInWithEmail(email, password);
         applySession(session.user, session.accessToken);
@@ -98,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async signOut() {
         await signOutSupabase();
         clearAuth();
+        setImpersonatedUser(null);
         applySession(GUEST_USER, null);
       },
       continueAsLocalGuest() {
@@ -105,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         applySession(GUEST_USER, null);
       },
     }),
-    [accessToken, applySession, authEnabled, ready, user],
+    [accessToken, applySession, authEnabled, isAdmin, ready, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

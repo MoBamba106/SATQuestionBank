@@ -5,6 +5,8 @@ export type AuthUser = {
   avatarUrl: string | null;
   /** true when using local guest mode (no synced auth session). */
   isGuest: boolean;
+  /** true when the signed-in email is listed in ADMIN_EMAILS (server-verified). */
+  isAdmin?: boolean;
 };
 
 export const GUEST_USER_ID = "guest";

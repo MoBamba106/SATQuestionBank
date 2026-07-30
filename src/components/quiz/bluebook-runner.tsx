@@ -462,9 +462,13 @@ export function BluebookRunner({
   const questionCard = (
     <GlassCard hover={false} className={cn("p-5 sm:p-7", focusMode && "border-0 shadow-none")}>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
-        <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
-        <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
+        {settings.showQuestionMeta && (
+          <>
+            <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
+            <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
+            <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
+          </>
+        )}
         <div className="ml-auto">
           <button
             onClick={() => setFlags((flagsById) => ({ ...flagsById, [current.id]: !flagsById[current.id] }))}

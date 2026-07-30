@@ -250,10 +250,14 @@ export function PracticeRunner({
         {/* Question card */}
         <GlassCard hover={false} className="p-5 sm:p-7">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
-            <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
-            {current.subskill && <span className={cn("badge hidden sm:inline-flex", skillColor(current.skill))}>{current.subskill}</span>}
-            <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
+            {settings.showQuestionMeta && (
+              <>
+                <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
+                <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
+                {current.subskill && <span className={cn("badge hidden sm:inline-flex", skillColor(current.skill))}>{current.subskill}</span>}
+                <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
+              </>
+            )}
             <div className="ml-auto flex items-center gap-1">
               {current.domain === "Math" && (
                 <>

@@ -15,7 +15,9 @@ import {
   Trophy,
   BookOpenText,
   BookMarked,
+  MessageSquarePlus,
   Settings2,
+  ShieldCheck,
   Menu,
   X,
   Search,
@@ -29,6 +31,12 @@ import { FloatingStudyTimer } from "@/components/floating-study-timer";
 import { CommandPalette, useCommandPaletteHotkey } from "@/components/command-palette";
 import { AuthDialog } from "@/components/auth-dialog";
 import { useAuth } from "@/components/auth-provider";
+import { useSettings } from "@/components/settings-provider";
+import { AccountGateProvider } from "@/components/account-gate";
+import { IntroTutorial } from "@/components/intro-tutorial";
+import { NavDock } from "@/components/nav-dock";
+import { PaperDialog } from "@/components/ui/paper-dialog";
+import { getImpersonatedUser, setImpersonatedUser, mutateKey } from "@/lib/api-client";
 import { toast } from "sonner";
 
 const NAV_GROUPS = [
@@ -54,17 +62,36 @@ const NAV_GROUPS = [
     items: [
       { href: "/analytics", label: "Analytics", icon: BarChart3 },
       { href: "/study-sessions", label: "Study sessions", icon: CalendarClock },
-      { href: "/achievements", label: "Achievements", icon: Trophy },
+      { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
     ],
+  },
+  {
+    label: "Community",
+    items: [{ href: "/feedback", label: "Feedback", icon: MessageSquarePlus }],
   },
 ];
 
-function NavLinks({ onNavigate, compact = false }: { onNavigate?: () => void; compact?: boolean }) {
+function NavLinks({
+  onNavigate,
+  compact = false,
+  isAdmin = false,
+}: {
+  onNavigate?: () => void;
+  compact?: boolean;
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
+  const groups = React.useMemo(() => {
+    if (!isAdmin) return NAV_GROUPS;
+    return [
+      ...NAV_GROUPS,
+      { label: "Admin", items: [{ href: "/admin", label: "Admin console", icon: ShieldCheck }] },
+    ];
+  }, [isAdmin]);
 
   return (
     <nav aria-label="Primary navigation" className="space-y-5">
-      {NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.label}>
           {!compact && (
             <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">
@@ -107,20 +134,51 @@ function NavLinks({ onNavigate, compact = false }: { onNavigate?: () => void; co
 
 export function NavShell({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
+  const { settings } = useSettings();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [desktopExpanded, setDesktopExpanded] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [authOpen, setAuthOpen] = React.useState(false);
+  const [signOutConfirm, setSignOutConfirm] = React.useState(false);
+  const [tutorialForce, setTutorialForce] = React.useState(false);
+  const [impersonating, setImpersonating] = React.useState<{ id: string; label: string } | null>(null);
   useCommandPaletteHotkey(setPaletteOpen);
+
+  // Track admin impersonation state (set from the admin console).
+  React.useEffect(() => {
+    const read = () => setImpersonating(getImpersonatedUser());
+    read();
+    window.addEventListener("sat-impersonation-changed", read);
+    return () => window.removeEventListener("sat-impersonation-changed", read);
+  }, []);
+
+  // Settings dialog can restart the intro tutorial.
+  React.useEffect(() => {
+    const start = () => setTutorialForce(true);
+    window.addEventListener("sat-start-tutorial", start);
+    return () => window.removeEventListener("sat-start-tutorial", start);
+  }, []);
 
   const accountLabel = auth.user.isGuest
     ? "Guest"
     : auth.user.displayName || auth.user.email || "Account";
 
+  const navMode = settings.navMode;
+  const showSidebar = navMode === "default";
+
+  const confirmSignOut = () => setSignOutConfirm(true);
+  const doSignOut = () => {
+    setSignOutConfirm(false);
+    void auth.signOut().then(() => toast.success("Signed out"));
+  };
+
   return (
+    <AccountGateProvider>
     <div className="min-h-screen" data-shell>
+      {showSidebar && (
       <aside
+        data-tour="sidebar"
         className={cn(
           "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] transition-[width,box-shadow] duration-250 ease-out md:flex",
           desktopExpanded ? "w-[236px] shadow-[0_10px_28px_rgba(20,24,34,0.16)]" : "w-[74px]",
@@ -143,11 +201,12 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </Link>
 
         <div className={cn("flex-1 overflow-y-auto py-5 scrollbar-thin", desktopExpanded ? "px-3" : "px-2")}>
-          <NavLinks compact={!desktopExpanded} />
+          <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} />
         </div>
 
         <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
           <div
+            data-tour="account"
             className={cn(
               "mb-2 flex rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
               desktopExpanded ? "items-center gap-2 px-3" : "items-center justify-center px-2",
@@ -159,7 +218,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
               <div className="min-w-0 grow">
                 <div className="truncate text-[12.5px] font-bold text-[var(--ink)]">{accountLabel}</div>
                 <div className="truncate text-[10.5px] text-[var(--ink-faint)]">
-                  {auth.user.isGuest ? "Local guest session" : "Supabase account"}
+                  {auth.user.isGuest ? "Local guest session" : auth.isAdmin ? "Admin account" : "Supabase account"}
                 </div>
               </div>
             )}
@@ -180,9 +239,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           ) : (
             <button
               type="button"
-              onClick={() => {
-                void auth.signOut().then(() => toast.success("Signed out"));
-              }}
+              onClick={confirmSignOut}
               className={cn(
                 "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
                 desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
@@ -195,6 +252,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           )}
           <button
             type="button"
+            data-tour="palette"
             onClick={() => setPaletteOpen(true)}
             className={cn(
               "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
@@ -214,6 +272,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           </button>
           <button
             type="button"
+            data-tour="settings"
             onClick={() => setSettingsOpen(true)}
             className={cn(
               "flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
@@ -231,6 +290,27 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </aside>
+      )}
+
+      {/* Keyboard / dock nav modes: only the brand icon remains up top. */}
+      {!showSidebar && (
+        <div className="keyboard-nav-brand items-center gap-2">
+          <Link href="/" className="brand-mark flex h-9 w-9 items-center justify-center rounded-[6px]" title="SAT Nexus — Study desk">
+            <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
+          </Link>
+          {navMode === "keyboard" && (
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="btn btn-soft !min-h-9 !px-3 !py-1.5 !text-[12px]"
+              title="Navigate (Ctrl+K or /)"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <kbd className="rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">Ctrl K</kbd>
+            </button>
+          )}
+        </div>
+      )}
 
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden shell-header">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
@@ -242,7 +322,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => (auth.user.isGuest ? setAuthOpen(true) : void auth.signOut())}
+            onClick={() => (auth.user.isGuest ? setAuthOpen(true) : confirmSignOut())}
             className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
             aria-label={auth.user.isGuest ? "Sign in" : "Sign out"}
           >
@@ -282,14 +362,39 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             className="absolute inset-x-0 top-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-[var(--line)] bg-[var(--paper-soft)] p-4 shadow-[0_10px_24px_rgba(37,40,44,0.16)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <NavLinks onNavigate={() => setMobileOpen(false)} />
+            <NavLinks onNavigate={() => setMobileOpen(false)} isAdmin={auth.isAdmin} />
           </div>
         </div>
       )}
 
-      <main className="shell-main px-4 py-6 sm:px-6 md:ml-[74px] md:px-8 md:py-8">
+      {impersonating && (
+        <div className="sticky top-0 z-50 flex items-center justify-center gap-3 border-b border-[#d2abb7] bg-[#f0dfe5] px-4 py-2 text-[13px] font-semibold text-[#8e5264]">
+          <ShieldCheck className="h-4 w-4" />
+          Viewing as {impersonating.label}
+          <button
+            type="button"
+            className="btn btn-danger !min-h-7 !px-3 !py-1 !text-[11.5px]"
+            onClick={() => {
+              setImpersonatedUser(null);
+              mutateKey("stats");
+              mutateKey("favorites");
+              mutateKey("collections");
+              mutateKey("mistakes");
+              toast.success("Back to your own account");
+            }}
+          >
+            Exit
+          </button>
+        </div>
+      )}
+
+      <main className={cn("shell-main px-4 py-6 sm:px-6 md:px-8 md:py-8", showSidebar && "md:ml-[74px]", !showSidebar && "md:pt-16")}>
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
+
+      {navMode === "dock" && (
+        <NavDock onOpenSettings={() => setSettingsOpen(true)} onOpenPalette={() => setPaletteOpen(true)} />
+      )}
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
@@ -299,6 +404,24 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       <FloatingStudyTimer />
+      <IntroTutorial forceOpen={tutorialForce} onClose={() => setTutorialForce(false)} />
+
+      <PaperDialog
+        open={signOutConfirm}
+        onOpenChange={setSignOutConfirm}
+        title="Sign out?"
+        description="Are you sure you want to sign out? Your synced progress stays safe in your account."
+      >
+        <div className="mt-5 flex gap-2.5">
+          <button type="button" className="btn btn-danger grow" onClick={doSignOut}>
+            <LogOut className="h-4 w-4" /> Yes, sign out
+          </button>
+          <button type="button" className="btn btn-soft grow" onClick={() => setSignOutConfirm(false)}>
+            No, stay signed in
+          </button>
+        </div>
+      </PaperDialog>
     </div>
+    </AccountGateProvider>
   );
 }

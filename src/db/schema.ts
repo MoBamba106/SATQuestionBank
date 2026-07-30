@@ -17,9 +17,28 @@ export const users = pgTable("users", {
   email: text("email"),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
+  /** When true this account is excluded from public leaderboards. */
+  hideLeaderboard: boolean("hide_leaderboard").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+/** User-submitted complaints / improvement requests. */
+export const feedback = pgTable(
+  "feedback",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    email: text("email"),
+    category: text("category").notNull().default("improvement"), // complaint | improvement | bug | other
+    title: text("title").notNull(),
+    message: text("message").notNull().default(""),
+    status: text("status").notNull().default("new"), // new | reviewed | done
+    githubIssueUrl: text("github_issue_url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("feedback_created_idx").on(t.createdAt)],
+);
 
 export const questions = pgTable(
   "questions",

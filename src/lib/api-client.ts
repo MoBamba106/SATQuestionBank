@@ -3,13 +3,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { readStoredAuth } from "@/lib/auth/client";
 
+const IMPERSONATE_KEY = "sat-nexus-impersonate";
+
+export function getImpersonatedUser(): { id: string; label: string } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(IMPERSONATE_KEY);
+    return raw ? (JSON.parse(raw) as { id: string; label: string }) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setImpersonatedUser(target: { id: string; label: string } | null) {
+  try {
+    if (target) window.sessionStorage.setItem(IMPERSONATE_KEY, JSON.stringify(target));
+    else window.sessionStorage.removeItem(IMPERSONATE_KEY);
+  } catch {
+    /* session storage unavailable */
+  }
+  clearGetCache();
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("sat-impersonation-changed"));
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const { accessToken } = readStoredAuth();
+  const impersonated = getImpersonatedUser();
   const res = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(impersonated ? { "x-admin-impersonate": impersonated.id } : {}),
       ...(init?.headers ?? {}),
     },
   });

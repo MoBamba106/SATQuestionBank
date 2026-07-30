@@ -1073,3 +1073,145 @@ html[data-focus-mode="true"] body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Magic Bento theme-aware hover glow ───────────────────────────────────── */
+.magic-glow-card {
+  position: relative;
+  border-radius: 10px;
+  --mg-x: 50%;
+  --mg-y: 50%;
+  --mg-intensity: 0;
+  --mg-color: var(--accent);
+}
+.magic-glow-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: radial-gradient(
+    240px circle at var(--mg-x) var(--mg-y),
+    color-mix(in srgb, var(--mg-color) calc(var(--mg-intensity) * 85%), transparent) 0%,
+    color-mix(in srgb, var(--mg-color) calc(var(--mg-intensity) * 40%), transparent) 32%,
+    transparent 62%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 2;
+}
+.magic-glow-card:hover {
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--mg-color) 18%, transparent);
+}
+.magic-glow-card > * { height: 100%; }
+
+/* ── Answer choice elimination (cross-out) ───────────────────────────────── */
+.answer-eliminated {
+  opacity: 0.45;
+  position: relative;
+}
+.answer-eliminated .answer-choice-body {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: color-mix(in srgb, var(--bad) 70%, var(--ink));
+}
+.answer-eliminated::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  height: 2px;
+  background: color-mix(in srgb, var(--bad) 60%, var(--ink));
+  transform: rotate(-1.6deg);
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+/* ── Keyboard-only navigation mode: hide sidebar, keep the brand mark ────── */
+html[data-nav-mode="keyboard"] .shell-aside { display: none !important; }
+html[data-nav-mode="keyboard"] .shell-main { margin-left: 0 !important; }
+html[data-nav-mode="dock"] .shell-aside { display: none !important; }
+html[data-nav-mode="dock"] .shell-main { margin-left: 0 !important; padding-bottom: 110px; }
+.keyboard-nav-brand {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 60;
+  display: none;
+}
+html[data-nav-mode="keyboard"] .keyboard-nav-brand,
+html[data-nav-mode="dock"] .keyboard-nav-brand { display: flex; }
+
+/* ── Intro tutorial overlay ──────────────────────────────────────────────── */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: auto;
+}
+.tutorial-shade { position: absolute; inset: 0; }
+.tutorial-hole {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(10, 12, 18, 0.72);
+  outline: 2px solid color-mix(in srgb, var(--accent) 80%, white);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.tutorial-bubble {
+  position: absolute;
+  max-width: 320px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 14px 38px rgba(10, 12, 18, 0.35);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tutorial-arrow {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--paper-raised);
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+}
+
+/* ── Flashcard swipe deck ────────────────────────────────────────────────── */
+.flashcard-3d { perspective: 1400px; }
+.flashcard-flip {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.4, 0.1, 0.2, 1);
+  width: 100%;
+  height: 100%;
+}
+.flashcard-flip.is-flipped { transform: rotateX(180deg); }
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  padding: 2rem;
+  text-align: center;
+  overflow: hidden;
+}
+.flashcard-face-back { transform: rotateX(180deg); }
+html[data-reduce-motion="true"] .flashcard-flip { transition: none; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
