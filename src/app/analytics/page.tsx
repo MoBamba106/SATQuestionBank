@@ -7,6 +7,7 @@ import {
   PieChart, Pie, Cell, AreaChart, Area,
 } from "recharts";
 import { GlassCard } from "@/components/ui/glass-card";
+import { RequireAccount } from "@/components/require-account";
 import { useApi } from "@/lib/api-client";
 import type { StatsPayload } from "@/lib/types";
 
@@ -15,6 +16,14 @@ const TT = {
 } as const;
 
 export default function AnalyticsPage() {
+  return (
+    <RequireAccount feature="analytics">
+      <AnalyticsInner />
+    </RequireAccount>
+  );
+}
+
+function AnalyticsInner() {
   const { data: s, loading } = useApi<StatsPayload>("/api/stats", "stats");
 
   if (loading)

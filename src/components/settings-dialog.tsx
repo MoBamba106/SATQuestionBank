@@ -5,29 +5,37 @@ import {
   Accessibility,
   Check,
   Clock3,
+  Compass,
   Database,
   Eye,
   Focus,
   LayoutGrid,
   Loader2,
   Maximize2,
+  PlayCircle,
   RotateCcw,
   Settings2,
   ShieldCheck,
+  Tags,
   Trash2,
+  Trophy,
   Type,
   Volume2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { PaperSelect } from "@/components/ui/paper-select";
-import { apiDelete, mutateKey } from "@/lib/api-client";
+import { apiDelete, apiPatch, useApi, mutateKey } from "@/lib/api-client";
 import {
   type AppTheme,
   type FontScale,
+  type NavMode,
   type QuizModeSetting,
   useSettings,
 } from "@/components/settings-provider";
+import { useAuth } from "@/components/auth-provider";
+import { useAccountGate } from "@/components/account-gate";
+import { resetTutorial } from "@/components/intro-tutorial";
 import { cn } from "@/lib/utils";
 import { clearAllBluebookProgress } from "@/lib/bluebook-cache";
 
@@ -82,8 +90,44 @@ function Toggle({
 
 export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { settings, updateSettings, resetSettings } = useSettings();
+  const auth = useAuth();
+  const { requireAccount } = useAccountGate();
   const [clearing, setClearing] = React.useState<"progress" | "all" | null>(null);
   const [confirm, setConfirm] = React.useState<"progress" | "all" | null>(null);
+  const { data: profile } = useApi<{ hideLeaderboard: boolean }>(
+    open && !auth.user.isGuest ? "/api/profile" : null,
+    "profile",
+  );
+  const [savingLeaderboard, setSavingLeaderboard] = React.useState(false);
+  const [hideLeaderboard, setHideLeaderboard] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!profile) return;
+    const timer = window.setTimeout(() => setHideLeaderboard(Boolean(profile.hideLeaderboard)), 0);
+    return () => window.clearTimeout(timer);
+  }, [profile]);
+
+  const toggleLeaderboardOptOut = async (next: boolean) => {
+    if (!requireAccount("The leaderboard opt-out")) return;
+    setHideLeaderboard(next);
+    setSavingLeaderboard(true);
+    try {
+      await apiPatch("/api/profile", { hideLeaderboard: next });
+      mutateKey("leaderboard");
+      mutateKey("profile");
+      toast.success(next ? "You're hidden from leaderboards" : "You'll appear on leaderboards");
+    } catch (error) {
+      setHideLeaderboard(!next);
+      toast.error("Couldn't update leaderboard preference", { description: error instanceof Error ? error.message : undefined });
+    } finally {
+      setSavingLeaderboard(false);
+    }
+  };
+
+  const pickTheme = (theme: AppTheme) => {
+    if (theme !== settings.theme && !requireAccount("Changing the theme")) return;
+    updateSettings({ theme });
+  };
 
   const clearData = async (scope: "progress" | "all") => {
     if (confirm !== scope) {
@@ -141,7 +185,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                 <button
                   key={theme.id}
                   type="button"
-                  onClick={() => updateSettings({ theme: theme.id })}
+                  onClick={() => pickTheme(theme.id)}
                   className={cn(
                     "relative rounded-[8px] border p-3 text-left transition-colors",
                     active ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--line)] bg-[var(--paper-raised)] hover:bg-[var(--paper-soft)]",
@@ -184,10 +228,41 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.compactMode} onChange={(compactMode) => updateSettings({ compactMode })} label="Compact layout" description="Fits more questions and controls on screen." icon={LayoutGrid} />
             <Toggle checked={settings.showTimer} onChange={(showTimer) => updateSettings({ showTimer })} label="Show practice timers" description="Hide elapsed time during ordinary quizzes to reduce pressure." icon={Clock3} />
             <Toggle checked={settings.soundEffects} onChange={(soundEffects) => updateSettings({ soundEffects })} label="Subtle interface sounds" description="Quiet tactile cues for buttons and toggles. On by default." icon={Volume2} />
-            <Toggle checked={settings.showDock} onChange={(showDock) => updateSettings({ showDock })} label="Show dock" description="Floating navigation dock for quick access." icon={LayoutGrid} />
             <Toggle checked={settings.showStepperLogin} onChange={(showStepperLogin) => updateSettings({ showStepperLogin })} label="Stepper login" description="Enable stepper-based sign-in UI." icon={Accessibility} />
             <Toggle checked={settings.expandPassages} onChange={(expandPassages) => updateSettings({ expandPassages })} label="Expand reading passages" description="Show the full passage without an inner scroll box. Turn off to keep a compact scroll window." icon={Maximize2} />
             <Toggle checked={settings.focusModeDefault} onChange={(focusModeDefault) => updateSettings({ focusModeDefault })} label="Focus mode for practice tests" description="Start Bluebook tests fullscreen-style: hide the sidebar and chrome. Leave test with the red exit button." icon={Focus} />
+            <Toggle checked={settings.showQuestionMeta} onChange={(showQuestionMeta) => updateSettings({ showQuestionMeta })} label="Show question category & difficulty" description="Display the section, skill, and difficulty badges above questions in quizzes and practice tests." icon={Tags} />
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <Compass className="h-4 w-4 text-[var(--sp-teal,var(--accent))]" />
+            <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Navigation style</h2>
+          </div>
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            {([
+              { id: "default", name: "Default", description: "Classic left sidebar with every page." },
+              { id: "keyboard", name: "Keyboard", description: "No sidebar — navigate with Ctrl+K or /. Just the book icon stays top-left." },
+              { id: "dock", name: "Dock", description: "A floating macOS-style dock replaces the sidebar." },
+            ] as { id: NavMode; name: string; description: string }[]).map((mode) => {
+              const active = settings.navMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => updateSettings({ navMode: mode.id })}
+                  className={cn(
+                    "relative rounded-[8px] border p-3 text-left transition-colors",
+                    active ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--line)] bg-[var(--paper-raised)] hover:bg-[var(--paper-soft)]",
+                  )}
+                >
+                  {active && <Check className="absolute right-2.5 top-2.5 h-4 w-4 text-[var(--accent)]" strokeWidth={3} />}
+                  <span className="text-[13.5px] font-bold text-[var(--ink)]">{mode.name}</span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-[var(--ink-faint)]">{mode.description}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -218,6 +293,46 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                 ]}
               />
             </div>
+            <div>
+              <label className="mb-1.5 block text-[11.5px] font-bold text-[var(--ink-soft)]">Question bank page size</label>
+              <PaperSelect
+                tone="lavender"
+                value={String(settings.bankPageSize)}
+                onValueChange={(value) => updateSettings({ bankPageSize: Number(value) })}
+                options={[12, 24, 48, 96].map((value) => ({ value: String(value), label: `${value} per page`, tone: "lavender" as const }))}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-[var(--sp-yellow,var(--accent))]" />
+            <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Community & help</h2>
+          </div>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            <Toggle
+              checked={hideLeaderboard}
+              onChange={(next) => void toggleLeaderboardOptOut(next)}
+              label={savingLeaderboard ? "Saving…" : "Hide me from leaderboards"}
+              description={auth.user.isGuest ? "Sign in to control your leaderboard visibility." : "Opt out of all public leaderboards. You can rejoin anytime."}
+              icon={Trophy}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                resetTutorial();
+                onOpenChange(false);
+                window.dispatchEvent(new CustomEvent("sat-start-tutorial"));
+              }}
+              className="flex w-full items-center gap-3 rounded-[7px] border border-[var(--line)] bg-[var(--paper-raised)] px-3.5 py-3 text-left transition-colors hover:bg-[var(--paper-soft)]"
+            >
+              <PlayCircle className="h-4.5 w-4.5 shrink-0 text-[var(--accent)]" />
+              <span className="min-w-0 grow">
+                <span className="block text-[13.5px] font-semibold text-[var(--ink)]">Replay the intro tutorial</span>
+                <span className="block text-[11.5px] leading-snug text-[var(--ink-faint)]">Take the guided tour of the site again.</span>
+              </span>
+            </button>
           </div>
         </section>
 

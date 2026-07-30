@@ -4,6 +4,7 @@ import * as React from "react";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
 import { apiPost, mutateKey } from "@/lib/api-client";
+import { useAccountGate } from "@/components/account-gate";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,6 +27,7 @@ export function FavoriteButton({
 }) {
   const [fav, setFav] = React.useState(favorite);
   const [busy, setBusy] = React.useState(false);
+  const { requireAccount } = useAccountGate();
 
   React.useEffect(() => {
     const timer = window.setTimeout(() => setFav(favorite), 0);
@@ -36,6 +38,7 @@ export function FavoriteButton({
     e.stopPropagation();
     e.preventDefault();
     if (busy) return;
+    if (!requireAccount("Adding favorites")) return;
     const next = !fav;
     setFav(next); // optimistic
     onChange?.(next);

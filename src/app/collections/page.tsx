@@ -3,14 +3,15 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Folders, Plus, Trash2, Star, Play, ChevronDown, Loader2, X, FolderOpen,
+  Folders, Plus, Trash2, Star, Play, ChevronDown, Loader2, X, FolderOpen, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
-import { useApi, apiPost, apiDelete, mutateKey } from "@/lib/api-client";
+import { RequireAccount } from "@/components/require-account";
+import { useApi, apiPost, apiPatch, apiDelete, mutateKey } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion, StudyCollection } from "@/lib/types";
@@ -104,6 +105,14 @@ function CollectionItemsList({
 }
 
 export default function CollectionsPage() {
+  return (
+    <RequireAccount feature="collections">
+      <CollectionsInner />
+    </RequireAccount>
+  );
+}
+
+function CollectionsInner() {
   const router = useRouter();
   const { data, loading, reload } = useApi<{ collections: StudyCollection[] }>("/api/collections", "collections");
   const { data: favData } = useApi<{ ids: string[]; count: number }>("/api/favorites", "favorites");
@@ -117,6 +126,39 @@ export default function CollectionsPage() {
   const [itemCache, setItemCache] = React.useState<Record<string, SATQuestion[]>>({});
   const [itemErrors, setItemErrors] = React.useState<Record<string, string>>({});
   const [itemsLoading, setItemsLoading] = React.useState(false);
+  // Edit collection state
+  const [editTarget, setEditTarget] = React.useState<StudyCollection | null>(null);
+  const [editName, setEditName] = React.useState("");
+  const [editDesc, setEditDesc] = React.useState("");
+  const [editIcon, setEditIcon] = React.useState<CollectionIconId>("folder");
+  const [savingEdit, setSavingEdit] = React.useState(false);
+
+  const openEdit = (c: StudyCollection) => {
+    setEditTarget(c);
+    setEditName(c.name);
+    setEditDesc(c.description ?? "");
+    setEditIcon((c.icon as CollectionIconId) || "folder");
+  };
+
+  const saveEdit = async () => {
+    if (!editTarget || !editName.trim() || savingEdit) return;
+    setSavingEdit(true);
+    try {
+      await apiPatch(`/api/collections/${editTarget.id}`, {
+        name: editName.trim(),
+        description: editDesc.trim(),
+        icon: editIcon,
+      });
+      mutateKey("collections");
+      toast.success("Collection updated");
+      setEditTarget(null);
+      reload();
+    } catch (e) {
+      toast.error("Couldn't update collection", { description: e instanceof Error ? e.message : undefined });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const collections = data?.collections ?? [];
 
@@ -303,6 +345,14 @@ export default function CollectionsPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => openEdit(c)}
+                  title="Edit collection"
+                  className="rounded-[5px] p-2 text-[#8c8f92] transition-colors hover:bg-[var(--paper-soft)] hover:text-[var(--accent)]"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => removeCollection(c)}
                   title="Delete collection"
                   className="rounded-[5px] p-2 text-[#8c8f92] transition-colors hover:bg-[#f9e9ec] hover:text-[#ae3d51]"
@@ -361,6 +411,48 @@ export default function CollectionsPage() {
             Create collection
           </button>
           <button className="btn btn-soft" onClick={() => setCreateOpen(false)}>Cancel</button>
+        </div>
+      </PaperDialog>
+
+      <PaperDialog
+        open={!!editTarget}
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        title="Edit collection"
+        description="Rename, describe, or re-icon this collection."
+      >
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Name</label>
+            <input
+              className="input w-full"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveEdit()}
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+              Description <span className="font-medium normal-case text-[var(--ink-faint)]">(optional)</span>
+            </label>
+            <input
+              className="input w-full"
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveEdit()}
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Icon</label>
+            <CollectionIconPicker value={editIcon} onChange={setEditIcon} />
+          </div>
+        </div>
+        <div className="mt-5 flex gap-2.5">
+          <button className="btn btn-primary grow" onClick={saveEdit} disabled={!editName.trim() || savingEdit}>
+            {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
+            Save changes
+          </button>
+          <button className="btn btn-soft" onClick={() => setEditTarget(null)}>Cancel</button>
         </div>
       </PaperDialog>
     </div>

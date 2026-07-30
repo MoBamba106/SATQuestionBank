@@ -16,6 +16,7 @@ import {
   Search,
   Settings2,
   Trophy,
+  MessageSquarePlus,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,8 @@ const NAV_COMMANDS: CommandItem[] = [
   { id: "mistakes", label: "Mistake bank", href: "/mistakes", icon: RotateCcw, keywords: "wrong review" },
   { id: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3, keywords: "stats progress" },
   { id: "sessions", label: "Study sessions", href: "/study-sessions", icon: CalendarClock, keywords: "history" },
-  { id: "achievements", label: "Achievements", href: "/achievements", icon: Trophy, keywords: "badges" },
+  { id: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: Trophy, keywords: "rank top compare accuracy" },
+  { id: "feedback", label: "Feedback", href: "/feedback", icon: MessageSquarePlus, keywords: "complaint improvement suggest bug report" },
 ];
 
 export function CommandPalette({

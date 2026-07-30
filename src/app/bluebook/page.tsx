@@ -9,10 +9,12 @@ import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiDelete, apiPost, mutateKey, useApi } from "@/lib/api-client";
 import { readBluebookProgress, removeBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
+import { useAccountGate } from "@/components/account-gate";
 import type { PracticeTestInfo } from "@/lib/types";
 
 export default function BluebookPage() {
   const router = useRouter();
+  const { requireAccount } = useAccountGate();
   const { data, loading, error } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
   const [selected, setSelected] = React.useState<PracticeTestInfo | null>(null);
   const [starting, setStarting] = React.useState(false);
@@ -34,6 +36,7 @@ export default function BluebookPage() {
 
   const begin = () => {
     if (!selected || starting) return;
+    if (saved[selected.id] && !requireAccount("Resuming practice tests")) return;
     setStarting(true);
     router.push(`/quiz?test=${selected.id}${saved[selected.id] ? "&resume=1" : ""}`);
   };
@@ -110,6 +113,12 @@ export default function BluebookPage() {
           sizes: 27 Reading &amp; Writing questions and 22 Math questions per module. A score of at
           least 60% on a section&apos;s first module selects its harder second module; otherwise the
           easier route is used. Timing is 32 minutes per R&amp;W module and 35 minutes per Math module.
+          <span className="mt-1.5 block font-semibold">
+            Heads up: these are built from the public official question bank — College Board does not
+            release the exact questions used in the real Bluebook Practice Tests 1–11, so the test
+            numbers here match the format and difficulty, not the exact question sets. For the
+            genuine tests, use College Board&apos;s Bluebook app.
+          </span>
         </p>
       </div>
 

@@ -7,6 +7,7 @@ import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useApi, apiPost, mutateKey } from "@/lib/api-client";
 import type { StudyCollection } from "@/lib/types";
 import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
+import { useAccountGate } from "@/components/account-gate";
 import { cn } from "@/lib/utils";
 
 /** The missing "add question to a collection" UI — available everywhere. */
@@ -20,6 +21,7 @@ export function AddToCollectionButton({
   className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
+  const { requireAccount } = useAccountGate();
   const { data, loading, reload } = useApi<{ collections: StudyCollection[] }>(
     open ? "/api/collections" : null,
     open ? "collections" : undefined,
@@ -75,6 +77,7 @@ export function AddToCollectionButton({
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
+          if (!requireAccount("Saving to collections")) return;
           setOpen(true);
         }}
         aria-label="Add to collection"

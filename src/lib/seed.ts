@@ -61,15 +61,15 @@ const EASIER_PATTERN = ["Easy", "Medium", "Easy", "Medium", "Easy", "Medium", "E
 const HARDER_PATTERN = ["Hard", "Medium", "Hard", "Hard", "Medium", "Hard", "Medium", "Hard", "Easy"];
 
 export const PRACTICE_TEST_META: { testNumber: number; title: string; releaseLabel: string }[] = [
-  { testNumber: 3, title: "Practice Test 3", releaseLabel: "Legacy Bluebook test (retired Feb 2025)" },
-  { testNumber: 4, title: "Practice Test 4", releaseLabel: "Available in Bluebook" },
-  { testNumber: 5, title: "Practice Test 5", releaseLabel: "Released March 2024" },
-  { testNumber: 6, title: "Practice Test 6", releaseLabel: "Released March 2024" },
-  { testNumber: 7, title: "Practice Test 7", releaseLabel: "Released February 2025 — all-new content" },
-  { testNumber: 8, title: "Practice Test 8", releaseLabel: "Released February 2025" },
-  { testNumber: 9, title: "Practice Test 9", releaseLabel: "Released February 2025" },
-  { testNumber: 10, title: "Practice Test 10", releaseLabel: "Released February 2025" },
-  { testNumber: 11, title: "Practice Test 11", releaseLabel: "Released February 2026 — newest" },
+  { testNumber: 3, title: "Practice Test 3", releaseLabel: "Format-matched to Bluebook Test 3 · built from the official question bank" },
+  { testNumber: 4, title: "Practice Test 4", releaseLabel: "Format-matched to Bluebook Test 4 · built from the official question bank" },
+  { testNumber: 5, title: "Practice Test 5", releaseLabel: "Format-matched to Bluebook Test 5 · built from the official question bank" },
+  { testNumber: 6, title: "Practice Test 6", releaseLabel: "Format-matched to Bluebook Test 6 · built from the official question bank" },
+  { testNumber: 7, title: "Practice Test 7", releaseLabel: "Format-matched to Bluebook Test 7 · built from the official question bank" },
+  { testNumber: 8, title: "Practice Test 8", releaseLabel: "Format-matched to Bluebook Test 8 · built from the official question bank" },
+  { testNumber: 9, title: "Practice Test 9", releaseLabel: "Format-matched to Bluebook Test 9 · built from the official question bank" },
+  { testNumber: 10, title: "Practice Test 10", releaseLabel: "Format-matched to Bluebook Test 10 · built from the official question bank" },
+  { testNumber: 11, title: "Practice Test 11", releaseLabel: "Format-matched to Bluebook Test 11 · built from the official question bank" },
 ];
 
 function buildModule(
@@ -191,7 +191,16 @@ async function doSeed() {
     WHERE module IN ('rw1', 'rw2_easy', 'rw2_hard', 'math1', 'math2_easy', 'math2_hard')
   `);
   const adaptiveModules = Number((moduleCount as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
-  if (tc > 0 && adaptiveModules === 6) return;
+  if (tc > 0 && adaptiveModules === 6) {
+    // Keep release labels honest on already-seeded databases.
+    for (const meta of PRACTICE_TEST_META) {
+      await db.execute(sql`
+        UPDATE practice_tests SET release_label = ${meta.releaseLabel}
+        WHERE id = ${`test-${meta.testNumber}`} AND release_label IS DISTINCT FROM ${meta.releaseLabel}
+      `);
+    }
+    return;
+  }
 
   // Upgrade databases seeded by the older non-adaptive implementation.
   if (tc > 0) {

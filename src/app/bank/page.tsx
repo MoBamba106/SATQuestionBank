@@ -18,16 +18,18 @@ import { QuestionCard } from "@/components/question-card";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { BulkAddToCollectionDialog } from "@/components/bulk-add-to-collection";
+import { MagicGlow } from "@/components/magic-glow";
 import { useApi } from "@/lib/api-client";
+import { useSettings } from "@/components/settings-provider";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { skillsForDomain, subskillsFor, DIFFICULTIES } from "@/lib/sat-categories";
 import { skillTone } from "@/lib/utils";
 import type { QuestionSummary } from "@/lib/types";
 
-const PAGE_SIZE = 48;
-
 export default function BankPage() {
   const router = useRouter();
+  const { settings } = useSettings();
+  const PAGE_SIZE = settings.bankPageSize || 48;
   const [domain, setDomain] = React.useState("All");
   const [skill, setSkill] = React.useState("All");
   const [subskill, setSubskill] = React.useState("All");
@@ -58,7 +60,7 @@ export default function BankPage() {
     params.set("page", String(page));
     params.set("pageSize", String(PAGE_SIZE));
     return params.toString();
-  }, [domain, skill, subskill, difficulty, search, favoritesOnly, page]);
+  }, [domain, skill, subskill, difficulty, search, favoritesOnly, page, PAGE_SIZE]);
 
   const { data, loading, error } = useApi<QuestionSummary>(`/api/questions?${qs}`, "favorites");
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
@@ -258,13 +260,14 @@ export default function BankPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {data?.questions.map((question) => (
-            <QuestionCard
-              key={question.id}
-              question={question}
-              selectable={selectionMode}
-              selected={selectedSet.has(question.id)}
-              onSelect={() => toggleSelection(question.id)}
-            />
+            <MagicGlow key={question.id} disabled={selectionMode}>
+              <QuestionCard
+                question={question}
+                selectable={selectionMode}
+                selected={selectedSet.has(question.id)}
+                onSelect={() => toggleSelection(question.id)}
+              />
+            </MagicGlow>
           ))}
         </div>
       )}
