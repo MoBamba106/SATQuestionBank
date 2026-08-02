@@ -106,34 +106,54 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             onFinalStepCompleted={() => void submit()}
             nextButtonText="Next"
             backButtonText="Back"
-            disableStepIndicators
             nextButtonProps={{
               disabled:
                 !auth.authEnabled ||
                 busy ||
                 (signupStep === 1 && (username.trim().length < 3 || !/^[a-zA-Z0-9_.-]+$/.test(username.trim()))) ||
-                (signupStep === 2 && !email.trim()) ||
-                (signupStep === 3 && password.length < 6),
+                (signupStep === 2 && ((username.trim().length < 3 || !/^[a-zA-Z0-9_.-]+$/.test(username.trim())) || !email.trim())) ||
+                (signupStep === 3 && ((username.trim().length < 3 || !/^[a-zA-Z0-9_.-]+$/.test(username.trim())) || !email.trim() || password.length < 6)),
             }}
           >
             <Step>
-              <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
-                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Pick a username</h3>
-                <p className="text-[12.5px] text-[var(--ink-faint)]">This is what shows in the sidebar, admin console, and leaderboards instead of your email prefix.</p>
+              <div className="space-y-3 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <div>
+                  <h3 className="font-display text-xl font-bold text-[var(--ink)]">Step 1: choose a username</h3>
+                  <p className="mt-1 text-[12.5px] text-[var(--ink-faint)]">This is what shows instead of your email prefix.</p>
+                </div>
+                <label className="block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
                 <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="zubaidimuhammad13" />
               </div>
             </Step>
             <Step>
-              <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
-                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Add your email</h3>
-                <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} />
+              <div className="space-y-3 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Step 2: add your email</h3>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
+                  <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Email</label>
+                  <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} />
+                </div>
               </div>
             </Step>
             <Step>
-              <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
-                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Create a password</h3>
-                <input className="input w-full" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={!auth.authEnabled || busy} />
-                <p className="text-[11.5px] text-[var(--ink-faint)]">Use at least 6 characters.</p>
+              <div className="space-y-3 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Step 3: create your password</h3>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
+                  <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Email</label>
+                  <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Password</label>
+                  <input className="input w-full" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={!auth.authEnabled || busy} />
+                  <p className="mt-1 text-[11.5px] text-[var(--ink-faint)]">Use at least 6 characters.</p>
+                </div>
               </div>
             </Step>
           </Stepper>

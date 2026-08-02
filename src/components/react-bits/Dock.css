@@ -13,11 +13,11 @@
   display: flex;
   align-items: center;
   width: fit-content;
-  gap: 0.72rem;
+  gap: 1.05rem;
   border-radius: 1rem;
   background-color: var(--paper-raised);
   border: 1px solid var(--line);
-  padding: 0.35rem 0.65rem 1.25rem;
+  padding: 0.35rem 0.95rem 1.35rem;
   overflow: visible;
 }
 
@@ -48,13 +48,13 @@
   position: absolute;
   top: calc(100% + 3px);
   left: 50%;
-  max-width: 76px;
+  max-width: 92px;
   transform: translateX(-50%);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ink-soft);
-  font-size: 9.5px;
+  font-size: 9.75px;
   font-weight: 800;
   line-height: 1;
   pointer-events: none;

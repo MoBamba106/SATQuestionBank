@@ -229,29 +229,31 @@ textarea:focus-visible {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 1px 2px rgba(30,24,18,.08);
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 1px 2px rgba(30,24,18,.08);
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 140ms ease;
 }
 .btn::after {
   content: "";
   position: absolute;
-  inset: -45% -70%;
-  z-index: 0;
-  background:
-    radial-gradient(circle at 24% 18%, rgba(255,255,255,.55), transparent 16%),
-    linear-gradient(115deg, transparent 34%, rgba(255,255,255,.34) 46%, transparent 58%);
-  transform: translateX(-38%) rotate(9deg);
-  opacity: .52;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  opacity: 0;
   pointer-events: none;
-  transition: transform 220ms ease, opacity 160ms ease;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+  transition: opacity 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
 }
 .btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 6px 16px rgba(30,24,18,.12);
+  border-color: color-mix(in srgb, var(--accent) 72%, var(--line));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .btn:hover:not(:disabled)::after {
-  transform: translateX(12%) rotate(9deg);
-  opacity: .72;
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .btn:disabled {
@@ -935,6 +937,23 @@ html[data-theme="dark"] .filter-search {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
 }
 html[data-theme="dark"] .filter-label { color: var(--ink-faint); }
+
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] .btn-good {
+  color: #111;
+}
+html[data-theme="dark"] .btn-danger {
+  color: #111;
+  background: #e5e5e5;
+  border-color: #f2f2f2;
+}
+html[data-theme="dark"] .btn-danger:hover:not(:disabled) {
+  background: #ffffff;
+}
+html[data-theme="dark"] .brand-mark {
+  color: #0a0a0a;
+}
+
 
 /* Paper is a separate handmade/deckled material. Soft Paper above is unchanged. */
 html[data-theme="paper"] {

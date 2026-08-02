@@ -183,7 +183,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
       <aside
         data-tour="sidebar"
         className={cn(
-          "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] transition-[width,box-shadow] duration-250 ease-out md:flex",
+          "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] overflow-hidden transition-[width,box-shadow] duration-300 ease-out will-change-[width] md:flex",
           desktopExpanded ? "w-[236px] shadow-[0_10px_28px_rgba(20,24,34,0.16)]" : "w-[74px]",
         )}
         onMouseEnter={() => setDesktopExpanded(true)}
@@ -203,11 +203,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           )}
         </Link>
 
-        <div className={cn("flex-1 overflow-y-auto py-5 scrollbar-thin", desktopExpanded ? "px-3" : "px-2")}>
+        <div className={cn("flex-1 overflow-hidden py-5", desktopExpanded ? "px-3" : "px-2")}>
           <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} showGroupLabels={false} />
         </div>
 
-        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2 pb-6")}>
+        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
           <div
             data-tour="account"
             className={cn(
