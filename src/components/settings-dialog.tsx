@@ -8,18 +8,22 @@ import {
   Compass,
   Database,
   Eye,
+  KeyRound,
+  Mail,
   Focus,
   LayoutGrid,
   Loader2,
   Maximize2,
   PlayCircle,
   RotateCcw,
-  Settings2,
+  Cog,
+  Save,
   ShieldCheck,
   Tags,
   Trash2,
   Trophy,
   Type,
+  UserRound,
   Volume2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +50,7 @@ const THEMES: {
   swatches: string[];
 }[] = [
   { id: "light", name: "Light", description: "Crisp white and navy", swatches: ["#f7f9fc", "#2346a0", "#19a7e0", "#172033"] },
-  { id: "dark", name: "Dark", description: "Deep slate and cyan", swatches: ["#0d1726", "#172638", "#31b7e8", "#e8eef5"] },
+  { id: "dark", name: "Charcoal", description: "Black, white, and quiet grays", swatches: ["#050505", "#161616", "#d0d0d0", "#f5f5f5"] },
   { id: "obsidian", name: "Obsidian", description: "Matte black and amethyst", swatches: ["#08090d", "#171821", "#5a42e8", "#23744a"] },
   { id: "highlighter", name: "Highlighter", description: "Pastel study markers", swatches: ["#fff9df", "#f3b4b8", "#94c8e8", "#b8d2ad"] },
   { id: "liquid-glass", name: "Liquid Glass", description: "Translucent Apple-style depth", swatches: ["#dcecff", "#ffffffaa", "#6699ff", "#9e7bff"] },
@@ -94,18 +98,39 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   const { requireAccount } = useAccountGate();
   const [clearing, setClearing] = React.useState<"progress" | "all" | null>(null);
   const [confirm, setConfirm] = React.useState<"progress" | "all" | null>(null);
-  const { data: profile } = useApi<{ hideLeaderboard: boolean }>(
+  const { data: profile } = useApi<{ hideLeaderboard: boolean; displayName: string | null; email: string | null }>(
     open && !auth.user.isGuest ? "/api/profile" : null,
     "profile",
   );
   const [savingLeaderboard, setSavingLeaderboard] = React.useState(false);
   const [hideLeaderboard, setHideLeaderboard] = React.useState(false);
+  const [tab, setTab] = React.useState<"preferences" | "about">("preferences");
+  const [usernameDraft, setUsernameDraft] = React.useState("");
+  const [savingUsername, setSavingUsername] = React.useState(false);
 
   React.useEffect(() => {
-    if (!profile) return;
-    const timer = window.setTimeout(() => setHideLeaderboard(Boolean(profile.hideLeaderboard)), 0);
+    const timer = window.setTimeout(() => {
+      if (profile) setHideLeaderboard(Boolean(profile.hideLeaderboard));
+      setUsernameDraft(profile?.displayName || auth.user.displayName || "");
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [profile]);
+  }, [profile, auth.user.displayName]);
+
+  const saveUsername = async () => {
+    if (!requireAccount("Editing your username")) return;
+    setSavingUsername(true);
+    try {
+      await auth.updateUsername(usernameDraft);
+      mutateKey("profile");
+      mutateKey("leaderboard");
+      mutateKey("admin-overview");
+      toast.success("Username updated");
+    } catch (error) {
+      toast.error("Couldn't update username", { description: error instanceof Error ? error.message : undefined });
+    } finally {
+      setSavingUsername(false);
+    }
+  };
 
   const toggleLeaderboardOptOut = async (next: boolean) => {
     if (!requireAccount("The leaderboard opt-out")) return;
@@ -161,18 +186,29 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     <PaperDialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) setConfirm(null);
+        if (!next) { setConfirm(null); setTab("preferences"); }
         onOpenChange(next);
       }}
       wide
       title={
         <span className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5 text-[var(--accent)]" /> Settings
+          <Cog className="h-5 w-5 text-[var(--accent)]" /> Settings
         </span>
       }
-      description="Appearance, accessibility, practice defaults, and privacy controls."
+      description="Appearance, accessibility, practice defaults, and account controls."
     >
-      <div className="mt-5 max-h-[70vh] space-y-7 overflow-y-auto pr-1 scrollbar-thin">
+      <div className="mt-5 max-h-[70vh] overflow-y-auto pr-1 scrollbar-thin">
+        <div className="sticky top-0 z-10 mb-5 flex gap-2 bg-[var(--paper)]/95 pb-3 backdrop-blur">
+          <button type="button" className={tab === "preferences" ? "btn btn-primary" : "btn btn-soft"} onClick={() => setTab("preferences")}>
+            <Cog className="h-4 w-4" /> Preferences
+          </button>
+          <button type="button" className={tab === "about" ? "btn btn-primary" : "btn btn-soft"} onClick={() => setTab("about")}>
+            <UserRound className="h-4 w-4" /> About me
+          </button>
+        </div>
+
+        {tab === "preferences" && (
+        <div className="space-y-7">
         <section>
           <div className="mb-3 flex items-center gap-2">
             <Eye className="h-4 w-4 text-[var(--sp-lavender)]" />
@@ -228,7 +264,6 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.compactMode} onChange={(compactMode) => updateSettings({ compactMode })} label="Compact layout" description="Fits more questions and controls on screen." icon={LayoutGrid} />
             <Toggle checked={settings.showTimer} onChange={(showTimer) => updateSettings({ showTimer })} label="Show practice timers" description="Hide elapsed time during ordinary quizzes to reduce pressure." icon={Clock3} />
             <Toggle checked={settings.soundEffects} onChange={(soundEffects) => updateSettings({ soundEffects })} label="Subtle interface sounds" description="Quiet tactile cues for buttons and toggles. On by default." icon={Volume2} />
-            <Toggle checked={settings.showStepperLogin} onChange={(showStepperLogin) => updateSettings({ showStepperLogin })} label="Stepper login" description="Enable stepper-based sign-in UI." icon={Accessibility} />
             <Toggle checked={settings.expandPassages} onChange={(expandPassages) => updateSettings({ expandPassages })} label="Expand reading passages" description="Show the full passage without an inner scroll box. Turn off to keep a compact scroll window." icon={Maximize2} />
             <Toggle checked={settings.focusModeDefault} onChange={(focusModeDefault) => updateSettings({ focusModeDefault })} label="Focus mode for practice tests" description="Start Bluebook tests fullscreen-style: hide the sidebar and chrome. Leave test with the red exit button." icon={Focus} />
             <Toggle checked={settings.showQuestionMeta} onChange={(showQuestionMeta) => updateSettings({ showQuestionMeta })} label="Show question category & difficulty" description="Display the section, skill, and difficulty badges above questions in quizzes and practice tests." icon={Tags} />
@@ -335,28 +370,61 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             </button>
           </div>
         </section>
+        </div>
+        )}
 
-        <section>
-          <div className="mb-3 flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-[var(--sp-rose)]" />
-            <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Privacy & data</h2>
+        {tab === "about" && (
+          <div className="space-y-5">
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <UserRound className="h-4 w-4 text-[var(--accent)]" />
+                <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Account details</h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                  <div className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]"><Mail className="h-4 w-4" /> Email</div>
+                  <div className="truncate text-[14px] font-semibold text-[var(--ink)]">{profile?.email || auth.user.email || (auth.user.isGuest ? "Guest account" : "No email on file")}</div>
+                </div>
+                <div className="rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                  <div className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]"><KeyRound className="h-4 w-4" /> Password</div>
+                  <div className="text-[14px] font-semibold text-[var(--ink)]">••••••••</div>
+                  <p className="mt-1 text-[11.5px] text-[var(--ink-faint)]">Passwords are stored securely by Supabase and are never shown here.</p>
+                </div>
+              </div>
+              <div className="mt-3 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <label className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]"><UserRound className="h-4 w-4" /> Username</label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input className="input min-w-0 flex-1" value={usernameDraft} onChange={(e) => setUsernameDraft(e.target.value)} disabled={auth.user.isGuest || savingUsername} placeholder="Choose a username" />
+                  <button type="button" className="btn btn-primary" onClick={() => void saveUsername()} disabled={auth.user.isGuest || savingUsername}>
+                    {savingUsername ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save username
+                  </button>
+                </div>
+                <p className="mt-2 text-[11.5px] text-[var(--ink-faint)]">Use 3-32 letters, numbers, underscores, dots, or dashes. This replaces the old email-prefix display name.</p>
+              </div>
+            </section>
+
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[var(--sp-rose)]" />
+                <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Delete account info</h2>
+              </div>
+              <div className="rounded-[8px] border border-[#d2abb7] bg-[var(--sp-rose-wash)] p-4">
+                <p className="text-[12.5px] leading-relaxed text-[var(--ink-soft)]">SAT Nexus stores practice history to create analytics, mistakes, notes, favorites, and collections. Question-bank content is never removed.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" className={cn("btn", confirm === "progress" ? "btn-danger" : "btn-soft")} onClick={() => clearData("progress")} disabled={Boolean(clearing)}>
+                    {clearing === "progress" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    {confirm === "progress" ? "Click again to clear history" : "Clear analytics & attempts"}
+                  </button>
+                  <button type="button" className="btn btn-danger" onClick={() => clearData("all")} disabled={Boolean(clearing)}>
+                    {clearing === "all" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    {confirm === "all" ? "Click again to erase everything" : "Erase all personal data"}
+                  </button>
+                </div>
+              </div>
+            </section>
           </div>
-          <div className="rounded-[8px] border border-[#d2abb7] bg-[var(--sp-rose-wash)] p-4">
-            <p className="text-[12.5px] leading-relaxed text-[var(--ink-soft)]">
-              SAT Nexus stores practice history locally to create analytics, mistakes, notes, favorites, and collections. Question-bank content is never removed.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" className={cn("btn", confirm === "progress" ? "btn-danger" : "btn-soft")} onClick={() => clearData("progress")} disabled={Boolean(clearing)}>
-                {clearing === "progress" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                {confirm === "progress" ? "Click again to clear history" : "Clear analytics & attempts"}
-              </button>
-              <button type="button" className="btn btn-danger" onClick={() => clearData("all")} disabled={Boolean(clearing)}>
-                {clearing === "all" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                {confirm === "all" ? "Click again to erase everything" : "Erase all personal data"}
-              </button>
-            </div>
-          </div>
-        </section>
+        )}
+
       </div>
     </PaperDialog>
   );

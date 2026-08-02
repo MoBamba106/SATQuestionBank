@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Ban, CheckCircle2, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, Highlighter, MousePointer2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
 import { useSettings } from "@/components/settings-provider";
 import { answersMatch, cn, resolveCorrectAnswer } from "@/lib/utils";
@@ -48,11 +48,14 @@ export function QuestionView({
   const expandPassages = settings.expandPassages;
   const [eliminated, setEliminated] = React.useState<Record<string, boolean>>({});
   const [prevQuestionId, setPrevQuestionId] = React.useState(question.id);
+  const [highlightColor, setHighlightColor] = React.useState<"yellow" | "red" | "blue" | null>(null);
+  const highlightRootRef = React.useRef<HTMLDivElement>(null);
 
   // Reset eliminations when the question changes.
   if (prevQuestionId !== question.id) {
     setPrevQuestionId(question.id);
     setEliminated({});
+    setHighlightColor(null);
   }
 
   const toggleEliminate = (key: string) => {
@@ -71,8 +74,51 @@ export function QuestionView({
     onSelect(selected === key ? "" : key);
   };
 
+
+  const applyHighlight = () => {
+    if (!highlightColor) return;
+    const root = highlightRootRef.current;
+    const selection = window.getSelection();
+    if (!root || !selection || selection.rangeCount === 0 || selection.isCollapsed) return;
+
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    if (!root.contains(container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement)) return;
+
+    const mark = document.createElement("span");
+    mark.className = `sat-highlight sat-highlight-${highlightColor}`;
+    try {
+      mark.appendChild(range.extractContents());
+      range.insertNode(mark);
+      selection.removeAllRanges();
+    } catch {
+      selection.removeAllRanges();
+    }
+  };
+
   return (
     <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2 rounded-[7px] border border-[var(--line-soft)] bg-[var(--paper-soft)]/60 p-2">
+        <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+          <Highlighter className="h-3.5 w-3.5" /> Highlighter
+        </span>
+        {(["yellow", "red", "blue"] as const).map((color) => (
+          <button
+            key={color}
+            type="button"
+            className={cn("highlight-swatch", `highlight-swatch-${color}`, highlightColor === color && "is-active")}
+            onClick={() => setHighlightColor((current) => current === color ? null : color)}
+            aria-pressed={highlightColor === color}
+          >
+            {color}
+          </button>
+        ))}
+        <button type="button" className="btn btn-ghost !min-h-7 !px-2.5 !py-1 !text-[11.5px]" onClick={() => setHighlightColor(null)}>
+          <MousePointer2 className="h-3.5 w-3.5" /> Cursor
+        </button>
+      </div>
+
+      <div ref={highlightRootRef} onMouseUp={applyHighlight} className={cn("space-y-4", highlightColor && "highlight-tool-active")}>
       {question.passageHtml && (
         <div
           className={cn(
@@ -177,6 +223,7 @@ export function QuestionView({
           <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
         </div>
       )}
+      </div>
     </div>
   );
 }

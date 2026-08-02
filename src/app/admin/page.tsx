@@ -10,12 +10,13 @@ import {
   Loader2,
   MessageSquareText,
   ShieldCheck,
+  Trash2,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
-import { useApi, apiPatch, mutateKey, setImpersonatedUser, getImpersonatedUser } from "@/lib/api-client";
+import { useApi, apiPatch, apiDeleteJson, mutateKey, setImpersonatedUser, getImpersonatedUser } from "@/lib/api-client";
 import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +78,8 @@ export default function AdminPage() {
     "admin-feedback",
   );
   const [updating, setUpdating] = React.useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<AdminUser | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
   const impersonating = getImpersonatedUser();
 
   if (!auth.ready) return <PageSkeleton cards={4} />;
@@ -103,6 +106,23 @@ export default function AdminPage() {
     mutateKey("collections");
     mutateKey("mistakes");
     toast.success(`Now viewing as ${label}`, { description: "All pages show their data. Use the banner to exit." });
+  };
+
+  const deleteAccount = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await apiDeleteJson(`/api/admin/users/${encodeURIComponent(deleteTarget.id)}`, { confirm: "DELETE" });
+      if (impersonating?.id === deleteTarget.id) setImpersonatedUser(null);
+      toast.success("Account deleted", { description: deleteTarget.email || deleteTarget.displayName || deleteTarget.id });
+      setDeleteTarget(null);
+      await reload();
+      mutateKey("admin-overview");
+    } catch (error) {
+      toast.error("Couldn't delete account", { description: error instanceof Error ? error.message : undefined });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const setStatus = async (id: number, status: string) => {
@@ -245,14 +265,23 @@ export default function AdminPage() {
                             </td>
                             <td className="px-4 py-3">
                               {!isSelf && (
-                                <button
-                                  type="button"
-                                  className={cn("btn !min-h-8 !px-3 !py-1.5 !text-[11.5px]", isImpersonated ? "btn-danger" : "btn-soft")}
-                                  onClick={() => (isImpersonated ? setImpersonatedUser(null) : impersonate(user))}
-                                >
-                                  <Eye className="h-3.5 w-3.5" />
-                                  {isImpersonated ? "Stop viewing" : "View as"}
-                                </button>
+                                <div className="flex flex-wrap justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    className={cn("btn !min-h-8 !px-3 !py-1.5 !text-[11.5px]", isImpersonated ? "btn-danger" : "btn-soft")}
+                                    onClick={() => (isImpersonated ? setImpersonatedUser(null) : impersonate(user))}
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    {isImpersonated ? "Stop viewing" : "View as"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn btn-danger !min-h-8 !px-3 !py-1.5 !text-[11.5px]"
+                                    onClick={() => setDeleteTarget(user)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                                  </button>
+                                </div>
                               )}
                             </td>
                           </tr>
@@ -329,6 +358,27 @@ export default function AdminPage() {
           <button type="button" className="btn btn-soft" onClick={() => { void reload(); void reloadFb(); }}>
             Refresh
           </button>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
+          <div className="w-full max-w-md rounded-[10px] border border-[#d2abb7] bg-[var(--paper)] p-5 shadow-[0_18px_45px_rgba(20,24,34,0.24)]">
+            <div className="mb-3 flex items-center gap-2 text-[#ae3d51]">
+              <Trash2 className="h-5 w-5" />
+              <h2 className="font-display text-xl font-bold">Delete this account?</h2>
+            </div>
+            <p className="text-[13.5px] leading-relaxed text-[var(--ink-soft)]">
+              This will delete <strong>{deleteTarget.displayName || deleteTarget.email || deleteTarget.id}</strong> and their practice history, collections, notes, favorites, and sessions. This cannot be undone.
+            </p>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <button type="button" className="btn btn-soft" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={() => void deleteAccount()} disabled={deleting}>
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Yes, delete account
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

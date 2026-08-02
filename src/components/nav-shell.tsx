@@ -16,7 +16,7 @@ import {
   BookOpenText,
   BookMarked,
   MessageSquarePlus,
-  Settings2,
+  Cog,
   ShieldCheck,
   Menu,
   X,
@@ -75,10 +75,12 @@ function NavLinks({
   onNavigate,
   compact = false,
   isAdmin = false,
+  showGroupLabels = true,
 }: {
   onNavigate?: () => void;
   compact?: boolean;
   isAdmin?: boolean;
+  showGroupLabels?: boolean;
 }) {
   const pathname = usePathname();
   const groups = React.useMemo(() => {
@@ -90,10 +92,10 @@ function NavLinks({
   }, [isAdmin]);
 
   return (
-    <nav aria-label="Primary navigation" className="space-y-5">
+    <nav aria-label="Primary navigation" className={cn(showGroupLabels ? "space-y-5" : "space-y-0.5")}>
       {groups.map((group) => (
         <div key={group.label}>
-          {!compact && (
+          {!compact && showGroupLabels && (
             <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">
               {group.label}
             </div>
@@ -134,6 +136,7 @@ function NavLinks({
 
 export function NavShell({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
+  const pathname = usePathname();
   const { settings } = useSettings();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [desktopExpanded, setDesktopExpanded] = React.useState(false);
@@ -180,7 +183,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
       <aside
         data-tour="sidebar"
         className={cn(
-          "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] transition-[width,box-shadow] duration-250 ease-out md:flex",
+          "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] overflow-hidden transition-[width,box-shadow] duration-300 ease-out will-change-[width] md:flex",
           desktopExpanded ? "w-[236px] shadow-[0_10px_28px_rgba(20,24,34,0.16)]" : "w-[74px]",
         )}
         onMouseEnter={() => setDesktopExpanded(true)}
@@ -200,15 +203,15 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           )}
         </Link>
 
-        <div className={cn("flex-1 overflow-y-auto py-5 scrollbar-thin", desktopExpanded ? "px-3" : "px-2")}>
-          <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} />
+        <div className={cn("min-h-0 flex-1 overflow-hidden py-5", desktopExpanded ? "px-3" : "px-2")}>
+          <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} showGroupLabels={false} />
         </div>
 
-        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
+        <div className={cn("mt-auto border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
           <div
             data-tour="account"
             className={cn(
-              "mb-2 flex rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
+              "mb-2 flex min-h-[58px] rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
               desktopExpanded ? "items-center gap-2 px-3" : "items-center justify-center px-2",
             )}
             title={accountLabel}
@@ -280,14 +283,10 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             )}
             title="Settings"
           >
-            <Settings2 className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+            <Cog className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
             {desktopExpanded && "Settings"}
           </button>
-          {desktopExpanded && (
-            <p className="mt-2 px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
-              Browser app · Vercel + Supabase ready
-            </p>
-          )}
+
         </div>
       </aside>
       )}
@@ -342,7 +341,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             className="rounded-[5px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
             aria-label="Open settings"
           >
-            <Settings2 className="h-4 w-4" />
+            <Cog className="h-4 w-4" />
           </button>
           <button
             type="button"
@@ -367,6 +366,33 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--paper-soft)]/95 px-2 py-2 shadow-[0_-10px_22px_rgba(37,40,44,0.10)] backdrop-blur md:hidden" aria-label="Mobile quick navigation">
+        <div className="grid grid-cols-5 gap-1">
+          {[
+            { href: "/", label: "Home", icon: LayoutDashboard },
+            { href: "/quiz", label: "Quiz", icon: PenSquare },
+            { href: "/bank", label: "Bank", icon: Library },
+            { href: "/mistakes", label: "Review", icon: RotateCcw },
+            { href: "/analytics", label: "Stats", icon: BarChart3 },
+          ].map(({ href, label, icon: Icon }) => {
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[10.5px] font-bold transition-colors",
+                  active ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--ink-faint)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
+                )}
+              >
+                <Icon className="h-4.5 w-4.5" />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
       {impersonating && (
         <div className="sticky top-0 z-50 flex items-center justify-center gap-3 border-b border-[#d2abb7] bg-[#f0dfe5] px-4 py-2 text-[13px] font-semibold text-[#8e5264]">
           <ShieldCheck className="h-4 w-4" />
@@ -388,7 +414,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className={cn("shell-main px-4 py-6 sm:px-6 md:px-8 md:py-8", showSidebar && "md:ml-[74px]", !showSidebar && "md:pt-16")}>
+      <main className={cn("shell-main px-4 pb-24 pt-6 sm:px-6 md:px-8 md:py-8", showSidebar && "md:ml-[74px]", !showSidebar && "md:pt-16")}>
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
 

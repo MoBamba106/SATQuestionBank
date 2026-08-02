@@ -6,10 +6,9 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
-  type SpringOptions,
-  AnimatePresence
+  type SpringOptions
 } from 'motion/react';
-import React, { Children, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Children, cloneElement, useMemo, useRef } from 'react';
 
 import './Dock.css';
 
@@ -103,42 +102,6 @@ function DockItem({
   );
 }
 
-type DockLabelProps = {
-  className?: string;
-  children: React.ReactNode;
-  isHovered?: MotionValue<number>;
-};
-
-function DockLabel({ children, className = '', isHovered }: DockLabelProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (!isHovered) return;
-    const unsubscribe = isHovered.on('change', latest => {
-      setIsVisible(latest === 1);
-    });
-    return () => unsubscribe();
-  }, [isHovered]);
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: -10 }}
-          exit={{ opacity: 0, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className={`dock-label ${className}`}
-          role="tooltip"
-          style={{ x: '-50%' }}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
 type DockIconProps = {
   className?: string;
   children: React.ReactNode;
@@ -147,6 +110,10 @@ type DockIconProps = {
 
 function DockIcon({ children, className = '' }: DockIconProps) {
   return <div className={`dock-icon ${className}`}>{children}</div>;
+}
+
+function DockName({ children }: { children: React.ReactNode }) {
+  return <div className="dock-name">{children}</div>;
 }
 
 export default function Dock({
@@ -198,7 +165,7 @@ export default function Dock({
             label={item.label}
           >
             <DockIcon>{item.icon}</DockIcon>
-            <DockLabel>{item.label}</DockLabel>
+            <DockName>{item.label}</DockName>
           </DockItem>
         ))}
       </motion.div>

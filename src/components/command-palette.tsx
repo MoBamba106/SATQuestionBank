@@ -14,7 +14,7 @@ import {
   PenSquare,
   RotateCcw,
   Search,
-  Settings2,
+  Cog,
   Trophy,
   MessageSquarePlus,
   X,
@@ -65,7 +65,7 @@ export function CommandPalette({
     const all: CommandItem[] = [
       ...NAV_COMMANDS,
       ...(onOpenSettings
-        ? [{ id: "settings", label: "Settings", icon: Settings2, keywords: "preferences theme", action: onOpenSettings }]
+        ? [{ id: "settings", label: "Settings", icon: Cog, keywords: "preferences theme", action: onOpenSettings }]
         : []),
       ...extra,
     ];
