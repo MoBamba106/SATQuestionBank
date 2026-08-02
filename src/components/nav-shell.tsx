@@ -203,11 +203,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           )}
         </Link>
 
-        <div className={cn("flex-1 overflow-hidden py-5", desktopExpanded ? "px-3" : "px-2")}>
+        <div className={cn("min-h-0 flex-1 overflow-hidden py-5", desktopExpanded ? "px-3" : "px-2")}>
           <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} showGroupLabels={false} />
         </div>
 
-        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
+        <div className={cn("mt-auto border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
           <div
             data-tour="account"
             className={cn(
@@ -286,9 +286,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <Cog className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
             {desktopExpanded && "Settings"}
           </button>
-          <p className={cn("mt-2 min-h-[34px] px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]", !desktopExpanded && "invisible")}>
-            Browser app · Vercel + Supabase ready
-          </p>
+
         </div>
       </aside>
       )}
