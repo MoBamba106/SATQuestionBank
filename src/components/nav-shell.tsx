@@ -207,11 +207,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} showGroupLabels={false} />
         </div>
 
-        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
+        <div className={cn("border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2 pb-6")}>
           <div
             data-tour="account"
             className={cn(
-              "mb-2 flex rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
+              "mb-2 flex min-h-[58px] rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
               desktopExpanded ? "items-center gap-2 px-3" : "items-center justify-center px-2",
             )}
             title={accountLabel}
@@ -286,11 +286,9 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <Cog className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
             {desktopExpanded && "Settings"}
           </button>
-          {desktopExpanded && (
-            <p className="mt-2 px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]">
-              Browser app · Vercel + Supabase ready
-            </p>
-          )}
+          <p className={cn("mt-2 min-h-[34px] px-3 text-[10.5px] leading-relaxed text-[var(--ink-faint)]", !desktopExpanded && "invisible")}>
+            Browser app · Vercel + Supabase ready
+          </p>
         </div>
       </aside>
       )}

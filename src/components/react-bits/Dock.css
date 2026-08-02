@@ -11,13 +11,14 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   width: fit-content;
-  gap: 1rem;
+  gap: 0.72rem;
   border-radius: 1rem;
   background-color: var(--paper-raised);
   border: 1px solid var(--line);
-  padding: 0 0.5rem 0.5rem;
+  padding: 0.35rem 0.65rem 1.25rem;
+  overflow: visible;
 }
 
 .dock-item {
@@ -25,6 +26,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   border-radius: 10px;
   background-color: var(--paper-soft);
   border: 1px solid var(--line);
@@ -33,12 +35,29 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   outline: none;
+  overflow: visible;
 }
 
 .dock-icon {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.dock-name {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  max-width: 76px;
+  transform: translateX(-50%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .dock-label {

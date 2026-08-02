@@ -5,17 +5,16 @@ import { CheckCircle2, Loader2, LogIn, PartyPopper, UserPlus } from "lucide-reac
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useAuth } from "@/components/auth-provider";
-import { useSettings } from "@/components/settings-provider";
 import Stepper, { Step } from "@/components/react-bits/Stepper";
 
 export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const auth = useAuth();
-  const { settings } = useSettings();
   const [mode, setMode] = React.useState<"signin" | "signup">("signin");
   const [email, setEmail] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const [signupStep, setSignupStep] = React.useState(1);
   const [success, setSuccess] = React.useState<"signin" | "signup" | null>(null);
   const [prevOpen, setPrevOpen] = React.useState(open);
 
@@ -25,6 +24,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
     if (open) {
       setMode("signin");
       setSuccess(null);
+      setSignupStep(1);
     }
   }
 
@@ -47,6 +47,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       window.setTimeout(() => {
         onOpenChange(false);
         setSuccess(null);
+        setSignupStep(1);
       }, 1600);
     } catch (error) {
       const message = error instanceof Error ? error.message : undefined;
@@ -97,14 +98,23 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           : "Supabase Auth is not configured yet. You can keep practicing as a local guest."
       }
     >
-      {mode === "signup" && settings.showStepperLogin ? (
+      {mode === "signup" ? (
         <div className="mt-4">
           <Stepper
             initialStep={1}
+            onStepChange={setSignupStep}
             onFinalStepCompleted={() => void submit()}
             nextButtonText="Next"
             backButtonText="Back"
-            nextButtonProps={{ disabled: !auth.authEnabled || busy }}
+            disableStepIndicators
+            nextButtonProps={{
+              disabled:
+                !auth.authEnabled ||
+                busy ||
+                (signupStep === 1 && (username.trim().length < 3 || !/^[a-zA-Z0-9_.-]+$/.test(username.trim()))) ||
+                (signupStep === 2 && !email.trim()) ||
+                (signupStep === 3 && password.length < 6),
+            }}
           >
             <Step>
               <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
@@ -130,69 +140,68 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           {busy && <p className="mt-2 flex items-center gap-2 text-[12px] font-semibold text-[var(--accent)]"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Creating account…</p>}
         </div>
       ) : (
-      <div className="mt-4 space-y-3">
-        {mode === "signup" && (
+        <div className="mt-4 space-y-3">
           <div>
-            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
-            <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="Choose a username" />
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+              Email
+            </label>
+            <input
+              className="input w-full"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={!auth.authEnabled || busy}
+            />
           </div>
-        )}
-        <div>
-          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
-            Email
-          </label>
-          <input
-            className="input w-full"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={!auth.authEnabled || busy}
-          />
+          <div>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+              Password
+            </label>
+            <input
+              className="input w-full"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void submit()}
+              disabled={!auth.authEnabled || busy}
+            />
+          </div>
         </div>
-        <div>
-          <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
-            Password
-          </label>
-          <input
-            className="input w-full"
-            type="password"
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && void submit()}
-            disabled={!auth.authEnabled || busy}
-          />
-        </div>
-      </div>
       )}
 
-      {!(mode === "signup" && settings.showStepperLogin) && (
-      <div className="mt-5 flex flex-wrap gap-2.5">
-        <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.authEnabled || busy}>
-          {busy ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : mode === "signin" ? (
-            <LogIn className="h-4 w-4" />
-          ) : (
-            <UserPlus className="h-4 w-4" />
-          )}
-          {mode === "signin" ? "Sign in" : "Sign up"}
-        </button>
-        <button
-          type="button"
-          className="btn btn-soft"
-          disabled={busy}
-          onClick={() => setMode((m) => (m === "signin" ? "signup" : "signin"))}
-        >
-          {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
-        </button>
-      </div>
+      {mode !== "signup" && (
+        <div className="mt-5 flex flex-wrap gap-2.5">
+          <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.authEnabled || busy}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+            Sign in
+          </button>
+          <button
+            type="button"
+            className="btn btn-soft"
+            disabled={busy}
+            onClick={() => {
+              setSignupStep(1);
+              setMode("signup");
+            }}
+          >
+            <UserPlus className="h-4 w-4" /> Need an account? Sign up
+          </button>
+        </div>
       )}
 
       <div className="mt-4 border-t border-[var(--line-soft)] pt-4">
-        {mode === "signup" && settings.showStepperLogin && (
-          <button type="button" className="btn btn-soft mb-2 w-full" disabled={busy} onClick={() => setMode("signin")}>
+        {mode === "signup" && (
+          <button
+            type="button"
+            className="btn btn-soft mb-2 w-full"
+            disabled={busy}
+            onClick={() => {
+              setSignupStep(1);
+              setMode("signin");
+            }}
+          >
             Have an account? Sign in
           </button>
         )}

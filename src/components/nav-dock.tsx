@@ -52,8 +52,8 @@ export function NavDock({
     <div className="fixed bottom-4 left-1/2 z-[100] hidden -translate-x-1/2 md:block">
       <Dock
         items={items}
-        panelHeight={64}
-        baseItemSize={44}
+        panelHeight={80}
+        baseItemSize={46}
         magnification={64}
         className="!border-[var(--line)] !bg-[var(--paper-raised)] !shadow-xl"
       />
