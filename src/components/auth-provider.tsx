@@ -13,6 +13,7 @@ import {
   signOutSupabase,
   signUpWithEmail,
   subscribeToAuthState,
+  updateSupabaseDisplayName,
 } from "@/lib/auth/client";
 import { mutateKey, setImpersonatedUser } from "@/lib/api-client";
 
@@ -24,7 +25,8 @@ type AuthContextValue = {
   /** Server-verified admin status for the signed-in account. */
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, username?: string) => Promise<void>;
+  updateUsername: (username: string) => Promise<void>;
   signInGuestCloud: () => Promise<void>;
   signOut: () => Promise<void>;
   continueAsLocalGuest: () => void;
@@ -116,9 +118,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const session = await signInWithEmail(email, password);
         applySession(session.user, session.accessToken);
       },
-      async signUp(email, password) {
-        const session = await signUpWithEmail(email, password);
+      async signUp(email, password, username) {
+        const session = await signUpWithEmail(email, password, username);
         applySession(session.user, session.accessToken);
+      },
+      async updateUsername(username) {
+        if (user.isGuest) throw new Error("Sign in to edit your username.");
+        const trimmed = username.trim();
+        if (trimmed.length < 3) throw new Error("Username must be at least 3 characters.");
+        const nextUser = authEnabled ? await updateSupabaseDisplayName(trimmed) : { ...user, displayName: trimmed };
+        const res = await fetch("/api/profile", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({ displayName: trimmed }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error || "Could not update username");
+        }
+        applySession({ ...nextUser, id: user.id, email: user.email, displayName: trimmed, isGuest: false }, accessToken);
       },
       async signInGuestCloud() {
         const session = await signInAnonymously();

@@ -1126,7 +1126,7 @@ html[data-focus-mode="true"] body {
   top: 50%;
   height: 2px;
   background: color-mix(in srgb, var(--bad) 60%, var(--ink));
-  transform: rotate(-1.6deg);
+  transform: none;
   pointer-events: none;
   border-radius: 2px;
 }

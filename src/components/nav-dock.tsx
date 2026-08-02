@@ -15,7 +15,7 @@ import {
   PenSquare,
   RotateCcw,
   Search,
-  Settings2,
+  Cog,
   Trophy,
 } from "lucide-react";
 
@@ -45,7 +45,7 @@ export function NavDock({
     { icon: <Trophy size={19} color="var(--ink)" />, label: "Leaderboard", onClick: () => router.push("/leaderboard") },
     { icon: <MessageSquarePlus size={19} color="var(--ink)" />, label: "Feedback", onClick: () => router.push("/feedback") },
     { icon: <Search size={19} color="var(--ink)" />, label: "Go to…", onClick: onOpenPalette },
-    { icon: <Settings2 size={19} color="var(--ink)" />, label: "Settings", onClick: onOpenSettings },
+    { icon: <Cog size={19} color="var(--ink)" />, label: "Settings", onClick: onOpenSettings },
   ];
 
   return (

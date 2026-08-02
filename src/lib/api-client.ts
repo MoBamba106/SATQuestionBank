@@ -92,6 +92,11 @@ export async function apiDelete<T>(url: string): Promise<T> {
   clearGetCache();
   return value;
 }
+export async function apiDeleteJson<T>(url: string, body?: unknown): Promise<T> {
+  const value = await request<T>(url, { method: "DELETE", body: JSON.stringify(body ?? {}) });
+  clearGetCache();
+  return value;
+}
 
 const BUS_EVENT = "sat-api-mutate";
 export function mutateKey(key: string) {

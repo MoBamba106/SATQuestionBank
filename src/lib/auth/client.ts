@@ -136,13 +136,14 @@ export async function signInWithEmail(email: string, password: string) {
   return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
 }
 
-export async function signUpWithEmail(email: string, password: string) {
+export async function signUpWithEmail(email: string, password: string, username?: string) {
+  const displayName = username?.trim() || email.split("@")[0] || "Student";
   const { data, error } = await getSupabaseBrowserClient().auth.signUp({
     email,
     password,
     options: {
       data: {
-        display_name: email.split("@")[0] || "Student",
+        display_name: displayName,
       },
     },
   });
@@ -154,6 +155,14 @@ export async function signUpWithEmail(email: string, password: string) {
   }
   persistSessionState(data.session);
   return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
+}
+
+export async function updateSupabaseDisplayName(displayName: string) {
+  const { data, error } = await getSupabaseBrowserClient().auth.updateUser({
+    data: { display_name: displayName.trim() },
+  });
+  if (error) throw error;
+  return userFromSupabase(data.user);
 }
 
 export async function signInAnonymously() {

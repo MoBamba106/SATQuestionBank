@@ -7,7 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
-  Settings2,
+  Cog,
   Shuffle,
   ThumbsDown,
   ThumbsUp,
@@ -257,7 +257,7 @@ export function FlashcardDeck({
             title="Flashcard settings"
             aria-expanded={settingsOpen}
           >
-            <Settings2 className="h-4 w-4" />
+            <Cog className="h-4 w-4" />
           </button>
         </div>
       </div>

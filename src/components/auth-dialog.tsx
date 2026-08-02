@@ -5,11 +5,15 @@ import { CheckCircle2, Loader2, LogIn, PartyPopper, UserPlus } from "lucide-reac
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useAuth } from "@/components/auth-provider";
+import { useSettings } from "@/components/settings-provider";
+import Stepper, { Step } from "@/components/react-bits/Stepper";
 
 export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const auth = useAuth();
+  const { settings } = useSettings();
   const [mode, setMode] = React.useState<"signin" | "signup">("signin");
   const [email, setEmail] = React.useState("");
+  const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [success, setSuccess] = React.useState<"signin" | "signup" | null>(null);
@@ -29,10 +33,14 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       toast.error("Enter a valid email and a password (6+ characters).");
       return;
     }
+    if (mode === "signup" && (username.trim().length < 3 || !/^[a-zA-Z0-9_.-]+$/.test(username.trim()))) {
+      toast.error("Choose a username with 3+ letters/numbers. You can use _, ., or - too.");
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "signin") await auth.signIn(email.trim(), password);
-      else await auth.signUp(email.trim(), password);
+      else await auth.signUp(email.trim(), password, username.trim());
       setSuccess(mode);
       setPassword("");
       // Give the user a beat of confirmation before the dialog closes itself.
@@ -89,7 +97,46 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           : "Supabase Auth is not configured yet. You can keep practicing as a local guest."
       }
     >
+      {mode === "signup" && settings.showStepperLogin ? (
+        <div className="mt-4">
+          <Stepper
+            initialStep={1}
+            onFinalStepCompleted={() => void submit()}
+            nextButtonText="Next"
+            backButtonText="Back"
+            nextButtonProps={{ disabled: !auth.authEnabled || busy }}
+          >
+            <Step>
+              <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Pick a username</h3>
+                <p className="text-[12.5px] text-[var(--ink-faint)]">This is what shows in the sidebar, admin console, and leaderboards instead of your email prefix.</p>
+                <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="zubaidimuhammad13" />
+              </div>
+            </Step>
+            <Step>
+              <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Add your email</h3>
+                <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} />
+              </div>
+            </Step>
+            <Step>
+              <div className="space-y-2 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
+                <h3 className="font-display text-xl font-bold text-[var(--ink)]">Create a password</h3>
+                <input className="input w-full" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={!auth.authEnabled || busy} />
+                <p className="text-[11.5px] text-[var(--ink-faint)]">Use at least 6 characters.</p>
+              </div>
+            </Step>
+          </Stepper>
+          {busy && <p className="mt-2 flex items-center gap-2 text-[12px] font-semibold text-[var(--accent)]"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Creating account…</p>}
+        </div>
+      ) : (
       <div className="mt-4 space-y-3">
+        {mode === "signup" && (
+          <div>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
+            <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="Choose a username" />
+          </div>
+        )}
         <div>
           <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
             Email
@@ -118,7 +165,9 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           />
         </div>
       </div>
+      )}
 
+      {!(mode === "signup" && settings.showStepperLogin) && (
       <div className="mt-5 flex flex-wrap gap-2.5">
         <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.authEnabled || busy}>
           {busy ? (
@@ -139,8 +188,14 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
         </button>
       </div>
+      )}
 
       <div className="mt-4 border-t border-[var(--line-soft)] pt-4">
+        {mode === "signup" && settings.showStepperLogin && (
+          <button type="button" className="btn btn-soft mb-2 w-full" disabled={busy} onClick={() => setMode("signin")}>
+            Have an account? Sign in
+          </button>
+        )}
         <button
           type="button"
           className="btn btn-ghost w-full"
