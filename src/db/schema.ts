@@ -35,6 +35,9 @@ export const feedback = pgTable(
     message: text("message").notNull().default(""),
     status: text("status").notNull().default("new"), // new | reviewed | done
     githubIssueUrl: text("github_issue_url"),
+    /** Human-readable context captured when the feedback was filed (e.g. the
+     *  quiz/test/flashcard and question the user was on). */
+    context: text("context"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [index("feedback_created_idx").on(t.createdAt)],

@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { PaperSelect } from "@/components/ui/paper-select";
+import { PaperMultiSelect } from "@/components/ui/paper-multi-select";
 import { QuestionCard } from "@/components/question-card";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
@@ -33,7 +34,7 @@ export default function BankPage() {
   const [domain, setDomain] = React.useState("All");
   const [skill, setSkill] = React.useState("All");
   const [subskill, setSubskill] = React.useState("All");
-  const [difficulty, setDifficulty] = React.useState("All");
+  const [difficulty, setDifficulty] = React.useState<string[]>([]);
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [favoritesOnly, setFavoritesOnly] = React.useState(false);
@@ -54,7 +55,7 @@ export default function BankPage() {
     if (domain !== "All") params.set("domain", domain);
     if (skill !== "All") params.set("skill", skill);
     if (subskill !== "All") params.set("subskill", subskill);
-    if (difficulty !== "All") params.set("difficulty", difficulty);
+    if (difficulty.length > 0) params.set("difficulty", difficulty.join(","));
     if (search.trim()) params.set("search", search.trim());
     if (favoritesOnly) params.set("favorites", "1");
     params.set("page", String(page));
@@ -209,22 +210,21 @@ export default function BankPage() {
           </div>
           <div>
             <label className="filter-label mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.12em]" data-tone="yellow">Difficulty</label>
-            <PaperSelect
+            <PaperMultiSelect
               ariaLabel="Difficulty"
               tone="yellow"
-              value={difficulty}
-              onValueChange={(value) => {
-                setDifficulty(value);
+              values={difficulty}
+              onValuesChange={(values) => {
+                setDifficulty(values);
                 resetPage();
               }}
-              options={[
-                { value: "All", label: "All difficulties", tone: "yellow" },
-                ...DIFFICULTIES.map((item) => ({
-                  value: item,
-                  label: item,
-                  tone: item === "Easy" ? "green" as const : item === "Medium" ? "yellow" as const : "rose" as const,
-                })),
-              ]}
+              placeholder="All difficulties"
+              allLabel="All difficulties"
+              options={DIFFICULTIES.map((item) => ({
+                value: item,
+                label: item,
+                tone: item === "Easy" ? "green" as const : item === "Medium" ? "yellow" as const : "rose" as const,
+              }))}
             />
           </div>
         </div>

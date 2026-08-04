@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Bug, CheckCircle2, Lightbulb, Loader2, MessageSquarePlus, Send, ThumbsDown } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Bug, CheckCircle2, Lightbulb, Loader2, MessageSquarePlus, Pin, Send, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { apiPost } from "@/lib/api-client";
@@ -15,14 +16,34 @@ const CATEGORIES = [
   { id: "other", label: "Something else", icon: MessageSquarePlus, tone: "soft-tone-lavender" },
 ] as const;
 
-export default function FeedbackPage() {
+function FeedbackPage() {
   const auth = useAuth();
+  const sp = useSearchParams();
   const [category, setCategory] = React.useState<string>("improvement");
   const [title, setTitle] = React.useState("");
   const [message, setMessage] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+
+  // Context captured from a quiz / practice test / flashcard the user was in.
+  // Built from URL params so it survives navigating here from anywhere.
+  const context = React.useMemo(() => {
+    const mode = sp.get("mode");
+    const label = sp.get("label");
+    const questionId = sp.get("questionId");
+    const skill = sp.get("skill");
+    const domain = sp.get("domain");
+    const parts: string[] = [];
+    if (mode && label) {
+      const kind = mode === "test" ? "Practice test" : mode === "flashcard" ? "Flashcard deck" : mode === "quiz" ? "Quiz" : "Activity";
+      parts.push(`${kind}: ${label}`);
+    }
+    if (questionId) parts.push(`Question ${questionId}`);
+    if (domain) parts.push(domain);
+    if (skill) parts.push(skill);
+    return parts.join(" · ");
+  }, [sp]);
 
   const submit = async () => {
     if (!title.trim() || !message.trim() || busy) return;
@@ -33,6 +54,7 @@ export default function FeedbackPage() {
         title: title.trim(),
         message: message.trim(),
         email: email.trim() || undefined,
+        context: context || undefined,
       });
       setSent(true);
     } catch (error) {
@@ -75,6 +97,18 @@ export default function FeedbackPage() {
           Found something broken? Have an idea? Complaints and improvements land straight on the developer&apos;s desk.
         </p>
       </div>
+
+      {context && (
+        <div className="flex items-start gap-2.5 rounded-[7px] border border-[var(--accent)]/40 bg-[var(--accent-soft)] px-4 py-3">
+          <Pin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent-dark)]" />
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--accent-dark)]">
+              Reporting about what you were just doing
+            </p>
+            <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ink-soft)]">{context}</p>
+          </div>
+        </div>
+      )}
 
       <GlassCard hover={false} className="space-y-4 p-5 sm:p-6">
         <div>
@@ -155,5 +189,13 @@ export default function FeedbackPage() {
         </p>
       </GlassCard>
     </div>
+  );
+}
+
+export default function FeedbackPageWrapper() {
+  return (
+    <React.Suspense fallback={<div className="py-24 text-center text-[var(--ink-faint)]">Loading…</div>}>
+      <FeedbackPage />
+    </React.Suspense>
   );
 }

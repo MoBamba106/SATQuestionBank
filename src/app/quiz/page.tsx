@@ -6,6 +6,7 @@ import { AlertCircle, ArrowLeft, Play, Loader2, FlaskConical, PenLine, RotateCcw
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperSelect } from "@/components/ui/paper-select";
+import { PaperMultiSelect } from "@/components/ui/paper-multi-select";
 import { PaperSlider } from "@/components/ui/paper-slider";
 import { PracticeRunner } from "@/components/quiz/practice-runner";
 import { useSettings } from "@/components/settings-provider";
@@ -43,7 +44,7 @@ function QuizInner() {
   const [domain, setDomain] = React.useState("All");
   const [skill, setSkill] = React.useState("All");
   const [subskill, setSubskill] = React.useState("All");
-  const [difficulty, setDifficulty] = React.useState("All");
+  const [difficulty, setDifficulty] = React.useState<string[]>([]);
   const [count, setCount] = React.useState(10);
   const [quizMode, setQuizMode] = React.useState<"practice" | "exam">("practice");
   const [available, setAvailable] = React.useState<number | null>(null);
@@ -75,7 +76,7 @@ function QuizInner() {
     if (domain !== "All") p.set("domain", domain);
     if (skill !== "All") p.set("skill", skill);
     if (subskill !== "All") p.set("subskill", subskill);
-    if (difficulty !== "All") p.set("difficulty", difficulty);
+    if (difficulty.length > 0) p.set("difficulty", difficulty.join(","));
     return p.toString();
   }, [domain, skill, subskill, difficulty]);
 
@@ -181,7 +182,7 @@ function QuizInner() {
       const labelParts = [
         domain !== "All" ? domain : "All domains",
         skill !== "All" ? skill : null,
-        difficulty !== "All" ? difficulty : null,
+        difficulty.length > 0 ? difficulty.join(" & ") : null,
       ].filter(Boolean);
       const label = `${quizMode === "exam" ? "Exam" : "Practice"} · ${labelParts.join(" · ")}`;
       const d = await apiGet<QuestionSummary>(`/api/questions?${filterQS}&random=1&limit=${count}`);
@@ -300,12 +301,13 @@ function QuizInner() {
           </div>
           <div>
             <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="yellow">Difficulty</label>
-            <PaperSelect
+            <PaperMultiSelect
               tone="yellow"
-              value={difficulty}
-              onValueChange={setDifficulty}
+              values={difficulty}
+              onValuesChange={setDifficulty}
+              placeholder="All difficulties"
+              allLabel="All difficulties"
               options={[
-                { value: "All", label: "All difficulties", tone: "yellow" },
                 { value: "Easy", label: "Easy", tone: "green" },
                 { value: "Medium", label: "Medium", tone: "yellow" },
                 { value: "Hard", label: "Hard", tone: "rose" },

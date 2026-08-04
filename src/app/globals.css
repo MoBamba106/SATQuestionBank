@@ -441,7 +441,7 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
 .sat-content math,
 .sat-content .katex,
 .sat-content mjx-container {
-  font-size: 1.08em;
+  font-size: 1em;
   color: currentColor !important;
   filter: none !important;
   text-shadow: none !important;
@@ -449,6 +449,7 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   transform: none !important;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
+  vertical-align: middle;
 }
 
 .sat-content math {
@@ -514,9 +515,9 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   width: auto !important;
   height: auto !important;
   max-width: min(100%, 36rem) !important;
-  /* Readable body size for single-line sprites; tall formulas keep aspect. */
-  min-height: 1.55em !important;
-  max-height: 5.5em !important;
+  /* Keep short sprites readable without ballooning tall formulas. */
+  min-height: 1.25em !important;
+  max-height: 5em !important;
   object-fit: contain !important;
   background: transparent !important;
   border: 0 !important;
@@ -525,22 +526,22 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   filter: none !important;
   image-rendering: -webkit-optimize-contrast;
 }
-/* Stem / choice formulas that are still undersized get a gentle zoom. */
+/* Stem / choice formulas get a gentle zoom, tuned so they sit inline with prose. */
 .sat-content .math_expression {
-  zoom: 1.28;
+  zoom: 1.18;
 }
 @supports not (zoom: 1) {
   .sat-content .math_expression {
-    transform: scale(1.28);
+    transform: scale(1.18);
     transform-origin: left center;
   }
 }
 /* Answer choices: keep math aligned with the letter circle. */
 .answer-choice .sat-content .math_expression {
-  zoom: 1.35;
+  zoom: 1.24;
 }
 .answer-choice .sat-content img.math-img {
-  min-height: 1.7em !important;
+  min-height: 1.35em !important;
 }
 
 /* Dark themes: invert black-on-transparent CB math PNGs so they stay readable. */
@@ -574,6 +575,17 @@ html[data-theme="obsidian"] .sat-content .math-container {
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
+}
+/* In dark themes, figure SVGs sit on a light plate. Some graphs ship with
+   white axis/label text that would otherwise vanish against that plate —
+   force SVG text to dark ink so labels are always readable. */
+html[data-theme="dark"] .sat-content svg text,
+html[data-theme="dark"] .sat-content svg tspan,
+html[data-theme="dark"] .sat-content svg textPath,
+html[data-theme="obsidian"] .sat-content svg text,
+html[data-theme="obsidian"] .sat-content svg tspan,
+html[data-theme="obsidian"] .sat-content svg textPath {
+  fill: #1b1f24 !important;
 }
 .sat-content ul,
 .sat-content ol { margin-left: 1.4em; }
@@ -1200,14 +1212,10 @@ html[data-focus-mode="true"] body {
 
 /* ── Answer choice elimination (cross-out) ───────────────────────────────── */
 .answer-eliminated {
-  opacity: 0.45;
+  opacity: 0.5;
   position: relative;
 }
-.answer-eliminated .answer-choice-body {
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-  text-decoration-color: color-mix(in srgb, var(--bad) 70%, var(--ink));
-}
+/* Only the answer box is crossed out — the text inside stays legible. */
 .answer-eliminated::after {
   content: "";
   position: absolute;

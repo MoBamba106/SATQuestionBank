@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
-  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, NotebookPen, Timer, Loader2, LogOut, ListChecks, PencilRuler,
+  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, MessageSquarePlus, NotebookPen, Timer, Loader2, LogOut, ListChecks, PencilRuler,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -33,6 +34,7 @@ export function PracticeRunner({
   onExit: () => void;
 }) {
   const { settings } = useSettings();
+  const router = useRouter();
   const [pool, setPool] = React.useState(initialPool);
   const [sid, setSid] = React.useState(sessionId);
   const [idx, setIdx] = React.useState(0);
@@ -226,6 +228,19 @@ export function PracticeRunner({
           <button className="btn btn-ghost !px-2.5" onClick={onExit} title="Exit quiz">
             <LogOut className="h-4 w-4" />
           </button>
+          <button
+            type="button"
+            className="btn btn-ghost !px-2.5"
+            onClick={() =>
+              router.push(
+                `/feedback?mode=quiz&label=${encodeURIComponent(label)}&questionId=${encodeURIComponent(current.id)}&domain=${encodeURIComponent(current.domain)}&skill=${encodeURIComponent(current.skill)}`,
+              )
+            }
+            title="Report feedback about this question"
+            aria-label="Report feedback about this question"
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+          </button>
           <div className="min-w-0 grow">
             <div className="flex items-center justify-between text-[12.5px] font-semibold text-[var(--ink-faint)]">
               <span className="truncate">{label}</span>
@@ -250,7 +265,7 @@ export function PracticeRunner({
         {/* Question card */}
         <GlassCard hover={false} className="p-5 sm:p-7">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {settings.showQuestionMeta && (
+            {(settings.showQuestionMeta || isGraded) && (
               <>
                 <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
                 <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>

@@ -5,6 +5,7 @@ import {
   Activity,
   BarChart3,
   CheckCircle2,
+  Download,
   ExternalLink,
   Eye,
   Loader2,
@@ -49,6 +50,7 @@ type FeedbackItem = {
   message: string;
   status: string;
   githubIssueUrl: string | null;
+  context: string | null;
   createdAt: string;
 };
 
@@ -135,6 +137,42 @@ export default function AdminPage() {
     } finally {
       setUpdating(null);
     }
+  };
+
+  const deleteFeedback = async (id: number) => {
+    setUpdating(id);
+    try {
+      await apiDeleteJson("/api/feedback", { id });
+      toast.success("Feedback deleted");
+      await reloadFb();
+    } catch (error) {
+      toast.error("Couldn't delete feedback", { description: error instanceof Error ? error.message : undefined });
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const downloadFeedback = () => {
+    if (!fbData || fbData.feedback.length === 0) return;
+    const lines: string[] = [];
+    fbData.feedback.forEach((item, index) => {
+      lines.push(`Subject: ${item.title}`);
+      lines.push(`Description: ${item.message}`);
+      if (item.context) lines.push(`Context: ${item.context}`);
+      if (item.email || item.displayName) lines.push(`From: ${item.displayName || "anonymous"}${item.email ? ` <${item.email}>` : ""}`);
+      lines.push(`Status: ${item.status}`);
+      if (index < fbData.feedback.length - 1) lines.push("", "---", "");
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `feedback-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${fbData.feedback.length} request${fbData.feedback.length === 1 ? "" : "s"}`);
   };
 
   const accuracy = data && data.totals.attempts > 0 ? Math.round((data.totals.correct / data.totals.attempts) * 100) : 0;
@@ -298,6 +336,19 @@ export default function AdminPage() {
 
       {tab === "feedback" && (
         <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[13px] text-[var(--ink-faint)]">
+              {fbData ? `${fbData.feedback.length} request${fbData.feedback.length === 1 ? "" : "s"}` : "Loading requests…"}
+            </p>
+            <button
+              type="button"
+              className="btn btn-soft !min-h-8 !px-3 !py-1.5 !text-[12px]"
+              onClick={downloadFeedback}
+              disabled={!fbData || fbData.feedback.length === 0}
+            >
+              <Download className="h-3.5 w-3.5" /> Download all (.txt)
+            </button>
+          </div>
           {!fbData ? (
             <PageSkeleton cards={3} />
           ) : fbData.feedback.length === 0 ? (
@@ -321,6 +372,12 @@ export default function AdminPage() {
                   </span>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.message}</p>
+                {item.context && (
+                  <p className="mt-2 rounded-[5px] border border-[var(--line-soft)] bg-[var(--paper-soft)] px-3 py-2 text-[12px] leading-relaxed text-[var(--ink-soft)]">
+                    <span className="font-bold uppercase tracking-wide text-[var(--ink-faint)]">Context: </span>
+                    {item.context}
+                  </p>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--line-soft)] pt-3">
                   <span className="text-[12px] text-[var(--ink-faint)]">
                     From: {item.displayName || item.email || "anonymous"}
@@ -350,6 +407,15 @@ export default function AdminPage() {
                         {updating === item.id ? <Loader2 className="h-3 w-3 animate-spin" /> : status}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      disabled={updating === item.id}
+                      onClick={() => void deleteFeedback(item.id)}
+                      title="Delete this feedback once addressed"
+                      className="btn !min-h-7 !px-2.5 !py-1 !text-[11px] text-[var(--bad)] hover:!border-[var(--bad)] hover:!bg-[#f9e9ec]"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete
+                    </button>
                   </div>
                 </div>
               </GlassCard>

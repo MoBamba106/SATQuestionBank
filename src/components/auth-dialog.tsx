@@ -128,32 +128,17 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             <Step>
               <div className="space-y-3 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
                 <h3 className="font-display text-xl font-bold text-[var(--ink)]">Step 2: add your email</h3>
-                <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
-                  <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Email</label>
-                  <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} />
-                </div>
+                <p className="text-[12.5px] text-[var(--ink-faint)]">We&apos;ll use this to sync your progress and help you sign in.</p>
+                <label className="block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Email</label>
+                <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="you@example.com" />
               </div>
             </Step>
             <Step>
               <div className="space-y-3 rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] p-4">
                 <h3 className="font-display text-xl font-bold text-[var(--ink)]">Step 3: create your password</h3>
-                <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
-                  <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Email</label>
-                  <input className="input w-full" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!auth.authEnabled || busy} />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Password</label>
-                  <input className="input w-full" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={!auth.authEnabled || busy} />
-                  <p className="mt-1 text-[11.5px] text-[var(--ink-faint)]">Use at least 6 characters.</p>
-                </div>
+                <label className="block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Password</label>
+                <input className="input w-full" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={!auth.authEnabled || busy} />
+                <p className="mt-1 text-[11.5px] text-[var(--ink-faint)]">Use at least 6 characters.</p>
               </div>
             </Step>
           </Stepper>

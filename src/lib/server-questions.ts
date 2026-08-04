@@ -132,7 +132,15 @@ export function buildQuestionFilters(p: {
   if (eq(p.domain)) conds.push(sql`q.domain = ${p.domain}`);
   if (eq(p.skill)) conds.push(sql`q.skill = ${p.skill}`);
   if (eq(p.subskill)) conds.push(sql`q.subskill = ${p.subskill}`);
-  if (eq(p.difficulty)) conds.push(sql`q.difficulty = ${p.difficulty}`);
+  if (eq(p.difficulty)) {
+    const parts = p.difficulty!.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length === 1) {
+      conds.push(sql`q.difficulty = ${parts[0]}`);
+    } else if (parts.length > 1) {
+      const params = sql.join(parts.map((part) => sql`${part}`), sql`, `);
+      conds.push(sql`q.difficulty IN (${params})`);
+    }
+  }
   if (p.search && p.search.trim()) {
     const s = `%${p.search.trim()}%`;
     conds.push(sql`(q.question_text ILIKE ${s} OR q.id ILIKE ${s} OR q.skill ILIKE ${s} OR q.subskill ILIKE ${s})`);
