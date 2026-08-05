@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { BookOpenCheck, Check, Square } from "lucide-react";
+import { BookOpenCheck, Check, Square, Share2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { SafeHtml } from "@/components/ui/safe-html";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
+import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
@@ -25,6 +26,7 @@ function QuestionCardInner({
 }: QuestionCardProps) {
   const [open, setOpen] = React.useState(false);
   const [reveal, setReveal] = React.useState(false);
+  const [shareOpen, setShareOpen] = React.useState(false);
   const snippet = stripHtml(question.questionHtml || question.questionText).slice(0, 190);
 
   const activateSelection = () => {
@@ -105,10 +107,20 @@ function QuestionCardInner({
               )}
               <FavoriteButton questionId={question.id} favorite={question.favorite} size="sm" />
               <AddToCollectionButton questionId={question.id} size="sm" />
+              <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                title="Share this question"
+                className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-soft)] hover:text-[var(--accent)]"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
             </div>
           )}
         </div>
       </GlassCard>
+
+      <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={question.id} />
 
       {!selectable && (
         <PaperDialog

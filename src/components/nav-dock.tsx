@@ -17,7 +17,10 @@ import {
   Search,
   Cog,
   Trophy,
+  ShieldCheck,
+  Share2,
 } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 
 /**
  * Full navigation dock — replaces the sidebar when the "Dock" navigation
@@ -31,8 +34,9 @@ export function NavDock({
   onOpenPalette: () => void;
 }) {
   const router = useRouter();
+  const auth = useAuth();
 
-  const items = [
+  const baseItems = [
     { icon: <LayoutDashboard size={19} color="var(--ink)" />, label: "Study desk", onClick: () => router.push("/") },
     { icon: <BookMarked size={19} color="var(--ink)" />, label: "Study library", onClick: () => router.push("/study") },
     { icon: <PenSquare size={19} color="var(--ink)" />, label: "Practice quiz", onClick: () => router.push("/quiz") },
@@ -43,6 +47,16 @@ export function NavDock({
     { icon: <BarChart3 size={19} color="var(--ink)" />, label: "Analytics", onClick: () => router.push("/analytics") },
     { icon: <CalendarClock size={19} color="var(--ink)" />, label: "Sessions", onClick: () => router.push("/study-sessions") },
     { icon: <Trophy size={19} color="var(--ink)" />, label: "Leaderboard", onClick: () => router.push("/leaderboard") },
+    { icon: <Share2 size={19} color="var(--ink)" />, label: "Shared", onClick: () => router.push("/shared") },
+  ];
+
+  const adminItems = auth.isAdmin
+    ? [{ icon: <ShieldCheck size={19} color="var(--ink)" />, label: "Admin", onClick: () => router.push("/admin") }]
+    : [];
+
+  const items = [
+    ...baseItems,
+    ...adminItems,
     { icon: <MessageSquarePlus size={19} color="var(--ink)" />, label: "Feedback", onClick: () => router.push("/feedback") },
     { icon: <Search size={19} color="var(--ink)" />, label: "Go to…", onClick: onOpenPalette },
     { icon: <Cog size={19} color="var(--ink)" />, label: "Settings", onClick: onOpenSettings },

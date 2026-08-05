@@ -208,6 +208,62 @@ export const practiceTestQuestions = pgTable(
   ],
 );
 
+export const userPresence = pgTable(
+  "user_presence",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lastSeen: timestamp("last_seen").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => [index("user_presence_last_seen_idx").on(t.lastSeen)],
+);
+
+export const sharedQuestions = pgTable(
+  "shared_questions",
+  {
+    id: text("id").primaryKey(),
+    questionId: text("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    fromUserId: text("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: text("to_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (t) => [
+    index("shared_questions_to_user_idx").on(t.toUserId),
+    index("shared_questions_from_user_idx").on(t.fromUserId),
+    index("shared_questions_expires_idx").on(t.expiresAt),
+  ],
+);
+
+export const sharedCollections = pgTable(
+  "shared_collections",
+  {
+    id: text("id").primaryKey(),
+    collectionId: text("collection_id")
+      .notNull()
+      .references(() => collections.id, { onDelete: "cascade" }),
+    fromUserId: text("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: text("to_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("shared_collections_to_user_idx").on(t.toUserId),
+    index("shared_collections_from_user_idx").on(t.fromUserId),
+  ],
+);
+
 export type QuestionRow = typeof questions.$inferSelect;
 export type AttemptRow = typeof attempts.$inferSelect;
 export type CollectionRow = typeof collections.$inferSelect;

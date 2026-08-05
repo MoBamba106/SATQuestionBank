@@ -31,6 +31,8 @@ type AdminUser = {
   correct: number;
   sessions: number;
   lastActive: string | null;
+  lastSeen: string | null;
+  isOnline: boolean;
 };
 
 type Overview = {
@@ -266,7 +268,7 @@ export default function AdminPage() {
               <GlassCard hover={false} className="p-0">
                 <div className="border-b border-[var(--line-soft)] p-4">
                   <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">
-                    Accounts ({data.users.length})
+                    Accounts ({data.users.length}) · green = online (last 2 min)
                   </h2>
                 </div>
                 <div className="overflow-x-auto">
@@ -277,7 +279,7 @@ export default function AdminPage() {
                         <th className="px-4 py-2.5">Attempts</th>
                         <th className="px-4 py-2.5">Accuracy</th>
                         <th className="px-4 py-2.5">Sessions</th>
-                        <th className="px-4 py-2.5">Last active</th>
+                        <th className="px-4 py-2.5">Presence</th>
                         <th className="px-4 py-2.5" />
                       </tr>
                     </thead>
@@ -289,17 +291,36 @@ export default function AdminPage() {
                         return (
                           <tr key={user.id} className="border-b border-[var(--line-soft)] last:border-0">
                             <td className="px-4 py-3">
-                              <div className="font-semibold text-[var(--ink)]">
-                                {user.displayName || user.email || user.id.slice(0, 10)}
-                                {isSelf && <span className="ml-1.5 text-[10px] font-bold uppercase text-[var(--accent)]">You</span>}
+                              <div className="flex items-center gap-2">
+                                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                                  {user.isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />}
+                                  <span
+                                    className={`relative inline-flex h-2.5 w-2.5 rounded-full ${user.isOnline ? "bg-green-500" : "bg-[var(--line-soft)]"}`}
+                                    title={user.isOnline ? "Online now" : user.lastSeen ? `Last seen ${new Date(user.lastSeen).toLocaleString()}` : "Offline"}
+                                  />
+                                </span>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 font-semibold text-[var(--ink)]">
+                                    <span className="truncate">{user.displayName || user.email || user.id.slice(0, 10)}</span>
+                                    {isSelf && <span className="text-[10px] font-bold uppercase text-[var(--accent)]">You</span>}
+                                  </div>
+                                  <div className="text-[11px] text-[var(--ink-faint)]">{user.email ?? "no email"}</div>
+                                </div>
                               </div>
-                              <div className="text-[11px] text-[var(--ink-faint)]">{user.email ?? "no email"}</div>
                             </td>
                             <td className="px-4 py-3 font-mono">{user.attempts.toLocaleString()}</td>
                             <td className="px-4 py-3 font-mono">{user.attempts > 0 ? `${acc}%` : "—"}</td>
                             <td className="px-4 py-3 font-mono">{user.sessions}</td>
-                            <td className="px-4 py-3 text-[12px] text-[var(--ink-faint)]">
-                              {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : "never"}
+                            <td className="px-4 py-3 text-[12px]">
+                              {user.isOnline ? (
+                                <span className="inline-flex items-center gap-1 font-semibold text-green-600">● Online now</span>
+                              ) : user.lastSeen ? (
+                                <span className="text-[var(--ink-faint)]">Seen {new Date(user.lastSeen).toLocaleString()}</span>
+                              ) : user.lastActive ? (
+                                <span className="text-[var(--ink-faint)]">Active {new Date(user.lastActive).toLocaleDateString()}</span>
+                              ) : (
+                                <span className="text-[var(--ink-faint)]">never</span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               {!isSelf && (
