@@ -68,8 +68,14 @@ function centered(w = 680, h = 600) {
 
 export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [mounted, setMounted] = React.useState(false);
-  const [pos, setPos] = React.useState(() => centered());
-  const [size, setSize] = React.useState(() => ({ w: centered().w, h: centered().h }));
+  const [pos, setPos] = React.useState<{ x: number; y: number }>(() => {
+    const c = centered();
+    return { x: c.x, y: c.y };
+  });
+  const [size, setSize] = React.useState<{ w: number; h: number }>(() => {
+    const c = centered();
+    return { w: c.w, h: c.h };
+  });
   const [maxed, setMaxed] = React.useState(false);
   const [mined, setMined] = React.useState(false);
   const [status, setStatus] = React.useState<"loading" | "ready" | "error">("loading");
