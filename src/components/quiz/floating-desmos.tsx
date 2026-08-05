@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { ExternalLink, GripHorizontal, Loader2, Maximize2, Minus, RotateCcw, X } from "lucide-react";
 
 type DesmosCalculator = {
@@ -48,67 +49,61 @@ function loadDesmosApi() {
 
 type ResizeDir = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
-const MIN_W = 380;
+const MIN_W = 420;
 const MIN_H = 320;
-const MINIMIZED_W = 300;
-const MINIMIZED_H = 44;
+const MINIMIZED_W = 320;
+const MINIMIZED_H = 48;
 
-function getCentered(width: number, height: number) {
-  if (typeof window === "undefined") return { x: 80, y: 80, w: width, h: height };
-  const w = Math.min(width, Math.max(MIN_W, window.innerWidth - 32));
-  const h = Math.min(height, Math.max(MIN_H, window.innerHeight - 32));
+function centered(w = 680, h = 600) {
+  if (typeof window === "undefined") return { x: 80, y: 80, w, h };
+  const cw = Math.min(w, Math.max(MIN_W, window.innerWidth - 24));
+  const ch = Math.min(h, Math.max(MIN_H, window.innerHeight - 24));
   return {
-    x: Math.max(4, Math.round((window.innerWidth - w) / 2)),
-    y: Math.max(4, Math.round((window.innerHeight - h) / 2)),
-    w,
-    h,
+    x: Math.round((window.innerWidth - cw) / 2),
+    y: Math.round((window.innerHeight - ch) / 2),
+    w: cw,
+    h: ch,
   };
 }
 
 export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [position, setPosition] = React.useState(() => {
-    const c = getCentered(680, 560);
-    return { x: c.x, y: c.y };
-  });
-  const [size, setSize] = React.useState(() => {
-    const c = getCentered(680, 560);
-    return { w: c.w, h: c.h };
-  });
-  const [maximized, setMaximized] = React.useState(false);
-  const [minimized, setMinimized] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+  const [pos, setPos] = React.useState(() => centered());
+  const [size, setSize] = React.useState(() => ({ w: centered().w, h: centered().h }));
+  const [maxed, setMaxed] = React.useState(false);
+  const [mined, setMined] = React.useState(false);
   const [status, setStatus] = React.useState<"loading" | "ready" | "error">("loading");
   const saved = React.useRef<{ pos: { x: number; y: number }; size: { w: number; h: number } } | null>(null);
 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const calcRef = React.useRef<DesmosCalculator | null>(null);
+  const dragRef = React.useRef<{ id: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
+  const resizeRef = React.useRef<{ id: number; dir: ResizeDir; sx: number; sy: number; ox: number; oy: number; ow: number; oh: number } | null>(null);
 
-  const dragRef = React.useRef<{ pid: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
-  const resizeRef = React.useRef<{ pid: number; dir: ResizeDir; sx: number; sy: number; ox: number; oy: number; ow: number; oh: number } | null>(null);
+  React.useEffect(() => setMounted(true), []);
 
-  // Ensure centered on first client mount (useLayoutEffect avoids flicker)
   React.useLayoutEffect(() => {
-    const c = getCentered(680, 560);
-    setPosition({ x: c.x, y: c.y });
+    if (!open) return;
+    const c = centered(680, 600);
+    setPos({ x: c.x, y: c.y });
     setSize({ w: c.w, h: c.h });
-  }, []);
+  }, [open]);
 
-  // Load / recreate calculator
   React.useEffect(() => {
     if (!open) {
       calcRef.current?.destroy();
       calcRef.current = null;
       return;
     }
-    if (minimized) {
-      // When going minimized, destroy to avoid gray artifact on restore
+    if (mined) {
       calcRef.current?.destroy();
       calcRef.current = null;
       return;
     }
     let cancelled = false;
     setStatus("loading");
-    const t = window.setTimeout(() => {
-      void loadDesmosApi()
+    const t = setTimeout(() => {
+      loadDesmosApi()
         .then(() => {
           if (cancelled || !containerRef.current || !window.Desmos) return;
           calcRef.current?.destroy();
@@ -124,166 +119,131 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
             border: false,
           });
           requestAnimationFrame(() => {
-            if (cancelled) return;
-            calcRef.current?.resize();
-            setStatus("ready");
+            if (!cancelled) {
+              calcRef.current?.resize();
+              setStatus("ready");
+            }
           });
         })
-        .catch(() => {
-          if (!cancelled) setStatus("error");
-        });
+        .catch(() => !cancelled && setStatus("error"));
     }, 30);
     return () => {
       cancelled = true;
-      window.clearTimeout(t);
+      clearTimeout(t);
     };
-  }, [open, minimized]);
+  }, [open, mined, maxed]);
 
-  // Resize on size change
   React.useEffect(() => {
-    if (!open || minimized || maximized) return;
-    const t = window.setTimeout(() => calcRef.current?.resize(), 60);
-    return () => window.clearTimeout(t);
-  }, [open, minimized, maximized, size]);
+    if (!open || mined) return;
+    const t = setTimeout(() => calcRef.current?.resize(), 80);
+    return () => clearTimeout(t);
+  }, [open, mined, maxed, pos, size]);
 
-  // When exiting maximized or minimized, force resize
   React.useEffect(() => {
-    if (!open || minimized) return;
-    const t = window.setTimeout(() => calcRef.current?.resize(), 120);
-    return () => window.clearTimeout(t);
-  }, [maximized, minimized, open]);
-
-  // Global pointer handlers
-  React.useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (dragRef.current && dragRef.current.pid === e.pointerId) {
+    const move = (e: PointerEvent) => {
+      if (dragRef.current && dragRef.current.id === e.pointerId) {
         const dx = e.clientX - dragRef.current.sx;
         const dy = e.clientY - dragRef.current.sy;
         let nx = dragRef.current.ox + dx;
         let ny = dragRef.current.oy + dy;
+        // keep header visible, allow anywhere including left past question
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        // Allow anywhere, keep header visible
-        nx = Math.max(-MINIMIZED_W + 60, Math.min(vw - 60, nx));
-        ny = Math.max(0, Math.min(vh - 36, ny));
-        setPosition({ x: nx, y: ny });
+        nx = Math.max(-MINIMIZED_W + 80, Math.min(vw - 80, nx));
+        ny = Math.max(0, Math.min(vh - 40, ny));
+        setPos((p) => ({ ...p, x: nx, y: ny }));
       }
-      if (resizeRef.current && resizeRef.current.pid === e.pointerId && !maximized && !minimized) {
+      if (resizeRef.current && resizeRef.current.id === e.pointerId && !maxed && !mined) {
         const r = resizeRef.current;
         const dx = e.clientX - r.sx;
         const dy = e.clientY - r.sy;
-        let x = r.ox;
-        let y = r.oy;
-        let w = r.ow;
-        let h = r.oh;
+        let x = r.ox, y = r.oy, w = r.ow, h = r.oh;
         if (r.dir.includes("e")) w = Math.max(MIN_W, r.ow + dx);
         if (r.dir.includes("s")) h = Math.max(MIN_H, r.oh + dy);
-        if (r.dir.includes("w")) {
-          w = Math.max(MIN_W, r.ow - dx);
-          x = r.ox + (r.ow - w);
-        }
-        if (r.dir.includes("n")) {
-          h = Math.max(MIN_H, r.oh - dy);
-          y = r.oy + (r.oh - h);
-        }
+        if (r.dir.includes("w")) { w = Math.max(MIN_W, r.ow - dx); x = r.ox + (r.ow - w); }
+        if (r.dir.includes("n")) { h = Math.max(MIN_H, r.oh - dy); y = r.oy + (r.oh - h); }
         w = Math.min(w, window.innerWidth - 8);
         h = Math.min(h, window.innerHeight - 8);
         x = Math.max(-w + 80, Math.min(window.innerWidth - 80, x));
         y = Math.max(0, Math.min(window.innerHeight - 40, y));
         setSize({ w, h });
-        setPosition({ x, y });
+        setPos({ x, y });
       }
     };
-    const onUp = (e: PointerEvent) => {
-      if (dragRef.current?.pid === e.pointerId) dragRef.current = null;
-      if (resizeRef.current?.pid === e.pointerId) resizeRef.current = null;
+    const up = (e: PointerEvent) => {
+      if (dragRef.current?.id === e.pointerId) dragRef.current = null;
+      if (resizeRef.current?.id === e.pointerId) resizeRef.current = null;
     };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
     return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
     };
-  }, [maximized, minimized]);
+  }, [maxed, mined]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  const onDragStart = (e: React.PointerEvent) => {
-    if (maximized) return;
+  const onDrag = (e: React.PointerEvent) => {
+    if (maxed) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    dragRef.current = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, ox: position.x, oy: position.y };
+    dragRef.current = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y };
   };
-
-  const onResizeStart = (e: React.PointerEvent) => {
-    if (maximized || minimized) return;
-    e.preventDefault();
-    e.stopPropagation();
+  const onResize = (e: React.PointerEvent) => {
+    if (maxed || mined) return;
+    e.preventDefault(); e.stopPropagation();
     const dir = ((e.currentTarget as HTMLElement).dataset.dir ?? "se") as ResizeDir;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    resizeRef.current = { pid: e.pointerId, dir, sx: e.clientX, sy: e.clientY, ox: position.x, oy: position.y, ow: size.w, oh: size.h };
+    resizeRef.current = { id: e.pointerId, dir, sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y, ow: size.w, oh: size.h };
   };
 
-  const toggleMax = () => {
-    if (maximized) {
-      setMaximized(false);
+  const doMax = () => {
+    if (maxed) {
+      setMaxed(false);
       if (saved.current) {
-        setPosition(saved.current.pos);
+        setPos(saved.current.pos);
         setSize(saved.current.size);
         saved.current = null;
       }
     } else {
-      // If minimized, first restore
-      if (minimized) {
-        setMinimized(false);
-        // saved will be restored by minimized toggle, but ensure we clear maximized flag after
-      }
-      saved.current = { pos: { ...position }, size: { ...size } };
-      setMaximized(true);
-      // Position will be overridden by fullscreen style
+      if (mined) setMined(false);
+      saved.current = { pos: { ...pos }, size: { ...size } };
+      setMaxed(true);
     }
   };
-
-  const toggleMin = () => {
-    if (minimized) {
-      setMinimized(false);
+  const doMin = () => {
+    if (mined) {
+      setMined(false);
       if (saved.current) {
-        setPosition(saved.current.pos);
+        setPos(saved.current.pos);
         setSize(saved.current.size);
         saved.current = null;
       } else {
-        const c = getCentered(680, 560);
-        setPosition({ x: c.x, y: c.y });
+        const c = centered(680, 600);
+        setPos({ x: c.x, y: c.y });
         setSize({ w: c.w, h: c.h });
       }
     } else {
-      if (maximized) {
-        // Exit maximized first, but keep saved for restore later
-        setMaximized(false);
-        // saved already holds pre-max size; keep it
-        // Move to visible bottom area (fixed)
-        setPosition({ x: Math.max(8, window.innerWidth - MINIMIZED_W - 20), y: Math.max(8, window.innerHeight - MINIMIZED_H - 20) });
+      if (maxed) {
+        setMaxed(false);
       } else {
-        saved.current = { pos: { ...position }, size: { ...size } };
-        setPosition({ x: Math.max(8, window.innerWidth - MINIMIZED_W - 20), y: Math.max(8, window.innerHeight - MINIMIZED_H - 20) });
+        saved.current = { pos: { ...pos }, size: { ...size } };
       }
-      setMinimized(true);
+      // place at bottom-right visible without scroll
+      setPos({ x: Math.max(8, window.innerWidth - MINIMIZED_W - 12), y: Math.max(8, window.innerHeight - MINIMIZED_H - 12) });
+      setMined(true);
     }
   };
 
-  // Compute box style
-  let style: React.CSSProperties;
-  if (maximized) {
-    style = { left: 0, top: 0, width: "100vw", height: "100vh", inset: 0 };
-  } else if (minimized) {
-    // Fixed bottom-right but still draggable via left/top we maintain
-    style = { left: position.x, top: position.y, width: MINIMIZED_W, height: MINIMIZED_H };
-  } else {
-    style = { left: position.x, top: position.y, width: size.w, height: size.h };
-  }
+  const style: React.CSSProperties = maxed
+    ? { left: 0, top: 0, right: 0, bottom: 0, width: "100vw", height: "100vh" }
+    : mined
+    ? { left: pos.x, top: pos.y, width: MINIMIZED_W, height: MINIMIZED_H }
+    : { left: pos.x, top: pos.y, width: size.w, height: size.h };
 
-  const resizeHandles: { dir: ResizeDir; cn: string }[] = [
+  const handles: { dir: ResizeDir; cn: string }[] = [
     { dir: "e", cn: "right-0 top-0 h-full w-2 cursor-ew-resize" },
     { dir: "w", cn: "left-0 top-0 h-full w-2 cursor-ew-resize" },
     { dir: "s", cn: "bottom-0 left-0 h-2 w-full cursor-ns-resize" },
@@ -294,64 +254,43 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
     { dir: "nw", cn: "left-0 top-0 h-5 w-5 cursor-nwse-resize" },
   ];
 
-  return (
+  const node = (
     <div
-      className={`fixed z-[950] flex flex-col overflow-hidden rounded-[12px] border border-[var(--line)] bg-[var(--paper-raised)] shadow-[0_24px_70px_rgba(0,0,0,.36)] ${maximized ? "rounded-none" : ""}`}
+      className={`fixed z-[9999] flex flex-col overflow-hidden rounded-[12px] border border-[var(--line)] bg-[var(--paper-raised)] shadow-[0_24px_80px_rgba(0,0,0,.45)] ${maxed ? "rounded-none border-0" : ""}`}
       style={style}
       role="dialog"
-      aria-label="Desmos graphing calculator"
+      aria-label="Desmos"
     >
-      <div
-        className={`flex h-11 shrink-0 select-none items-center gap-2 border-b border-[var(--line)] bg-[var(--paper-soft)] px-3 ${maximized ? "cursor-default" : "cursor-move touch-none"}`}
-        onPointerDown={onDragStart}
-      >
-        <GripHorizontal className="h-4 w-4 shrink-0 text-[var(--ink-faint)]" />
-        <span className="grow truncate text-[13px] font-bold text-[var(--ink)]">Desmos</span>
-        <div className="ml-auto flex items-center gap-1">
-          <button type="button" className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)]" onPointerDown={(e) => e.stopPropagation()} onClick={toggleMax} title={maximized ? "Restore" : "Maximize"}>
-            {maximized ? <RotateCcw className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
-          <button type="button" className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)]" onPointerDown={(e) => e.stopPropagation()} onClick={toggleMin} title={minimized ? "Restore" : "Minimize"}>
-            <Minus className="h-4 w-4" />
-          </button>
-          <button type="button" className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)] hover:text-[var(--bad)]" onPointerDown={(e) => e.stopPropagation()} onClick={onClose} title="Close">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      <div className={`flex h-11 shrink-0 select-none items-center gap-2 border-b border-[var(--line)] bg-[var(--paper-soft)] px-3 ${maxed ? "cursor-default" : "cursor-move touch-none"}`} onPointerDown={onDrag}>
+        <GripHorizontal className="h-4 w-4 text-[var(--ink-faint)]" />
+        <span className="grow truncate text-[13px] font-bold text-[var(--ink)]">Desmos Graphing Calculator</span>
+        <button type="button" className="rounded p-1.5 hover:bg-[var(--paper-deep)]" onPointerDown={(e)=>e.stopPropagation()} onClick={doMax} title={maxed?"Restore":"Maximize"}>
+          {maxed ? <RotateCcw className="h-4 w-4"/> : <Maximize2 className="h-4 w-4"/>}
+        </button>
+        <button type="button" className="rounded p-1.5 hover:bg-[var(--paper-deep)]" onPointerDown={(e)=>e.stopPropagation()} onClick={doMin} title={mined?"Restore":"Minimize"}>
+          <Minus className="h-4 w-4"/>
+        </button>
+        <button type="button" className="rounded p-1.5 hover:bg-[var(--paper-deep)] hover:text-[var(--bad)]" onPointerDown={(e)=>e.stopPropagation()} onClick={onClose} title="Close">
+          <X className="h-4 w-4"/>
+        </button>
       </div>
 
-      {!minimized && (
+      {!mined && (
         <div className="relative min-h-0 flex-1 bg-white">
           <div ref={containerRef} className="absolute inset-0" />
-          {status === "loading" && (
-            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white text-sm text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading calculator…
-            </div>
-          )}
-          {status === "error" && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white p-8 text-center text-slate-700">
-              <p className="text-sm font-semibold">Desmos needs internet.</p>
-              <a className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 underline" href="https://www.desmos.com/calculator" target="_blank" rel="noreferrer">
-                Open Desmos <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
-          )}
+          {status==="loading" && <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin"/> Loading…</div>}
+          {status==="error" && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white p-8 text-center"><p className="text-sm font-semibold">Needs internet</p><a className="text-sm font-bold text-blue-600 underline inline-flex items-center gap-2" href="https://www.desmos.com/calculator" target="_blank" rel="noreferrer">Open Desmos <ExternalLink className="h-4 w-4"/></a></div>}
         </div>
       )}
-
-      {minimized && (
-        <div className="flex h-full items-center justify-between gap-2 px-3">
-          <span className="truncate text-[12px] font-semibold text-[var(--ink-faint)]">Desmos minimized – drag me anywhere</span>
-          <button type="button" className="btn btn-soft !min-h-7 !px-2.5 !text-[11px]" onPointerDown={(e) => e.stopPropagation()} onClick={toggleMin}>
-            Restore
-          </button>
+      {mined && (
+        <div className="flex h-full items-center justify-between px-3 text-[12px] text-[var(--ink-faint)]">
+          <span className="truncate font-semibold">Desmos — drag me anywhere</span>
+          <button className="btn btn-soft !min-h-6 !px-2 !text-[11px]" onPointerDown={(e)=>e.stopPropagation()} onClick={doMin}>Restore</button>
         </div>
       )}
-
-      {!maximized && !minimized &&
-        resizeHandles.map(({ dir, cn }) => (
-          <div key={dir} data-dir={dir} className={`absolute z-10 ${cn}`} onPointerDown={onResizeStart} />
-        ))}
+      {!maxed && !mined && handles.map(({dir,cn})=> <div key={dir} data-dir={dir} className={`absolute z-10 ${cn}`} onPointerDown={onResize}/>) }
     </div>
   );
+
+  return ReactDOM.createPortal(node, document.body);
 }

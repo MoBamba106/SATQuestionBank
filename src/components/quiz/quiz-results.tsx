@@ -190,7 +190,7 @@ export function QuizResults({
 
             return (
               <GlassCard key={q.id} hover={false} className="overflow-hidden p-0">
-                <div className="flex flex-wrap items-center gap-2 border-b border-[var(--line-soft)] bg-[var(--paper-soft)] px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2 border-b border-[var(--line-soft)] bg-[var(--paper-soft)] px-4 py-3 cursor-pointer hover:bg-[var(--paper-deep)] transition-colors" onClick={() => toggle(q.id)}>
                   <span className="font-mono text-[12px] font-bold text-[var(--ink-faint)]">Q{i + 1}</span>
                   <span className={cn("badge", domainColor(q.domain))}>{q.domain}</span>
                   <span className={cn("badge", skillColor(q.skill))}>{q.skill}</span>
@@ -209,7 +209,7 @@ export function QuizResults({
                   <button
                     type="button"
                     className="btn btn-soft !min-h-8 !px-3 !py-1.5 !text-[12px] ml-auto sm:ml-2"
-                    onClick={() => toggle(q.id)}
+                    onClick={(e) => { e.stopPropagation(); toggle(q.id); }}
                   >
                     {isExpanded ? (
                       <>
