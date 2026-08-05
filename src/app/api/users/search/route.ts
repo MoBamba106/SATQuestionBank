@@ -25,7 +25,7 @@ export async function GET(req: Request) {
       ORDER BY display_name ASC NULLS LAST, email ASC
       LIMIT 12
     `);
-    const users = (res as { rows?: unknown[] }).rows ?? [];
+    const users = (res as unknown as { rows?: unknown[] }).rows ?? [];
     return NextResponse.json({ users });
   } catch (e) {
     console.error("[api/users/search] failed:", e);

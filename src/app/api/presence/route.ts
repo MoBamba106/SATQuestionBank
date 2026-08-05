@@ -48,7 +48,7 @@ export async function GET(req: Request) {
         ORDER BY up.last_seen DESC
         LIMIT 500
       `);
-      const rows = (res as { rows?: unknown[] }).rows ?? [];
+      const rows = (res as unknown as { rows?: unknown[] }).rows ?? [];
       return NextResponse.json({ online: rows });
     } catch (err) {
       if (err instanceof AdminAuthError) {
@@ -63,7 +63,7 @@ export async function GET(req: Request) {
       SELECT user_id as "userId", last_seen as "lastSeen"
       FROM user_presence WHERE user_id = ${user.id}
     `);
-    const rows = (res as { rows?: unknown[] }).rows ?? [];
+    const rows = (res as unknown as { rows?: unknown[] }).rows ?? [];
     return NextResponse.json({ presence: rows[0] ?? null });
   } catch (e) {
     if (e instanceof AdminAuthError) return NextResponse.json({ error: e.message }, { status: 403 });

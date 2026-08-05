@@ -8,7 +8,7 @@ import { uid } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 function rows<T>(res: unknown): T[] {
-  return ((res as { rows?: T[] }).rows ?? []) as T[];
+  return ((res as unknown as { rows?: T[] }).rows ?? []) as T[];
 }
 
 /**
@@ -77,13 +77,14 @@ export async function POST(req: Request) {
 
     // Verify question exists
     const qCheck = await db.execute(sql`SELECT id FROM questions WHERE id = ${questionId} LIMIT 1`);
-    if ((qCheck as { rows?: unknown[] }).rows?.length === 0) {
+    if (rows<Record<string, unknown>>(qCheck).length === 0) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
 
     if (!toUserId && toEmail) {
       const found = await db.execute(sql`SELECT id FROM users WHERE lower(email) = ${toEmail} LIMIT 1`);
-      const row = (found as { rows?: { id: string }[] }).rows?.[0];
+      const foundRows = rows<{ id: string }>(found);
+      const row = foundRows[0];
       if (!row) return NextResponse.json({ error: "No user with that email" }, { status: 404 });
       toUserId = row.id;
     }

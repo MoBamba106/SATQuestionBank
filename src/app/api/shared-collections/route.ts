@@ -8,7 +8,7 @@ import { uid } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 function rows<T>(res: unknown): T[] {
-  return ((res as { rows?: T[] }).rows ?? []) as T[];
+  return ((res as unknown as { rows?: T[] }).rows ?? []) as T[];
 }
 
 export async function GET(req: Request) {
@@ -70,13 +70,14 @@ export async function POST(req: Request) {
 
     // Verify collection belongs to sender
     const check = await db.execute(sql`SELECT id FROM collections WHERE id = ${collectionId} AND user_id = ${user.id} LIMIT 1`);
-    if ((check as { rows?: unknown[] }).rows?.length === 0) {
+    if (rows<Record<string, unknown>>(check).length === 0) {
       return NextResponse.json({ error: "Collection not found or not yours" }, { status: 404 });
     }
 
     if (!toUserId && toEmail) {
       const found = await db.execute(sql`SELECT id FROM users WHERE lower(email) = ${toEmail} LIMIT 1`);
-      const row = (found as { rows?: { id: string }[] }).rows?.[0];
+      const foundRows = rows<{ id: string }>(found);
+      const row = foundRows[0];
       if (!row) return NextResponse.json({ error: "No user with that email" }, { status: 404 });
       toUserId = row.id;
     }
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
       WHERE collection_id = ${collectionId} AND from_user_id = ${user.id} AND to_user_id = ${toUserId}
       LIMIT 1
     `);
-    if ((existing as { rows?: unknown[] }).rows?.length) {
+    if (rows<Record<string, unknown>>(existing).length) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
 
