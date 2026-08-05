@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, MessageSquarePlus, NotebookPen, Timer, Loader2, LogOut, ListChecks, PencilRuler,
+  Calculator, ChevronLeft, ChevronRight, CheckCircle, Flag, MessageSquarePlus, NotebookPen, Timer, Loader2, LogOut, ListChecks, PencilRuler, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -13,6 +13,7 @@ import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
 import { QuizResults, type GradedMap } from "@/components/quiz/quiz-results";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
+import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { useSettings } from "@/components/settings-provider";
 import { apiPost, apiPatch, mutateKey } from "@/lib/api-client";
 import { answersMatch, cn, difficultyColor, domainColor, formatTime, resolveCorrectAnswer, skillColor } from "@/lib/utils";
@@ -48,6 +49,7 @@ export function PracticeRunner({
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [desmosOpen, setDesmosOpen] = React.useState(false);
   const [canvasOpen, setCanvasOpen] = React.useState(false);
+  const [shareOpen, setShareOpen] = React.useState(false);
   const [noteDrafts, setNoteDrafts] = React.useState<Record<string, string>>({});
   const noteSaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -287,6 +289,14 @@ export function PracticeRunner({
               <FavoriteButton questionId={current.id} favorite={current.favorite} />
               <AddToCollectionButton questionId={current.id} />
               <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                title="Share this question"
+                className="rounded-[5px] p-2 text-[var(--ink-faint)] hover:bg-[var(--paper-soft)] hover:text-[var(--accent)]"
+              >
+                <Share2 className="h-[18px] w-[18px]" />
+              </button>
+              <button
                 onClick={() => setFlags((f) => ({ ...f, [current.id]: !f[current.id] }))}
                 title={flags[current.id] ? "Unflag" : "Flag for review"}
                 aria-label="Flag question"
@@ -410,6 +420,7 @@ export function PracticeRunner({
         </div>
       </GlassCard>
     </div>
+    <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={current?.id ?? ""} />
     <FloatingDesmos open={desmosOpen && current.domain === "Math"} onClose={() => setDesmosOpen(false)} />
     <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
     </>
