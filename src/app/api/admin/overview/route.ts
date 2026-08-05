@@ -24,13 +24,16 @@ export async function GET(req: Request) {
                COUNT(a.id)::int AS attempts,
                COALESCE(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END), 0)::int AS correct,
                COUNT(DISTINCT qs.id) FILTER (WHERE qs.finished_at IS NOT NULL)::int AS sessions,
-               MAX(a.created_at) AS "lastActive"
+               MAX(a.created_at) AS "lastActive",
+               up.last_seen AS "lastSeen",
+               CASE WHEN up.last_seen >= now() - interval '2 minutes' THEN true ELSE false END AS "isOnline"
         FROM users u
         LEFT JOIN quiz_sessions qs ON qs.user_id = u.id
         LEFT JOIN attempts a ON a.session_id = qs.id
+        LEFT JOIN user_presence up ON up.user_id = u.id
         WHERE u.id <> ${GUEST_USER_ID}
-        GROUP BY u.id
-        ORDER BY MAX(a.created_at) DESC NULLS LAST, u.created_at DESC
+        GROUP BY u.id, up.last_seen
+        ORDER BY up.last_seen DESC NULLS LAST, MAX(a.created_at) DESC NULLS LAST, u.created_at DESC
         LIMIT 500
       `),
     );

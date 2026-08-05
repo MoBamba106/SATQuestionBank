@@ -25,6 +25,7 @@ import {
   LogIn,
   LogOut,
   UserRound,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -38,9 +39,10 @@ import { IntroTutorial } from "@/components/intro-tutorial";
 import { NavDock } from "@/components/nav-dock";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { getImpersonatedUser, setImpersonatedUser, mutateKey } from "@/lib/api-client";
+import { PresenceTracker } from "@/components/presence-tracker";
 import { toast } from "sonner";
 
-const NAV_GROUPS = [
+const BASE_NAV_GROUPS = [
   {
     label: "Study",
     items: [
@@ -66,10 +68,11 @@ const NAV_GROUPS = [
       { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
     ],
   },
-  {
-    label: "Community",
-    items: [{ href: "/feedback", label: "Feedback", icon: MessageSquarePlus }],
-  },
+];
+
+const COMMUNITY_BASE = [
+  { href: "/shared", label: "Shared Questions", icon: Share2 },
+  { href: "/feedback", label: "Feedback", icon: MessageSquarePlus },
 ];
 
 function NavLinks({
@@ -85,10 +88,19 @@ function NavLinks({
 }) {
   const pathname = usePathname();
   const groups = React.useMemo(() => {
-    if (!isAdmin) return NAV_GROUPS;
+    const communityItems = isAdmin
+      ? [
+          { href: "/shared", label: "Shared Questions", icon: Share2 },
+          { href: "/admin", label: "Admin console", icon: ShieldCheck },
+          { href: "/feedback", label: "Feedback", icon: MessageSquarePlus },
+        ]
+      : COMMUNITY_BASE;
     return [
-      ...NAV_GROUPS,
-      { label: "Admin", items: [{ href: "/admin", label: "Admin console", icon: ShieldCheck }] },
+      ...BASE_NAV_GROUPS,
+      {
+        label: "Community",
+        items: communityItems,
+      },
     ];
   }, [isAdmin]);
 
@@ -432,6 +444,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         onOpenSettings={() => setSettingsOpen(true)}
       />
       <FloatingStudyTimer />
+      <PresenceTracker />
       <IntroTutorial forceOpen={tutorialForce} onClose={() => setTutorialForce(false)} />
 
       <PaperDialog

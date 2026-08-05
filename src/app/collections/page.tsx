@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Folders, Plus, Trash2, Star, Play, ChevronDown, Loader2, X, FolderOpen, Pencil,
+  Folders, Plus, Trash2, Star, Play, ChevronDown, Loader2, X, FolderOpen, Pencil, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -11,6 +11,7 @@ import { PaperDialog } from "@/components/ui/paper-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CollectionIcon, CollectionIconPicker, type CollectionIconId } from "@/components/collection-icons";
 import { RequireAccount } from "@/components/require-account";
+import { ShareCollectionDialog } from "@/components/share-collection-dialog";
 import { useApi, apiPost, apiPatch, apiDelete, mutateKey } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
@@ -116,6 +117,10 @@ function CollectionsInner() {
   const router = useRouter();
   const { data, loading, reload } = useApi<{ collections: StudyCollection[] }>("/api/collections", "collections");
   const { data: favData } = useApi<{ ids: string[]; count: number }>("/api/favorites", "favorites");
+  const { data: sharedData, loading: sharedLoading } = useApi<{ received: { id: string; collectionId: string; createdAt: string; fromId: string; fromEmail: string | null; fromDisplayName: string | null; name: string; description: string | null; icon: string; questionCount: number; questionIds?: string[] }[] }>(
+    "/api/shared-collections",
+    "shared-collections",
+  );
   const [createOpen, setCreateOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [desc, setDesc] = React.useState("");
@@ -126,12 +131,12 @@ function CollectionsInner() {
   const [itemCache, setItemCache] = React.useState<Record<string, SATQuestion[]>>({});
   const [itemErrors, setItemErrors] = React.useState<Record<string, string>>({});
   const [itemsLoading, setItemsLoading] = React.useState(false);
-  // Edit collection state
   const [editTarget, setEditTarget] = React.useState<StudyCollection | null>(null);
   const [editName, setEditName] = React.useState("");
   const [editDesc, setEditDesc] = React.useState("");
   const [editIcon, setEditIcon] = React.useState<CollectionIconId>("folder");
   const [savingEdit, setSavingEdit] = React.useState(false);
+  const [shareTarget, setShareTarget] = React.useState<StudyCollection | null>(null);
 
   const openEdit = (c: StudyCollection) => {
     setEditTarget(c);
@@ -243,8 +248,6 @@ function CollectionsInner() {
     });
   };
 
-
-
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -261,7 +264,6 @@ function CollectionsInner() {
         </button>
       </div>
 
-      {/* Favorites (live, database-backed) */}
       <GlassCard hover={false} className="overflow-visible p-0">
         <div className="flex items-center gap-2 p-3 sm:p-4">
           <button
@@ -299,7 +301,6 @@ function CollectionsInner() {
         )}
       </GlassCard>
 
-      {/* User collections */}
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-16 text-[var(--ink-faint)]">
           <Loader2 className="h-5 w-5 animate-spin" /> Loading collections…
@@ -345,6 +346,14 @@ function CollectionsInner() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setShareTarget(c)}
+                  title="Share collection"
+                  className="rounded-[5px] p-2 text-[#8c8f92] transition-colors hover:bg-[var(--paper-soft)] hover:text-[var(--accent)]"
+                >
+                  <Share2 className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => openEdit(c)}
                   title="Edit collection"
                   className="rounded-[5px] p-2 text-[#8c8f92] transition-colors hover:bg-[var(--paper-soft)] hover:text-[var(--accent)]"
@@ -370,7 +379,48 @@ function CollectionsInner() {
         </div>
       )}
 
-      <PaperDialog
+      
+      {/* Shared Collections (received) */}
+      <div className="pt-6">
+        <div className="mb-3 flex items-center gap-2">
+          <Share2 className="h-4 w-4 text-[var(--ink-faint)]" />
+          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Shared Collections</h2>
+          <span className="text-[11px] text-[var(--ink-faint)]">({sharedData?.received?.length ?? 0} received)</span>
+        </div>
+        {sharedLoading ? (
+          <div className="flex items-center gap-2 py-6 text-[13px] text-[var(--ink-faint)]"><Loader2 className="h-4 w-4 animate-spin" /> Loading shared collections…</div>
+        ) : !sharedData || sharedData.received.length === 0 ? (
+          <GlassCard hover={false} className="p-6 text-center">
+            <p className="text-[13.5px] text-[var(--ink-faint)]">No collections have been shared with you yet. When someone shares a collection, it appears here with their name.</p>
+          </GlassCard>
+        ) : (
+          <div className="space-y-3">
+            {sharedData.received.map((sc) => (
+              <GlassCard key={sc.id} hover={false} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 grow">
+                    <div className="truncate text-[16px] font-bold text-[var(--ink)]">{sc.name}</div>
+                    <div className="text-[12.5px] text-[var(--ink-faint)]">
+                      {sc.questionCount} question{sc.questionCount === 1 ? "" : "s"} · Shared by <span className="font-semibold text-[var(--ink)]">{sc.fromDisplayName || sc.fromEmail || sc.fromId.slice(0, 8)}</span> · {new Date(sc.createdAt).toLocaleString()}
+                    </div>
+                    {sc.description && <div className="mt-1 text-[13px] text-[var(--ink-soft)]">{sc.description}</div>}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary !min-h-8 !px-3 !text-[12px]"
+                    onClick={() => practice(`Shared: ${sc.name}`, (sc.questionIds ?? []) as string[], "collection")}
+                    disabled={!sc.questionIds || sc.questionIds.length === 0}
+                  >
+                    <Play className="h-3.5 w-3.5" /> Practice
+                  </button>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+        )}
+      </div>
+
+<PaperDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="New collection"
@@ -455,6 +505,13 @@ function CollectionsInner() {
           <button className="btn btn-soft" onClick={() => setEditTarget(null)}>Cancel</button>
         </div>
       </PaperDialog>
+
+      <ShareCollectionDialog
+        open={!!shareTarget}
+        onOpenChange={(open) => !open && setShareTarget(null)}
+        collectionId={shareTarget?.id ?? ""}
+        collectionName={shareTarget?.name ?? ""}
+      />
     </div>
   );
 }

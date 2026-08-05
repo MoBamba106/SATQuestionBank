@@ -56,24 +56,118 @@ export function stripHtml(html?: string | null): string {
   return s;
 }
 
+/** Extract alt="..." fragments from raw HTML for image-based answer keys. */
+function extractAltTexts(html: string): string[] {
+  const out: string[] = [];
+  const re = /alt\s*=\s*["']([^"']*)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) out.push(decodeEntities(m[1]));
+  return out;
+}
+
+const WORD_NUM: Record<string, number> = {
+  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
+  ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
+  seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+};
+const DEN_WORD: Record<string, number> = {
+  half: 2, halves: 2,
+  third: 3, thirds: 3,
+  quarter: 4, quarters: 4, fourth: 4, fourths: 4,
+  fifth: 5, fifths: 5,
+  sixth: 6, sixths: 6,
+  seventh: 7, sevenths: 7,
+  eighth: 8, eighths: 8,
+  ninth: 9, ninths: 9,
+  tenth: 10, tenths: 10,
+};
+
+function wordToNum(w: string): number | null {
+  const low = w.toLowerCase();
+  if (/^-?\d+$/.test(low)) return Number(low);
+  if (WORD_NUM[low] != null) return WORD_NUM[low];
+  return null;
+}
+
+function parseSpokenFractions(text: string): string[] {
+  const results: string[] = [];
+  const lower = text.toLowerCase();
+
+  // Pattern: "<num> over <num>"  e.g. "7 over 6" or "10 over 3"
+  const overRe = /(\b(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b)\s+over\s+(\b(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = overRe.exec(lower)) !== null) {
+    const n = wordToNum(m[1]);
+    const d = wordToNum(m[2]);
+    if (n != null && d != null && d !== 0) results.push(`${n}/${d}`);
+  }
+
+  // Pattern: "<word> <denWord>" e.g. "three halves", "one fifth"
+  const denNames = Object.keys(DEN_WORD).join("|");
+  const wordFracRe = new RegExp(`\\b(${Object.keys(WORD_NUM).join("|")}|\\d+)\\s+(${denNames})\\b`, "gi");
+  while ((m = wordFracRe.exec(lower)) !== null) {
+    const n = wordToNum(m[1]);
+    const d = DEN_WORD[m[2].toLowerCase()];
+    if (n != null && d) results.push(`${n}/${d}`);
+  }
+
+  // Also plain numeric fractions  like 3/2 inside alt/text
+  const slashRe = /-?\d+\s*\/\s*\d+/g;
+  let s: RegExpExecArray | null;
+  while ((s = slashRe.exec(text)) !== null) {
+    results.push(s[0].replace(/\s+/g, ""));
+  }
+
+  // plain decimal / integer numbers that look like answers? Only keep if near "correct answer" context – handled elsewhere.
+  return [...new Set(results)];
+}
+
 /**
  * Pull a free-response key out of a College Board explanation when the
  * stored correct_answer field is blank (legacy import bug).
  * Examples: "The correct answer is 3,540." → "3540"
+ * Now also understands image alt texts like "three halves" → "3/2".
  */
 export function extractAnswerFromExplanation(explanation?: string | null): string {
   if (!explanation) return "";
-  const text = stripHtml(explanation);
+  const raw = String(explanation);
+  const altTexts = extractAltTexts(raw);
+  const altJoined = altTexts.join(" ");
+  const text = stripHtml(raw) + " " + altJoined;
+
+  // First try spoken fractions from alt + text
+  const spoken = parseSpokenFractions(altJoined + " " + text);
+
   const either = /correct answer is either\s+(.+?)\./i.exec(text);
   if (either) {
     const parts = either[1].match(/-?\d+(?:\.\d+)?(?:\/\d+)?/g);
     if (parts?.length) return parts.join("|");
+    // If numeric regex failed, try spoken fractions collection near this sentence
+    const nearbySpoken = parseSpokenFractions(either[1]);
+    if (nearbySpoken.length) return nearbySpoken.join("|");
+    if (spoken.length >= 2) {
+      // assume the either case is represented by these spoken fractions
+      // e.g. alt contains 10/3 15/4 25/6 for eeb4143c
+      // Heuristic: if we found >=2 spoken fractions globally, return them
+      if (spoken.length >= 2 && /either/i.test(either[0])) return spoken.slice(0, 5).join("|");
+    }
   }
   const single =
     /correct answer is\s+(-?\d{1,3}(?:,\d{3})*(?:\.\d+)?|-?\d+(?:\.\d+)?(?:\/\d+)?)/i.exec(
       text,
     );
   if (single) return single[1].replace(/,/g, "");
+
+  // If we got spoken fractions and they look like the answer (e.g., single image answer)
+  if (spoken.length === 1) return spoken[0];
+  // Multiple spoken but we are not in either case: if text says "correct answer is <img>", alt is the answer.
+  // Prefer first spoken if text contains "correct answer is"
+  if (/correct answer is/i.test(text) && spoken.length > 0) {
+    // Return all found if small set, else first
+    if (spoken.length <= 3) return spoken.join("|");
+    return spoken[0];
+  }
+
   const choice = /Choice\s+([A-D])\s+is correct/i.exec(text);
   if (choice) return choice[1].toUpperCase();
   return "";

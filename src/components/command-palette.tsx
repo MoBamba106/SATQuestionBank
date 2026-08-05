@@ -18,8 +18,11 @@ import {
   Trophy,
   MessageSquarePlus,
   X,
+  ShieldCheck,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth-provider";
 
 export type CommandItem = {
   id: string;
@@ -31,7 +34,7 @@ export type CommandItem = {
   action?: () => void;
 };
 
-const NAV_COMMANDS: CommandItem[] = [
+const BASE_NAV_COMMANDS: CommandItem[] = [
   { id: "home", label: "Study desk", href: "/", icon: LayoutDashboard, keywords: "home dashboard" },
   { id: "study", label: "Study library", href: "/study", icon: BookMarked, keywords: "vocab flashcards" },
   { id: "quiz", label: "Practice quiz", href: "/quiz", icon: PenSquare, keywords: "practice exam" },
@@ -42,8 +45,24 @@ const NAV_COMMANDS: CommandItem[] = [
   { id: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3, keywords: "stats progress" },
   { id: "sessions", label: "Study sessions", href: "/study-sessions", icon: CalendarClock, keywords: "history" },
   { id: "leaderboard", label: "Leaderboard", href: "/leaderboard", icon: Trophy, keywords: "rank top compare accuracy" },
-  { id: "feedback", label: "Feedback", href: "/feedback", icon: MessageSquarePlus, keywords: "complaint improvement suggest bug report" },
+  { id: "shared", label: "Shared questions", href: "/shared", icon: Share2, keywords: "shared sent received collaboration" },
 ];
+
+const ADMIN_COMMAND: CommandItem = {
+  id: "admin",
+  label: "Admin console",
+  href: "/admin",
+  icon: ShieldCheck,
+  keywords: "admin users oversight",
+};
+
+const FEEDBACK_COMMAND: CommandItem = {
+  id: "feedback",
+  label: "Feedback",
+  href: "/feedback",
+  icon: MessageSquarePlus,
+  keywords: "complaint improvement suggest bug report",
+};
 
 export function CommandPalette({
   open,
@@ -61,11 +80,17 @@ export function CommandPalette({
   const [active, setActive] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
+  const auth = useAuth();
   const items = React.useMemo(() => {
+    const nav = [
+      ...BASE_NAV_COMMANDS,
+      ...(auth.isAdmin ? [ADMIN_COMMAND] : []),
+      FEEDBACK_COMMAND,
+    ];
     const all: CommandItem[] = [
-      ...NAV_COMMANDS,
+      ...nav,
       ...(onOpenSettings
-        ? [{ id: "settings", label: "Settings", icon: Cog, keywords: "preferences theme", action: onOpenSettings }]
+        ? [{ id: "settings", label: "Settings", icon: Cog, keywords: "preferences theme", action: onOpenSettings } as CommandItem]
         : []),
       ...extra,
     ];
@@ -74,7 +99,7 @@ export function CommandPalette({
     return all.filter((item) =>
       `${item.label} ${item.hint ?? ""} ${item.keywords ?? ""} ${item.href ?? ""}`.toLowerCase().includes(q),
     );
-  }, [extra, onOpenSettings, query]);
+  }, [auth.isAdmin, extra, onOpenSettings, query]);
 
   React.useEffect(() => {
     if (!open) return;

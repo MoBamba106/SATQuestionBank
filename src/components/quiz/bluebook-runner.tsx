@@ -16,12 +16,14 @@ import {
   LogOut,
   MessageSquarePlus,
   PauseCircle,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { FloatingDesmos } from "@/components/quiz/floating-desmos";
 import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
+import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { SkillBands } from "@/components/quiz/skill-bands";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useSettings } from "@/components/settings-provider";
@@ -113,6 +115,7 @@ export function BluebookRunner({
   const [confirmEnd, setConfirmEnd] = React.useState(false);
   const [desmosOpen, setDesmosOpen] = React.useState(false);
   const [canvasOpen, setCanvasOpen] = React.useState(false);
+  const [shareOpen, setShareOpen] = React.useState(false);
   const [finishing, setFinishing] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [graded, setGraded] = React.useState<Record<string, { correct: boolean; answer: string }>>({});
@@ -437,6 +440,9 @@ export function BluebookRunner({
         >
           <MessageSquarePlus className="h-3.5 w-3.5" /> Feedback
         </button>
+        <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setShareOpen(true)} title="Share this question">
+          <Share2 className="h-3.5 w-3.5" /> Share
+        </button>
         {current.domain === "Math" && (
           <>
             <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
@@ -592,6 +598,7 @@ export function BluebookRunner({
 
       {navigator}
 
+      <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={current?.id ?? ""} />
       <FloatingDesmos open={desmosOpen && current.domain === "Math"} onClose={() => setDesmosOpen(false)} />
       <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
 
