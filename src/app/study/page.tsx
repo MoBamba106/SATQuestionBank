@@ -5,7 +5,7 @@ import { BookMarked, Check, Gamepad2, LayoutGrid, Search, Shuffle } from "lucide
 import { STUDY_ITEMS, type StudyTopic } from "@/lib/study-content";
 import { cn, difficultyColor } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
-import { PaperSelect } from "@/components/ui/paper-select";
+import { PaperMultiSelect } from "@/components/ui/paper-multi-select";
 import { MagicGlow } from "@/components/magic-glow";
 import { FlashcardDeck } from "@/components/study/flashcard-deck";
 import { StudyGames } from "@/components/study/games";
@@ -23,7 +23,7 @@ type ViewMode = "browse" | "flashcards" | "games";
 export default function StudyLibraryPage() {
   const [topic, setTopic] = React.useState<StudyTopic>("Vocabulary");
   const [search, setSearch] = React.useState("");
-  const [difficulty, setDifficulty] = React.useState("All");
+  const [difficulty, setDifficulty] = React.useState<string[]>([]);
   const [mastered, setMastered] = React.useState<string[]>([]);
   const [view, setView] = React.useState<ViewMode>("browse");
 
@@ -38,7 +38,7 @@ export default function StudyLibraryPage() {
     const needle = search.trim().toLowerCase();
     return STUDY_ITEMS.filter((item) =>
       item.topic === topic
-      && (difficulty === "All" || item.difficulty === difficulty)
+      && (difficulty.length === 0 || (item.difficulty != null && difficulty.includes(item.difficulty)))
       && (!needle || `${item.term} ${item.definition} ${item.phonetic ?? ""}`.toLowerCase().includes(needle)),
     );
   }, [difficulty, search, topic]);
@@ -77,7 +77,7 @@ export default function StudyLibraryPage() {
           <button
             key={item.topic}
             type="button"
-            onClick={() => { setTopic(item.topic); setDifficulty("All"); }}
+            onClick={() => { setTopic(item.topic); setDifficulty([]); }}
             className={cn("soft-tone px-4 py-3 text-left text-[13.5px] font-bold transition-opacity", item.tone, topic === item.topic ? "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--paper)]" : "opacity-70 hover:opacity-100")}
           >
             {item.topic}
@@ -94,11 +94,12 @@ export default function StudyLibraryPage() {
               <input className="input !pl-9" placeholder={`Search ${topic.toLowerCase()}…`} value={search} onChange={(event) => setSearch(event.target.value)} />
             </div>
             {topic === "Vocabulary" && (
-              <PaperSelect
-                value={difficulty}
-                onValueChange={(value) => setDifficulty(value)}
+              <PaperMultiSelect
+                values={difficulty}
+                onValuesChange={setDifficulty}
+                placeholder="All levels"
+                allLabel="All levels"
                 options={[
-                  { value: "All", label: "All levels" },
                   { value: "Easy", label: "Easy" },
                   { value: "Medium", label: "Medium" },
                   { value: "Hard", label: "Hard" },

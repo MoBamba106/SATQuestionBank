@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   Check,
   ChevronLeft,
   ChevronRight,
+  MessageSquarePlus,
   RotateCcw,
   Cog,
   Shuffle,
@@ -58,6 +60,7 @@ export function FlashcardDeck({
   mastered: string[];
   onToggleMastered: (id: string) => void;
 }) {
+  const router = useRouter();
   const [settings, setSettings] = React.useState<DeckSettings>(DEFAULT_DECK_SETTINGS);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [deck, setDeck] = React.useState<StudyItem[]>([]);
@@ -250,6 +253,17 @@ export function FlashcardDeck({
             </>
           )}
           <span>{index + 1}/{deck.length}</span>
+          {current && (
+            <button
+              type="button"
+              className="rounded-[5px] p-1.5 transition-colors hover:bg-[var(--paper-soft)]"
+              onClick={() => router.push(`/feedback?mode=flashcard&label=${encodeURIComponent(current.topic)}&questionId=${encodeURIComponent(current.id)}`)}
+              title="Report feedback about this card"
+              aria-label="Report feedback about this card"
+            >
+              <MessageSquarePlus className="h-4 w-4" />
+            </button>
+          )}
           <button
             type="button"
             className={cn("rounded-[5px] p-1.5 transition-colors hover:bg-[var(--paper-soft)]", settingsOpen && "bg-[var(--accent-soft)] text-[var(--accent)]")}

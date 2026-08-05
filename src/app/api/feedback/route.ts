@@ -60,11 +60,12 @@ export async function POST(req: Request) {
     if (!message) return NextResponse.json({ error: "Please describe your feedback" }, { status: 400 });
 
     const email = user.isGuest ? (body?.email ? String(body.email).trim().slice(0, 200) : null) : user.email;
+    const context = body?.context ? String(body.context).trim().slice(0, 1000) : null;
     const githubIssueUrl = await createGithubIssue({ category, title, message, email });
 
     const res = await db.execute(sql`
-      INSERT INTO feedback (user_id, email, category, title, message, github_issue_url)
-      VALUES (${user.isGuest ? null : user.id}, ${email}, ${category}, ${title}, ${message}, ${githubIssueUrl})
+      INSERT INTO feedback (user_id, email, category, title, message, github_issue_url, context)
+      VALUES (${user.isGuest ? null : user.id}, ${email}, ${category}, ${title}, ${message}, ${githubIssueUrl}, ${context})
       RETURNING id
     `);
     const id = ((res as unknown as { rows?: { id: number }[] }).rows ?? [])[0]?.id;
@@ -82,7 +83,7 @@ export async function GET(req: Request) {
     await requireAdmin(req);
     const res = await db.execute(sql`
       SELECT f.id, f.email, f.category, f.title, f.message, f.status,
-             f.github_issue_url AS "githubIssueUrl", f.created_at AS "createdAt",
+             f.github_issue_url AS "githubIssueUrl", f.context, f.created_at AS "createdAt",
              u.display_name AS "displayName"
       FROM feedback f
       LEFT JOIN users u ON u.id = f.user_id
@@ -113,5 +114,24 @@ export async function PATCH(req: Request) {
   } catch (e) {
     if (e instanceof AdminAuthError) return NextResponse.json({ error: e.message }, { status: 403 });
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to update feedback" }, { status: 500 });
+  }
+}
+
+/** Admin: delete a feedback entry (e.g. after it has been addressed). */
+export async function DELETE(req: Request) {
+  try {
+    await ensureSeeded();
+    await requireAdmin(req);
+    const body = await req.json().catch(() => null);
+    const id = Number(body?.id);
+    if (!Number.isFinite(id)) {
+      return NextResponse.json({ error: "Invalid feedback id" }, { status: 400 });
+    }
+    await db.execute(sql`DELETE FROM feedback WHERE id = ${id}`);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (e instanceof AdminAuthError) return NextResponse.json({ error: e.message }, { status: 403 });
+    console.error("[api/feedback] DELETE failed:", e);
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to delete feedback" }, { status: 500 });
   }
 }

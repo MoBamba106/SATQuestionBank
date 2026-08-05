@@ -165,7 +165,6 @@ export default function Dock({
             label={item.label}
           >
             <DockIcon>{item.icon}</DockIcon>
-            <DockName>{item.label}</DockName>
           </DockItem>
         ))}
       </motion.div>

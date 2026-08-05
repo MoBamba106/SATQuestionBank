@@ -14,6 +14,7 @@ import {
   GitBranch,
   Loader2,
   LogOut,
+  MessageSquarePlus,
   PauseCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -423,6 +424,19 @@ export function BluebookRunner({
             {mod.title} · Question {qIdx + 1} of {mod.questions.length}
           </div>
         </div>
+        <button
+          type="button"
+          className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]"
+          onClick={() =>
+            router.push(
+              `/feedback?mode=test&label=${encodeURIComponent(test.title)}&questionId=${encodeURIComponent(current.id)}&domain=${encodeURIComponent(current.domain)}&skill=${encodeURIComponent(current.skill)}`,
+            )
+          }
+          title="Report feedback about this question"
+          aria-label="Report feedback about this question"
+        >
+          <MessageSquarePlus className="h-3.5 w-3.5" /> Feedback
+        </button>
         {current.domain === "Math" && (
           <>
             <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>

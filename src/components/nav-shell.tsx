@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -180,27 +181,31 @@ export function NavShell({ children }: { children: React.ReactNode }) {
     <AccountGateProvider>
     <div className="min-h-screen" data-shell>
       {showSidebar && (
-      <aside
+      <motion.aside
         data-tour="sidebar"
-        className={cn(
-          "shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-[var(--line)] bg-[var(--paper-soft)] overflow-hidden transition-[width,box-shadow] duration-300 ease-out will-change-[width] md:flex",
-          desktopExpanded ? "w-[236px] shadow-[0_10px_28px_rgba(20,24,34,0.16)]" : "w-[74px]",
-        )}
+        initial={false}
+        animate={{ width: desktopExpanded ? 236 : 74 }}
+        transition={{ type: "spring", stiffness: 320, damping: 32 }}
         onMouseEnter={() => setDesktopExpanded(true)}
         onMouseLeave={() => setDesktopExpanded(false)}
+        className="shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex"
+        style={desktopExpanded ? { boxShadow: "0 10px 28px rgba(20,24,34,0.16)" } : { boxShadow: "0 0 0 rgba(0,0,0,0)" }}
       >
         <Link href="/" className={cn("flex items-center border-b border-[var(--line)] py-5", desktopExpanded ? "gap-3 px-5" : "justify-center px-2")}>
-          <div className="brand-mark flex h-9 w-9 items-center justify-center rounded-[6px]">
+          <div className="brand-mark flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px]">
             <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
           </div>
-          {desktopExpanded && (
-            <div>
-              <div className="font-display text-[19px] font-bold leading-none text-[var(--ink)]">SAT Nexus</div>
-              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--ink-faint)]">
-                Web practice
-              </div>
+          <motion.div
+            initial={false}
+            animate={{ opacity: desktopExpanded ? 1 : 0, x: desktopExpanded ? 0 : -8, width: desktopExpanded ? "auto" : 0 }}
+            transition={{ duration: 0.22 }}
+            className="overflow-hidden whitespace-nowrap"
+          >
+            <div className="font-display text-[19px] font-bold leading-none text-[var(--ink)]">SAT Nexus</div>
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--ink-faint)]">
+              Web practice
             </div>
-          )}
+          </motion.div>
         </Link>
 
         <div className={cn("min-h-0 flex-1 overflow-hidden py-5", desktopExpanded ? "px-3" : "px-2")}>
@@ -288,7 +293,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           </button>
 
         </div>
-      </aside>
+      </motion.aside>
       )}
 
       {/* Keyboard / dock nav modes: only the brand icon remains up top. */}
@@ -355,43 +360,40 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+      <AnimatePresence>
       {mobileOpen && (
-        <div className="fixed inset-0 top-14 z-30 bg-[rgba(37,40,44,0.28)] md:hidden" onClick={() => setMobileOpen(false)}>
-          <div
-            className="absolute inset-x-0 top-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-[var(--line)] bg-[var(--paper-soft)] p-4 shadow-[0_10px_24px_rgba(37,40,44,0.16)]"
+        <motion.div
+          className="fixed inset-0 top-14 z-30 bg-[rgba(37,40,44,0.32)] md:hidden"
+          onClick={() => setMobileOpen(false)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        >
+          <motion.div
+            className="absolute inset-x-0 top-0 max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 pb-10 pt-3 shadow-[0_10px_24px_rgba(37,40,44,0.16)]"
             onClick={(event) => event.stopPropagation()}
+            initial={{ y: -16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -12, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 340, damping: 30 }}
           >
-            <NavLinks onNavigate={() => setMobileOpen(false)} isAdmin={auth.isAdmin} />
-          </div>
-        </div>
-      )}
-
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--paper-soft)]/95 px-2 py-2 shadow-[0_-10px_22px_rgba(37,40,44,0.10)] backdrop-blur md:hidden" aria-label="Mobile quick navigation">
-        <div className="grid grid-cols-5 gap-1">
-          {[
-            { href: "/", label: "Home", icon: LayoutDashboard },
-            { href: "/quiz", label: "Quiz", icon: PenSquare },
-            { href: "/bank", label: "Bank", icon: Library },
-            { href: "/mistakes", label: "Review", icon: RotateCcw },
-            { href: "/analytics", label: "Stats", icon: BarChart3 },
-          ].map(({ href, label, icon: Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[10.5px] font-bold transition-colors",
-                  active ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--ink-faint)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
-                )}
+            <div className="mb-2 flex items-center justify-between border-b border-[var(--line-soft)] pb-3">
+              <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">Navigation</span>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close navigation"
+                className="rounded-[6px] border border-[var(--line)] bg-[var(--paper-raised)] p-2 text-[var(--ink-soft)]"
               >
-                <Icon className="h-4.5 w-4.5" />
-                {label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <NavLinks onNavigate={() => setMobileOpen(false)} isAdmin={auth.isAdmin} />
+          </motion.div>
+        </motion.div>
+      )}
+      </AnimatePresence>
 
       {impersonating && (
         <div className="sticky top-0 z-50 flex items-center justify-center gap-3 border-b border-[#d2abb7] bg-[#f0dfe5] px-4 py-2 text-[13px] font-semibold text-[#8e5264]">
@@ -414,7 +416,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className={cn("shell-main px-4 pb-24 pt-6 sm:px-6 md:px-8 md:py-8", showSidebar && "md:ml-[74px]", !showSidebar && "md:pt-16")}>
+      <main className={cn("shell-main px-4 pb-10 pt-6 sm:px-6 md:px-8 md:py-8", showSidebar && "md:ml-[74px]", !showSidebar && "md:pt-16")}>
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>
 
