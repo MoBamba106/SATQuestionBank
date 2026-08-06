@@ -1,0 +1,9 @@
+{
+  "id": "sat-nexus",
+  "name": "SAT Nexus",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Insert SAT Nexus questions into your Obsidian notes and study alongside them.",
+  "author": "SAT Nexus",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,1 @@
+{"compilerOptions":{"baseUrl":".","paths":{"*": ["node_modules/*"]},"strict":true,"module":"ESNext","target":"es6","moduleResolution":"node","noImplicitAny":true,"esModuleInterop":true,"skipLibCheck":true}}
