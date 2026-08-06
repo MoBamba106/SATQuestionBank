@@ -114,6 +114,7 @@ export function BluebookRunner({
   const [secondsLeft, setSecondsLeft] = React.useState(resume?.secondsLeft ?? Math.round(test.rwMinutes / 2) * 60);
   const [confirmEnd, setConfirmEnd] = React.useState(false);
   const [desmosOpen, setDesmosOpen] = React.useState(false);
+  const [desmosRestoreSignal, setDesmosRestoreSignal] = React.useState(0);
   const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [finishing, setFinishing] = React.useState(false);
@@ -445,7 +446,7 @@ export function BluebookRunner({
         </button>
         {current.domain === "Math" && (
           <>
-            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setDesmosOpen(true)}>
+            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => { setDesmosOpen(true); setDesmosRestoreSignal((value) => value + 1); }}>
               <Calculator className="h-3.5 w-3.5" /> Desmos
             </button>
             <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setCanvasOpen(true)}>
@@ -599,7 +600,7 @@ export function BluebookRunner({
       {navigator}
 
       <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={current?.id ?? ""} />
-      <FloatingDesmos open={desmosOpen && current.domain === "Math"} onClose={() => setDesmosOpen(false)} />
+      <FloatingDesmos open={desmosOpen && current.domain === "Math"} restoreSignal={desmosRestoreSignal} onClose={() => setDesmosOpen(false)} />
       <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
 
       <PaperDialog

@@ -212,10 +212,10 @@ export default function AdminPage() {
           ) : data ? (
             <>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <StatTile label="Accounts" value={data.totals.users.toLocaleString()} icon={Users} />
-                <StatTile label="Total attempts" value={data.totals.attempts.toLocaleString()} icon={Activity} />
+                <StatTile label="Accounts" value={data.totals.users.toLocaleString("en-US", { timeZone: "America/Detroit" })} icon={Users} />
+                <StatTile label="Total attempts" value={data.totals.attempts.toLocaleString("en-US", { timeZone: "America/Detroit" })} icon={Activity} />
                 <StatTile label="Combined accuracy" value={`${accuracy}%`} icon={CheckCircle2} />
-                <StatTile label="Finished sessions" value={data.totals.sessions.toLocaleString()} icon={BarChart3} />
+                <StatTile label="Finished sessions" value={data.totals.sessions.toLocaleString("en-US", { timeZone: "America/Detroit" })} icon={BarChart3} />
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
@@ -231,7 +231,7 @@ export default function AdminPage() {
                           <div key={row.domain}>
                             <div className="mb-1 flex justify-between text-[12.5px] font-semibold text-[var(--ink-soft)]">
                               <span>{row.domain}</span>
-                              <span>{row.correct.toLocaleString()}/{row.total.toLocaleString()} · {pct}%</span>
+                              <span>{row.correct.toLocaleString("en-US", { timeZone: "America/Detroit" })}/{row.total.toLocaleString("en-US", { timeZone: "America/Detroit" })} · {pct}%</span>
                             </div>
                             <div className="h-2.5 overflow-hidden rounded-full bg-[var(--paper-deep)]">
                               <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${pct}%` }} />
@@ -296,7 +296,7 @@ export default function AdminPage() {
                                   {user.isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />}
                                   <span
                                     className={`relative inline-flex h-2.5 w-2.5 rounded-full ${user.isOnline ? "bg-green-500" : "bg-[var(--line-soft)]"}`}
-                                    title={user.isOnline ? "Online now" : user.lastSeen ? `Last seen ${new Date(user.lastSeen).toLocaleString()}` : "Offline"}
+                                    title={user.isOnline ? "Online now" : user.lastSeen ? `Last seen ${new Date(user.lastSeen).toLocaleString("en-US", { timeZone: "America/Detroit" })}` : "Offline"}
                                   />
                                 </span>
                                 <div className="min-w-0">
@@ -308,16 +308,16 @@ export default function AdminPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-3 font-mono">{user.attempts.toLocaleString()}</td>
+                            <td className="px-4 py-3 font-mono">{user.attempts.toLocaleString("en-US", { timeZone: "America/Detroit" })}</td>
                             <td className="px-4 py-3 font-mono">{user.attempts > 0 ? `${acc}%` : "—"}</td>
                             <td className="px-4 py-3 font-mono">{user.sessions}</td>
                             <td className="px-4 py-3 text-[12px]">
                               {user.isOnline ? (
                                 <span className="inline-flex items-center gap-1 font-semibold text-green-600">● Online now</span>
                               ) : user.lastSeen ? (
-                                <span className="text-[var(--ink-faint)]">Seen {new Date(user.lastSeen).toLocaleString()}</span>
+                                <span className="text-[var(--ink-faint)]">Seen {new Date(user.lastSeen).toLocaleString("en-US", { timeZone: "America/Detroit" })}</span>
                               ) : user.lastActive ? (
-                                <span className="text-[var(--ink-faint)]">Active {new Date(user.lastActive).toLocaleDateString()}</span>
+                                <span className="text-[var(--ink-faint)]">Active {new Date(user.lastActive).toLocaleDateString("en-US", { timeZone: "America/Detroit" })}</span>
                               ) : (
                                 <span className="text-[var(--ink-faint)]">never</span>
                               )}
@@ -389,7 +389,7 @@ export default function AdminPage() {
                   </span>
                   <span className="text-[15px] font-bold text-[var(--ink)]">{item.title}</span>
                   <span className="ml-auto text-[11.5px] text-[var(--ink-faint)]">
-                    {new Date(item.createdAt).toLocaleString()}
+                    {new Date(item.createdAt).toLocaleString("en-US", { timeZone: "America/Detroit" })}
                   </span>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.message}</p>

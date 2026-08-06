@@ -184,7 +184,7 @@ export default function DashboardPage() {
                   <div className="min-w-0 grow">
                     <div className="truncate text-[13px] font-semibold text-[var(--ink)]">{session.label ?? session.mode}</div>
                     <div className="text-[11px] text-[var(--ink-faint)]">
-                      {session.finishedAt ? new Date(session.finishedAt).toLocaleDateString() : "In progress"} · {session.answeredCount ?? 0}/{session.totalQuestions} answered
+                      {session.finishedAt ? new Date(session.finishedAt).toLocaleDateString("en-US", { timeZone: "America/Detroit" }) : "In progress"} · {session.answeredCount ?? 0}/{session.totalQuestions} answered
                     </div>
                   </div>
                   <span className="font-mono text-[13px] font-semibold text-[var(--accent)]">

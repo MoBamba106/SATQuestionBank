@@ -96,7 +96,7 @@ export default function BankPage() {
           <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Browse and build sets</p>
           <h1 className="font-display text-3xl font-bold text-[var(--ink)]">Question bank</h1>
           <p className="mt-1 text-[14px] text-[var(--ink-faint)]">
-            {data ? `${data.total.toLocaleString()} official questions match these filters` : "Loading official questions…"}
+            {data ? `${data.total.toLocaleString("en-US", { timeZone: "America/Detroit" })} official questions match these filters` : "Loading official questions…"}
           </p>
         </div>
         <button
@@ -275,7 +275,7 @@ export default function BankPage() {
       {data && data.total > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
           <span className="text-[12px] text-[var(--ink-faint)]">
-            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.total)} of {data.total.toLocaleString()}
+            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.total)} of {data.total.toLocaleString("en-US", { timeZone: "America/Detroit" })}
           </span>
           {data.total > PAGE_SIZE && (
             <div className="flex items-center gap-2">

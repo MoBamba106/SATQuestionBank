@@ -333,7 +333,7 @@ function QuizInner() {
           />
           {available != null && (
             <p className={cn("mt-1 text-[12.5px] font-medium", available === 0 ? "text-[#a33046]" : "text-[var(--ink-faint)]")}>
-              {available.toLocaleString()} question{available === 1 ? "" : "s"} match your filters
+              {available.toLocaleString("en-US", { timeZone: "America/Detroit" })} question{available === 1 ? "" : "s"} match your filters
               {available > 0 && available < count ? `. The quiz will use all ${available}.` : ""}
             </p>
           )}

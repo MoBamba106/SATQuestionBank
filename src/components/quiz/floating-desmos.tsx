@@ -66,7 +66,7 @@ function centered(w = 680, h = 600) {
   };
 }
 
-export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function FloatingDesmos({ open, onClose, restoreSignal = 0 }: { open: boolean; onClose: () => void; restoreSignal?: number }) {
   const [mounted, setMounted] = React.useState(false);
   const [pos, setPos] = React.useState<{ x: number; y: number }>(() => {
     const c = centered();
@@ -101,11 +101,8 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
       calcRef.current = null;
       return;
     }
-    if (mined) {
-      calcRef.current?.destroy();
-      calcRef.current = null;
-      return;
-    }
+    // Keep the calculator mounted while minimized so expressions and viewport survive.
+    if (mined) return;
     let cancelled = false;
     setStatus("loading");
     const t = setTimeout(() => {
@@ -137,7 +134,11 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
       cancelled = true;
       clearTimeout(t);
     };
-  }, [open, mined, maxed]);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (restoreSignal > 0) setMined(false);
+  }, [restoreSignal]);
 
   React.useEffect(() => {
     if (!open || mined) return;
@@ -237,8 +238,8 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
       } else {
         saved.current = { pos: { ...pos }, size: { ...size } };
       }
-      // place at bottom-right visible without scroll
-      setPos({ x: Math.max(8, window.innerWidth - MINIMIZED_W - 12), y: Math.max(8, window.innerHeight - MINIMIZED_H - 12) });
+      // place at bottom-center, visible without scroll
+      setPos({ x: Math.max(8, Math.round((window.innerWidth - MINIMIZED_W) / 2)), y: Math.max(8, window.innerHeight - MINIMIZED_H - 12) });
       setMined(true);
     }
   };

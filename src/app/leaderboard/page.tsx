@@ -101,7 +101,7 @@ function LeaderboardInner() {
                             <span className="block truncate text-[11px] text-[var(--ink-faint)]">{entry.detail}</span>
                           </div>
                           <span className="shrink-0 font-mono text-[15px] font-bold text-[var(--ink)]">
-                            {entry.value.toLocaleString()}{unit}
+                            {entry.value.toLocaleString("en-US", { timeZone: "America/Detroit" })}{unit}
                           </span>
                         </li>
                       );

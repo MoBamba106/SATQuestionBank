@@ -157,7 +157,7 @@ export default function StudySessionsPage() {
                 <div className="min-w-0 grow">
                   <div className="truncate text-[13.5px] font-semibold text-[var(--ink)]">{s.label ?? s.mode}</div>
                   <div className="text-[11.5px] text-[var(--ink-faint)]">
-                    {s.finishedAt ? new Date(s.finishedAt).toLocaleString() : ""}
+                    {s.finishedAt ? new Date(s.finishedAt).toLocaleString("en-US", { timeZone: "America/Detroit" }) : ""}
                   </div>
                 </div>
                 <span className="text-[13px] font-bold text-[var(--ink-soft)]">
