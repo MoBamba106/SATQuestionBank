@@ -87,7 +87,15 @@ ${lines.join("\n")}
       return (await (0, import_obsidian.requestUrl)({ url: this.apiUrl(`/api/questions/${encodeURIComponent(options.id)}`) })).json;
     }
     const params = new URLSearchParams({ random: "1", limit: "1" });
-    const filterKeys = { section: "domain", domain: "domain", skill: "skill", subskill: "subskill", difficulty: "difficulty", search: "search" };
+    const filterKeys = {
+      section: "domain",
+      satdomain: "domain",
+      domain: "skill",
+      skill: "subskill",
+      subskill: "subskill",
+      difficulty: "difficulty",
+      search: "search"
+    };
     for (const [blockKey, apiKey] of Object.entries(filterKeys)) {
       if (options[blockKey]) params.set(apiKey, options[blockKey]);
     }
@@ -195,9 +203,21 @@ var InsertFilterModal = class extends import_obsidian.Modal {
   onOpen() {
     this.titleEl.setText("Insert filtered SAT question");
     const filters = {};
-    [["section", "Math or Reading & Writing"], ["skill", "e.g. Expression of Ideas"], ["subskill", "Optional"], ["difficulty", "Easy, Medium, or Hard"], ["search", "Keyword, e.g. dangling modifier"]].forEach(([key, placeholder]) => {
-      new import_obsidian.Setting(this.contentEl).setName(key.charAt(0).toUpperCase() + key.slice(1)).addText((text) => text.setPlaceholder(placeholder).onChange((value) => filters[key] = value));
+    new import_obsidian.Setting(this.contentEl).setName("Section").setDesc("The SAT section.").addDropdown((drop) => {
+      drop.addOption("", "Any section").addOption("Math", "Math").addOption("Reading & Writing", "Reading & Writing");
+      drop.onChange((value) => filters.section = value);
     });
+    new import_obsidian.Setting(this.contentEl).setName("Domain").setDesc("For example, Algebra or Advanced Math.").addDropdown((drop) => {
+      drop.addOption("", "Any domain");
+      ["Algebra", "Advanced Math", "Problem-Solving and Data Analysis", "Geometry and Trigonometry", "Information and Ideas", "Craft and Structure", "Expression of Ideas", "Standard English Conventions"].forEach((value) => drop.addOption(value, value));
+      drop.onChange((value) => filters.domain = value);
+    });
+    new import_obsidian.Setting(this.contentEl).setName("Skill").setDesc("A specific topic, such as nonlinear equations. You may also type a keyword below.").addText((text) => text.setPlaceholder("e.g. Nonlinear equations in one variable").onChange((value) => filters.skill = value));
+    new import_obsidian.Setting(this.contentEl).setName("Difficulty").addDropdown((drop) => {
+      drop.addOption("", "Any difficulty").addOption("Easy", "Easy").addOption("Medium", "Medium").addOption("Hard", "Hard");
+      drop.onChange((value) => filters.difficulty = value);
+    });
+    new import_obsidian.Setting(this.contentEl).setName("Search text").setDesc("Optional extra keyword search.").addText((text) => text.setPlaceholder("e.g. dangling modifier").onChange((value) => filters.search = value));
     new import_obsidian.Setting(this.contentEl).addButton((button) => button.setButtonText("Insert random-question block").setCta().onClick(() => {
       this.onSubmit(filters);
       this.close();

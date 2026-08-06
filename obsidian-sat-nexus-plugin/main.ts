@@ -96,7 +96,13 @@ export default class SatNexusQuestionsPlugin extends Plugin {
       return (await requestUrl({ url: this.apiUrl(`/api/questions/${encodeURIComponent(options.id)}`) })).json as Question;
     }
     const params = new URLSearchParams({ random: "1", limit: "1" });
-    const filterKeys: Record<string, string> = { section: "domain", domain: "domain", skill: "skill", subskill: "subskill", difficulty: "difficulty", search: "search" };
+    // Plugin terminology follows the study view: section → Math/R&W,
+    // domain → Algebra/Advanced Math, and skill → a precise topic such as
+    // nonlinear equations. The API calls the latter two skill/subskill.
+    const filterKeys: Record<string, string> = {
+      section: "domain", satdomain: "domain", domain: "skill", skill: "subskill",
+      subskill: "subskill", difficulty: "difficulty", search: "search",
+    };
     for (const [blockKey, apiKey] of Object.entries(filterKeys)) {
       if (options[blockKey]) params.set(apiKey, options[blockKey]);
     }
@@ -207,9 +213,22 @@ class InsertFilterModal extends Modal {
   onOpen(): void {
     this.titleEl.setText("Insert filtered SAT question");
     const filters: Record<string, string> = {};
-    [["section", "Math or Reading & Writing"], ["skill", "e.g. Expression of Ideas"], ["subskill", "Optional"], ["difficulty", "Easy, Medium, or Hard"], ["search", "Keyword, e.g. dangling modifier"]].forEach(([key, placeholder]) => {
-      new Setting(this.contentEl).setName(key.charAt(0).toUpperCase() + key.slice(1)).addText((text) => text.setPlaceholder(placeholder).onChange((value) => filters[key] = value));
+    new Setting(this.contentEl).setName("Section").setDesc("The SAT section.").addDropdown((drop) => {
+      drop.addOption("", "Any section").addOption("Math", "Math").addOption("Reading & Writing", "Reading & Writing");
+      drop.onChange((value) => filters.section = value);
     });
+    new Setting(this.contentEl).setName("Domain").setDesc("For example, Algebra or Advanced Math.").addDropdown((drop) => {
+      drop.addOption("", "Any domain");
+      ["Algebra", "Advanced Math", "Problem-Solving and Data Analysis", "Geometry and Trigonometry", "Information and Ideas", "Craft and Structure", "Expression of Ideas", "Standard English Conventions"].forEach((value) => drop.addOption(value, value));
+      drop.onChange((value) => filters.domain = value);
+    });
+    new Setting(this.contentEl).setName("Skill").setDesc("A specific topic, such as nonlinear equations. You may also type a keyword below.").addText((text) =>
+      text.setPlaceholder("e.g. Nonlinear equations in one variable").onChange((value) => filters.skill = value));
+    new Setting(this.contentEl).setName("Difficulty").addDropdown((drop) => {
+      drop.addOption("", "Any difficulty").addOption("Easy", "Easy").addOption("Medium", "Medium").addOption("Hard", "Hard");
+      drop.onChange((value) => filters.difficulty = value);
+    });
+    new Setting(this.contentEl).setName("Search text").setDesc("Optional extra keyword search.").addText((text) => text.setPlaceholder("e.g. dangling modifier").onChange((value) => filters.search = value));
     new Setting(this.contentEl).addButton((button) => button.setButtonText("Insert random-question block").setCta().onClick(() => {
       this.onSubmit(filters); this.close();
     }));
