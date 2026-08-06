@@ -1,4 +1,5 @@
 "use client";
+import { formatDetroitDateTime } from "@/lib/utils";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -401,7 +402,7 @@ function CollectionsInner() {
                   <div className="min-w-0 grow">
                     <div className="truncate text-[16px] font-bold text-[var(--ink)]">{sc.name}</div>
                     <div className="text-[12.5px] text-[var(--ink-faint)]">
-                      {sc.questionCount} question{sc.questionCount === 1 ? "" : "s"} · Shared by <span className="font-semibold text-[var(--ink)]">{sc.fromDisplayName || sc.fromEmail || sc.fromId.slice(0, 8)}</span> · {new Date(sc.createdAt).toLocaleString()}
+                      {sc.questionCount} question{sc.questionCount === 1 ? "" : "s"} · Shared by <span className="font-semibold text-[var(--ink)]">{sc.fromDisplayName || sc.fromEmail || sc.fromId.slice(0, 8)}</span> · {formatDetroitDateTime(sc.createdAt)}
                     </div>
                     {sc.description && <div className="mt-1 text-[13px] text-[var(--ink-soft)]">{sc.description}</div>}
                   </div>

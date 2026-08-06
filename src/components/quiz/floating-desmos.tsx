@@ -66,7 +66,7 @@ function centered(w = 680, h = 600) {
   };
 }
 
-export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: boolean; onClose: () => void; restoreRequest?: number }) {
   const [mounted, setMounted] = React.useState(false);
   const [pos, setPos] = React.useState<{ x: number; y: number }>(() => {
     const c = centered();
@@ -95,13 +95,15 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
     setSize({ w: c.w, h: c.h });
   }, [open]);
 
+  // The toolbar button is also the restore control when the calculator is minimized.
+  React.useEffect(() => {
+    if (!open || restoreRequest === 0) return;
+    const restore = window.setTimeout(() => setMined(false), 0);
+    return () => window.clearTimeout(restore);
+  }, [open, restoreRequest]);
+
   React.useEffect(() => {
     if (!open) {
-      calcRef.current?.destroy();
-      calcRef.current = null;
-      return;
-    }
-    if (mined) {
       calcRef.current?.destroy();
       calcRef.current = null;
       return;
@@ -137,7 +139,7 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
       cancelled = true;
       clearTimeout(t);
     };
-  }, [open, mined, maxed]);
+  }, [open]);
 
   React.useEffect(() => {
     if (!open || mined) return;
@@ -237,8 +239,8 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
       } else {
         saved.current = { pos: { ...pos }, size: { ...size } };
       }
-      // place at bottom-right visible without scroll
-      setPos({ x: Math.max(8, window.innerWidth - MINIMIZED_W - 12), y: Math.max(8, window.innerHeight - MINIMIZED_H - 12) });
+      // Keep the minimized calculator centered along the bottom edge.
+      setPos({ x: Math.max(8, Math.round((window.innerWidth - MINIMIZED_W) / 2)), y: Math.max(8, window.innerHeight - MINIMIZED_H - 12) });
       setMined(true);
     }
   };
@@ -281,13 +283,11 @@ export function FloatingDesmos({ open, onClose }: { open: boolean; onClose: () =
         </button>
       </div>
 
-      {!mined && (
-        <div className="relative min-h-0 flex-1 bg-white">
+      <div className={`relative min-h-0 flex-1 bg-white ${mined ? "hidden" : ""}`}>
           <div ref={containerRef} className="absolute inset-0" />
           {status==="loading" && <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin"/> Loading…</div>}
           {status==="error" && <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white p-8 text-center"><p className="text-sm font-semibold">Needs internet</p><a className="text-sm font-bold text-blue-600 underline inline-flex items-center gap-2" href="https://www.desmos.com/calculator" target="_blank" rel="noreferrer">Open Desmos <ExternalLink className="h-4 w-4"/></a></div>}
         </div>
-      )}
       {mined && (
         <div className="flex h-full items-center justify-between px-3 text-[12px] text-[var(--ink-faint)]">
           <span className="truncate font-semibold">Desmos — drag me anywhere</span>

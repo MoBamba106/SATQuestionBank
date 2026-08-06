@@ -112,7 +112,13 @@ function AnalyticsInner() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#ece5d4" vertical={false} />
                     <XAxis dataKey="difficulty" tick={{ fontSize: 11, fill: "#8a8680" }} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#8a8680" }} />
-                    <Tooltip {...TT} formatter={(v) => [`${v}%`, "Accuracy"]} />
+                    <Tooltip
+                      {...TT}
+                      formatter={(value, _name, item) => {
+                        const row = item.payload as { total: number; correct: number };
+                        return [`${value}% (${row.correct}/${row.total} questions)`, "Accuracy"];
+                      }}
+                    />
                     <Bar dataKey="pct" fill="#d9922e" radius={[6, 6, 0, 0]} maxBarSize={60} />
                   </BarChart>
                 </ResponsiveContainer>

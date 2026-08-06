@@ -1,4 +1,5 @@
 "use client";
+import { formatDetroitDate, formatDetroitDateTime } from "@/lib/utils";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -143,7 +144,7 @@ function SharedPageInner() {
                         </div>
                         <p className="mt-2 line-clamp-2 text-[14px] text-[var(--ink-soft)]">{stripHtml(row.question_html || row.question_text).slice(0, 200)}</p>
                         <p className="mt-1 flex items-center gap-1.5 text-[12px] text-[var(--ink-faint)]">
-                          <UserRound className="h-3.5 w-3.5" /> Sent by {row.fromDisplayName || row.fromEmail || row.fromId.slice(0, 8)} · {new Date(row.createdAt).toLocaleString()}
+                          <UserRound className="h-3.5 w-3.5" /> Sent by {row.fromDisplayName || row.fromEmail || row.fromId.slice(0, 8)} · {formatDetroitDateTime(row.createdAt)}
                         </p>
                       </div>
                       <div className="ml-auto flex gap-1.5">
@@ -170,7 +171,7 @@ function SharedPageInner() {
                     <span className="font-mono">{(row as any).questionId?.slice(0, 8)}</span>
                     <span>→</span>
                     <span>{(row as any).toDisplayName || (row as any).toEmail || (row as any).toId}</span>
-                    <span className="ml-auto">{new Date(row.createdAt).toLocaleDateString()}</span>
+                    <span className="ml-auto">{formatDetroitDate(row.createdAt)}</span>
                     <button type="button" className="btn btn-ghost !min-h-6 !px-2" onClick={() => void deleteSharedQ(row.id)}><Trash2 className="h-3.5 w-3.5" /></button>
                   </div>
                 ))}
@@ -198,7 +199,7 @@ function SharedPageInner() {
                     <div className="min-w-0 grow">
                       <div className="truncate text-[16px] font-bold text-[var(--ink)]">{row.name}</div>
                       <div className="text-[12.5px] text-[var(--ink-faint)]">
-                        {row.questionCount} question{row.questionCount === 1 ? "" : "s"} · Shared by {row.fromDisplayName || row.fromEmail || row.fromId.slice(0, 8)} · {new Date(row.createdAt).toLocaleString()}
+                        {row.questionCount} question{row.questionCount === 1 ? "" : "s"} · Shared by {row.fromDisplayName || row.fromEmail || row.fromId.slice(0, 8)} · {formatDetroitDateTime(row.createdAt)}
                       </div>
                       {row.description && <div className="mt-1 text-[13px] text-[var(--ink-soft)]">{row.description}</div>}
                     </div>
@@ -223,7 +224,7 @@ function SharedPageInner() {
                     <span className="font-semibold text-[var(--ink)]">{(row as any).name}</span>
                     <span>→</span>
                     <span>{(row as any).toDisplayName || (row as any).toEmail || (row as any).toId}</span>
-                    <span className="ml-auto">{new Date(row.createdAt).toLocaleDateString()}</span>
+                    <span className="ml-auto">{formatDetroitDate(row.createdAt)}</span>
                     <button type="button" className="btn btn-ghost !min-h-6 !px-2" onClick={() => void deleteSharedC(row.id)}><Trash2 className="h-3.5 w-3.5" /></button>
                   </div>
                 ))}

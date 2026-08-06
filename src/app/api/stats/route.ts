@@ -87,7 +87,7 @@ export async function GET(req: Request) {
 
     const activity = rows<{ date: string; attempts: number; correct: number }>(
       await db.execute(sql`
-        SELECT to_char(a.created_at, 'YYYY-MM-DD') AS date, COUNT(*)::int AS attempts,
+        SELECT to_char(a.created_at AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date, COUNT(*)::int AS attempts,
                SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END)::int AS correct
         FROM attempts a
         INNER JOIN quiz_sessions qs ON qs.id = a.session_id AND qs.user_id = ${uid}
@@ -98,7 +98,7 @@ export async function GET(req: Request) {
 
     const days = rows<{ d: string }>(
       await db.execute(sql`
-        SELECT DISTINCT to_char(a.created_at, 'YYYY-MM-DD') AS d
+        SELECT DISTINCT to_char(a.created_at AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS d
         FROM attempts a
         INNER JOIN quiz_sessions qs ON qs.id = a.session_id AND qs.user_id = ${uid}
         ORDER BY d DESC
@@ -109,7 +109,11 @@ export async function GET(req: Request) {
     let run = 0;
     const daySet = new Set(days);
     const today = new Date();
-    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const fmt = (d: Date) => {
+      const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d);
+      const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+      return `${get("year")}-${get("month")}-${get("day")}`;
+    };
     let cursor = new Date(today);
     if (!daySet.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
     while (daySet.has(fmt(cursor))) {

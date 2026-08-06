@@ -71,7 +71,7 @@ export async function POST(req: Request) {
 
     const id = `generated-${crypto.randomUUID()}`;
     const generatedAt = new Date();
-    const title = `Generated Practice Test · ${generatedAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    const title = `Generated Practice Test · ${generatedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Detroit" })}`;
     const rows: { testId: string; position: number; module: string; questionId: string }[] = [];
     let position = 0;
     for (const [module, questions] of Object.entries(modules)) {
