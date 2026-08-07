@@ -28,12 +28,12 @@ const DEFAULT_SETTINGS: PluginSettings = { apiBaseUrl: "" };
 
 type BlockOptions = Record<string, string>;
 
-/** Parse `key="value"`, `key=value`, and one-per-line code-block options. */
+/** Parse both YAML-like `id: 123` and attribute-style `id="123"` block options. */
 function parseOptions(source: string): BlockOptions {
   const options: BlockOptions = {};
-  const matcher = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\n]+))/g;
-  for (const match of source.matchAll(matcher)) {
-    options[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? "";
+  for (const line of source.split(/\r?\n/)) {
+    const match = line.trim().match(/^([\w-]+)\s*(?::|=)\s*(?:"([^"]*)"|'([^']*)'|(.*?))\s*$/);
+    if (match) options[match[1].toLowerCase()] = (match[2] ?? match[3] ?? match[4] ?? "").trim();
   }
   return options;
 }
@@ -42,6 +42,30 @@ function escapeHtml(value: string): string {
   const box = document.createElement("div");
   box.textContent = value;
   return box.innerHTML;
+}
+
+/** Retain safe formatting, turn MathML alt-text into LaTex, and remove source-only labels. */
+function cleanQuestionHtml(source: string | null | undefined): string {
+  const doc = new DOMParser().parseFromString(source || "", "text/html");
+  doc.querySelectorAll("script, style, iframe, object, embed").forEach((node) => node.remove());
+  doc.querySelectorAll("math").forEach((node) => {
+    const latex = node.getAttribute("alttext") || node.textContent || "";
+    node.replaceWith(doc.createTextNode(`\\(${latex}\\)`));
+  });
+  doc.querySelectorAll<HTMLElement>("*").forEach((node) => {
+    [...node.attributes].forEach((attribute) => {
+      if (attribute.name !== "src" && attribute.name !== "alt" && attribute.name !== "href" && attribute.name !== "colspan" && attribute.name !== "rowspan") node.removeAttribute(attribute.name);
+    });
+  });
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  let text: Text | null;
+  while ((text = walker.nextNode() as Text | null)) text.textContent = text.textContent?.replace(/\bBlank\s*(?=_{2,}|—|–)/gi, "") || "";
+  return doc.body.innerHTML;
+}
+
+function typesetMath(element: HTMLElement): void {
+  const mathJax = (window as unknown as { MathJax?: { typesetPromise?: (nodes: HTMLElement[]) => Promise<void> } }).MathJax;
+  if (mathJax?.typesetPromise) void mathJax.typesetPromise([element]);
 }
 
 function answerMatches(answer: string, accepted: string): boolean {
@@ -56,9 +80,9 @@ export default class SatNexusQuestionsPlugin extends Plugin {
     await this.loadSettings();
     this.addSettingTab(new SatNexusSettingsTab(this.app, this));
 
-    this.registerMarkdownCodeBlockProcessor("sat-question", (source, el) => {
-      void this.renderQuestionBlock(parseOptions(source), el);
-    });
+    const processor = (source: string, el: HTMLElement) => void this.renderQuestionBlock(parseOptions(source), el);
+    this.registerMarkdownCodeBlockProcessor("sat-question", processor);
+    this.registerMarkdownCodeBlockProcessor("quiz-question", processor);
 
     this.addCommand({
       id: "insert-question-by-id",
@@ -100,8 +124,8 @@ export default class SatNexusQuestionsPlugin extends Plugin {
     // domain → Algebra/Advanced Math, and skill → a precise topic such as
     // nonlinear equations. The API calls the latter two skill/subskill.
     const filterKeys: Record<string, string> = {
-      section: "domain", satdomain: "domain", domain: "skill", skill: "subskill",
-      subskill: "subskill", difficulty: "difficulty", search: "search",
+      section: "domain", satdomain: "domain", category: "skill", domain: "skill",
+      skill: "subskill", subskill: "subskill", difficulty: "difficulty", search: "search",
     };
     for (const [blockKey, apiKey] of Object.entries(filterKeys)) {
       if (options[blockKey]) params.set(apiKey, options[blockKey]);
@@ -132,13 +156,12 @@ export default class SatNexusQuestionsPlugin extends Plugin {
     header.createSpan({ cls: "sat-nexus-chip", text: question.skill });
     const body = el.createDiv({ cls: "sat-nexus-body" });
 
-    // SAT Nexus supplies question HTML (including figures/math) from its trusted question bank.
-    if (question.passageHtml) body.createDiv({ cls: "sat-nexus-passage" }).innerHTML = question.passageHtml;
-    body.createDiv({ cls: "sat-nexus-prompt" }).innerHTML = question.questionHtml || escapeHtml(question.questionText);
+    // Clean exported question-bank HTML before mounting it in Obsidian.
+    if (question.passageHtml) body.createDiv({ cls: "sat-nexus-passage" }).innerHTML = cleanQuestionHtml(question.passageHtml);
+    body.createDiv({ cls: "sat-nexus-prompt" }).innerHTML = cleanQuestionHtml(question.questionHtml || question.questionText);
 
-    const feedback = body.createDiv({ cls: "sat-nexus-feedback" });
-    const explanation = body.createDiv({ cls: "sat-nexus-explanation" });
-    explanation.hide();
+    let feedback: HTMLElement;
+    let explanation: HTMLElement;
     const revealFeedback = (isCorrect: boolean) => {
       feedback.setText(isCorrect ? "Correct!" : "Not quite.");
       feedback.addClass(isCorrect ? "correct" : "wrong");
@@ -154,7 +177,7 @@ export default class SatNexusQuestionsPlugin extends Plugin {
       question.choices.forEach((choice) => {
         const button = choices.createEl("button", { cls: "sat-nexus-choice", attr: { type: "button" } });
         button.createSpan({ cls: "sat-nexus-letter", text: choice.key });
-        button.createSpan({ cls: "sat-nexus-choice-text" }).innerHTML = choice.html || escapeHtml(choice.text);
+        button.createSpan({ cls: "sat-nexus-choice-text" }).innerHTML = cleanQuestionHtml(choice.html || choice.text);
         button.addEventListener("click", () => {
           const correct = answerMatches(choice.key, question.correctAnswer);
           buttons.forEach((item) => item.disabled = true);
@@ -170,6 +193,12 @@ export default class SatNexusQuestionsPlugin extends Plugin {
       const check = body.createEl("button", { text: "Check answer", cls: "mod-cta" });
       check.addEventListener("click", () => revealFeedback(answerMatches(input.value, question.correctAnswer)));
     }
+
+    // Feedback and explanation are intentionally mounted after every answer control.
+    feedback = body.createDiv({ cls: "sat-nexus-feedback" });
+    explanation = body.createDiv({ cls: "sat-nexus-explanation" });
+    explanation.hide();
+    typesetMath(body);
 
     // ID embeds remain stable. Filter embeds can request another matching question.
     if (!options.id) {

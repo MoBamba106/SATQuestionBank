@@ -28,16 +28,33 @@ var DEFAULT_SETTINGS = { apiBaseUrl: "" };
 function parseOptions(source) {
   var _a, _b, _c;
   const options = {};
-  const matcher = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\n]+))/g;
-  for (const match of source.matchAll(matcher)) {
-    options[match[1].toLowerCase()] = (_c = (_b = (_a = match[2]) != null ? _a : match[3]) != null ? _b : match[4]) != null ? _c : "";
+  for (const line of source.split(/\r?\n/)) {
+    const match = line.trim().match(/^([\w-]+)\s*(?::|=)\s*(?:"([^"]*)"|'([^']*)'|(.*?))\s*$/);
+    if (match) options[match[1].toLowerCase()] = ((_c = (_b = (_a = match[2]) != null ? _a : match[3]) != null ? _b : match[4]) != null ? _c : "").trim();
   }
   return options;
 }
-function escapeHtml(value) {
-  const box = document.createElement("div");
-  box.textContent = value;
-  return box.innerHTML;
+function cleanQuestionHtml(source) {
+  var _a;
+  const doc = new DOMParser().parseFromString(source || "", "text/html");
+  doc.querySelectorAll("script, style, iframe, object, embed").forEach((node) => node.remove());
+  doc.querySelectorAll("math").forEach((node) => {
+    const latex = node.getAttribute("alttext") || node.textContent || "";
+    node.replaceWith(doc.createTextNode(`\\(${latex}\\)`));
+  });
+  doc.querySelectorAll("*").forEach((node) => {
+    [...node.attributes].forEach((attribute) => {
+      if (attribute.name !== "src" && attribute.name !== "alt" && attribute.name !== "href" && attribute.name !== "colspan" && attribute.name !== "rowspan") node.removeAttribute(attribute.name);
+    });
+  });
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  let text;
+  while (text = walker.nextNode()) text.textContent = ((_a = text.textContent) == null ? void 0 : _a.replace(/\bBlank\s*(?=_{2,}|—|–)/gi, "")) || "";
+  return doc.body.innerHTML;
+}
+function typesetMath(element) {
+  const mathJax = window.MathJax;
+  if (mathJax == null ? void 0 : mathJax.typesetPromise) void mathJax.typesetPromise([element]);
 }
 function answerMatches(answer, accepted) {
   const normalize = (value) => value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -47,9 +64,9 @@ var SatNexusQuestionsPlugin = class extends import_obsidian.Plugin {
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new SatNexusSettingsTab(this.app, this));
-    this.registerMarkdownCodeBlockProcessor("sat-question", (source, el) => {
-      void this.renderQuestionBlock(parseOptions(source), el);
-    });
+    const processor = (source, el) => void this.renderQuestionBlock(parseOptions(source), el);
+    this.registerMarkdownCodeBlockProcessor("sat-question", processor);
+    this.registerMarkdownCodeBlockProcessor("quiz-question", processor);
     this.addCommand({
       id: "insert-question-by-id",
       name: "Insert SAT question by ID",
@@ -90,6 +107,7 @@ ${lines.join("\n")}
     const filterKeys = {
       section: "domain",
       satdomain: "domain",
+      category: "skill",
       domain: "skill",
       skill: "subskill",
       subskill: "subskill",
@@ -122,11 +140,10 @@ ${lines.join("\n")}
     header.createSpan({ cls: "sat-nexus-chip", text: question.difficulty });
     header.createSpan({ cls: "sat-nexus-chip", text: question.skill });
     const body = el.createDiv({ cls: "sat-nexus-body" });
-    if (question.passageHtml) body.createDiv({ cls: "sat-nexus-passage" }).innerHTML = question.passageHtml;
-    body.createDiv({ cls: "sat-nexus-prompt" }).innerHTML = question.questionHtml || escapeHtml(question.questionText);
-    const feedback = body.createDiv({ cls: "sat-nexus-feedback" });
-    const explanation = body.createDiv({ cls: "sat-nexus-explanation" });
-    explanation.hide();
+    if (question.passageHtml) body.createDiv({ cls: "sat-nexus-passage" }).innerHTML = cleanQuestionHtml(question.passageHtml);
+    body.createDiv({ cls: "sat-nexus-prompt" }).innerHTML = cleanQuestionHtml(question.questionHtml || question.questionText);
+    let feedback;
+    let explanation;
     const revealFeedback = (isCorrect) => {
       feedback.setText(isCorrect ? "Correct!" : "Not quite.");
       feedback.addClass(isCorrect ? "correct" : "wrong");
@@ -141,7 +158,7 @@ ${lines.join("\n")}
       question.choices.forEach((choice) => {
         const button = choices.createEl("button", { cls: "sat-nexus-choice", attr: { type: "button" } });
         button.createSpan({ cls: "sat-nexus-letter", text: choice.key });
-        button.createSpan({ cls: "sat-nexus-choice-text" }).innerHTML = choice.html || escapeHtml(choice.text);
+        button.createSpan({ cls: "sat-nexus-choice-text" }).innerHTML = cleanQuestionHtml(choice.html || choice.text);
         button.addEventListener("click", () => {
           var _a;
           const correct = answerMatches(choice.key, question.correctAnswer);
@@ -158,6 +175,10 @@ ${lines.join("\n")}
       const check = body.createEl("button", { text: "Check answer", cls: "mod-cta" });
       check.addEventListener("click", () => revealFeedback(answerMatches(input.value, question.correctAnswer)));
     }
+    feedback = body.createDiv({ cls: "sat-nexus-feedback" });
+    explanation = body.createDiv({ cls: "sat-nexus-explanation" });
+    explanation.hide();
+    typesetMath(body);
     if (!options.id) {
       const actions = el.createDiv({ cls: "sat-nexus-actions" });
       const refresh = actions.createEl("button", { text: "Refresh question" });

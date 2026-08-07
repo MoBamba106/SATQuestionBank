@@ -17,3 +17,15 @@
 .sat-nexus-explanation { margin-top: .8em; padding: .8em; background: var(--background-secondary); border-radius: var(--radius-s); }
 .sat-nexus-actions { display:flex; justify-content:flex-end; padding: .65em .8em; border-top: 1px solid var(--background-modifier-border); }
 .sat-nexus-error { padding: 1em; color: var(--text-error); }
+.sat-nexus-question, .sat-nexus-question * { box-sizing: border-box; }
+.sat-nexus-question { max-width: 100%; }
+.sat-nexus-prompt, .sat-nexus-choice-text { text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased; }
+.sat-nexus-prompt img, .sat-nexus-passage img, .sat-nexus-choice img { max-width: 100%; height: auto; image-rendering: auto; }
+.sat-nexus-choice { min-height: 3.6rem; border-width: 2px; padding: .85rem 1rem; font-size: var(--font-text-size); line-height: 1.45; transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease; }
+.sat-nexus-choice:hover:not(:disabled) { border-color: var(--interactive-accent); transform: translateY(-1px); }
+.sat-nexus-choice:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 2px; }
+.sat-nexus-feedback { order: 3; min-height: 1.4em; padding-top: .8em; }
+.sat-nexus-explanation { order: 4; animation: sat-nexus-fade-in 180ms ease-out; }
+.sat-nexus-body { display: flex; flex-direction: column; }
+.sat-nexus-choices { order: 2; }.sat-nexus-passage, .sat-nexus-prompt { order: 1; }
+@keyframes sat-nexus-fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
