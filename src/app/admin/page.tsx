@@ -1,4 +1,5 @@
 "use client";
+import { formatDetroitDate, formatDetroitDateTime } from "@/lib/utils";
 
 import * as React from "react";
 import {
@@ -296,7 +297,7 @@ export default function AdminPage() {
                                   {user.isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />}
                                   <span
                                     className={`relative inline-flex h-2.5 w-2.5 rounded-full ${user.isOnline ? "bg-green-500" : "bg-[var(--line-soft)]"}`}
-                                    title={user.isOnline ? "Online now" : user.lastSeen ? `Last seen ${new Date(user.lastSeen).toLocaleString()}` : "Offline"}
+                                    title={user.isOnline ? "Online now" : user.lastSeen ? `Last seen ${formatDetroitDateTime(user.lastSeen)}` : "Offline"}
                                   />
                                 </span>
                                 <div className="min-w-0">
@@ -315,9 +316,9 @@ export default function AdminPage() {
                               {user.isOnline ? (
                                 <span className="inline-flex items-center gap-1 font-semibold text-green-600">● Online now</span>
                               ) : user.lastSeen ? (
-                                <span className="text-[var(--ink-faint)]">Seen {new Date(user.lastSeen).toLocaleString()}</span>
+                                <span className="text-[var(--ink-faint)]">Seen {formatDetroitDateTime(user.lastSeen)}</span>
                               ) : user.lastActive ? (
-                                <span className="text-[var(--ink-faint)]">Active {new Date(user.lastActive).toLocaleDateString()}</span>
+                                <span className="text-[var(--ink-faint)]">Active {formatDetroitDate(user.lastActive)}</span>
                               ) : (
                                 <span className="text-[var(--ink-faint)]">never</span>
                               )}
@@ -389,7 +390,7 @@ export default function AdminPage() {
                   </span>
                   <span className="text-[15px] font-bold text-[var(--ink)]">{item.title}</span>
                   <span className="ml-auto text-[11.5px] text-[var(--ink-faint)]">
-                    {new Date(item.createdAt).toLocaleString()}
+                    {formatDetroitDateTime(item.createdAt)}
                   </span>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.message}</p>

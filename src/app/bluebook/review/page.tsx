@@ -1,4 +1,5 @@
 "use client";
+import { formatDetroitDateTime } from "@/lib/utils";
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
@@ -302,7 +303,7 @@ function ReviewInner() {
           <h1 className="font-display text-3xl font-bold text-[var(--ink)]">{session?.label ?? "Test"}: Review</h1>
           <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
             Score: <span className="font-bold text-[var(--ink)]">{correct} / {items.length}</span> correct
-            {session?.finishedAt && <> · finished {new Date(session.finishedAt).toLocaleString()}</>} · Graphs are clickable to enlarge
+            {session?.finishedAt && <> · finished {formatDetroitDateTime(session.finishedAt)}</>} · Graphs are clickable to enlarge
           </p>
         </div>
         <div className="flex gap-2">

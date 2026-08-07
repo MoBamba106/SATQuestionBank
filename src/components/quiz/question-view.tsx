@@ -80,20 +80,43 @@ export function QuestionView({
     const root = highlightRootRef.current;
     const selection = window.getSelection();
     if (!root || !selection || selection.rangeCount === 0 || selection.isCollapsed) return;
-
     const range = selection.getRangeAt(0);
-    const container = range.commonAncestorContainer;
-    if (!root.contains(container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement)) return;
+    const parent = (node: Node) => node.nodeType === Node.ELEMENT_NODE ? node as Element : node.parentElement;
+    if (!root.contains(parent(range.commonAncestorContainer))) return;
 
-    const mark = document.createElement("span");
-    mark.className = `sat-highlight sat-highlight-${highlightColor}`;
-    try {
-      mark.appendChild(range.extractContents());
-      range.insertNode(mark);
+    // Selecting text already contained in one highlight toggles that highlight off.
+    const startMark = parent(range.startContainer)?.closest(".sat-highlight");
+    const endMark = parent(range.endContainer)?.closest(".sat-highlight");
+    if (startMark && startMark === endMark && root.contains(startMark)) {
+      const fragment = document.createDocumentFragment();
+      while (startMark.firstChild) fragment.appendChild(startMark.firstChild);
+      startMark.replaceWith(fragment);
       selection.removeAllRanges();
-    } catch {
-      selection.removeAllRanges();
+      return;
     }
+
+    // Wrap individual text nodes instead of extracting a range across HTML elements.
+    // This avoids duplicate/split passage markup when a selection crosses formatting.
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes: Text[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      if (node.textContent?.trim() && range.intersectsNode(node)) nodes.push(node as Text);
+    }
+    for (const text of nodes) {
+      if (text.parentElement?.closest(".sat-highlight")) continue;
+      const start = text === range.startContainer ? range.startOffset : 0;
+      const end = text === range.endContainer ? range.endOffset : text.data.length;
+      if (end <= start) continue;
+      const selectedText = text.splitText(start);
+      const after = selectedText.splitText(end - start);
+      const mark = document.createElement("mark");
+      mark.className = `sat-highlight sat-highlight-${highlightColor}`;
+      selectedText.replaceWith(mark);
+      mark.appendChild(selectedText);
+      void after;
+    }
+    selection.removeAllRanges();
   };
 
   return (
@@ -118,7 +141,7 @@ export function QuestionView({
         </button>
       </div>
 
-      <div ref={highlightRootRef} onMouseUp={applyHighlight} className={cn("space-y-4", highlightColor && "highlight-tool-active")}>
+      <div key={question.id} ref={highlightRootRef} onMouseUp={applyHighlight} className={cn("space-y-4", highlightColor && "highlight-tool-active")}>
       {question.passageHtml && (
         <div
           className={cn(

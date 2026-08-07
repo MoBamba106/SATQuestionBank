@@ -313,3 +313,12 @@ export function skillColor(skill: string): string {
   };
   return colors[tone];
 }
+
+/** SAT Nexus displays calendar times in its home time zone (Detroit / Eastern). */
+export const DETROIT_TIME_ZONE = "America/Detroit";
+export function formatDetroitDate(value: string | number | Date, options: Intl.DateTimeFormatOptions = {}) {
+  return new Intl.DateTimeFormat("en-US", { timeZone: DETROIT_TIME_ZONE, ...options }).format(new Date(value));
+}
+export function formatDetroitDateTime(value: string | number | Date) {
+  return formatDetroitDate(value, { dateStyle: "medium", timeStyle: "short" });
+}

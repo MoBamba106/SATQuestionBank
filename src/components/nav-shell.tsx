@@ -38,7 +38,7 @@ import { AccountGateProvider } from "@/components/account-gate";
 import { IntroTutorial } from "@/components/intro-tutorial";
 import { NavDock } from "@/components/nav-dock";
 import { PaperDialog } from "@/components/ui/paper-dialog";
-import { getImpersonatedUser, setImpersonatedUser, mutateKey } from "@/lib/api-client";
+import { apiGet, getImpersonatedUser, setImpersonatedUser, mutateKey } from "@/lib/api-client";
 import { PresenceTracker } from "@/components/presence-tracker";
 import { toast } from "sonner";
 
@@ -160,6 +160,38 @@ export function NavShell({ children }: { children: React.ReactNode }) {
   const [tutorialForce, setTutorialForce] = React.useState(false);
   const [impersonating, setImpersonating] = React.useState<{ id: string; label: string } | null>(null);
   useCommandPaletteHotkey(setPaletteOpen);
+
+  // Poll for incoming shares so a recipient sees them without needing to visit Shared Questions.
+  React.useEffect(() => {
+    if (!auth.ready || auth.user.isGuest) return;
+    let active = true;
+    const storageKey = `sat-nexus-seen-shares:${auth.user.id}`;
+    const checkForShares = async () => {
+      try {
+        const [questions, collections] = await Promise.all([
+          apiGet<{ received: { id: string; fromDisplayName?: string; fromEmail?: string }[] }>("/api/shared-questions"),
+          apiGet<{ received: { id: string; fromDisplayName?: string; fromEmail?: string }[] }>("/api/shared-collections"),
+        ]);
+        if (!active) return;
+        const seen = new Set<string>(JSON.parse(sessionStorage.getItem(storageKey) || "[]"));
+        const incoming = [
+          ...questions.received.map((share) => ({ ...share, type: "question" })),
+          ...collections.received.map((share) => ({ ...share, type: "collection" })),
+        ];
+        const newShares = incoming.filter((share) => !seen.has(share.id));
+        if (newShares.length) {
+          newShares.forEach((share) => toast(`New shared ${share.type}`, {
+            description: `${share.fromDisplayName || share.fromEmail || "Someone"} shared a ${share.type} with you.`,
+            action: { label: "View", onClick: () => { window.location.href = "/shared"; } },
+          }));
+        }
+        sessionStorage.setItem(storageKey, JSON.stringify(incoming.map((share) => share.id)));
+      } catch { /* A notification check should never interrupt the app. */ }
+    };
+    void checkForShares();
+    const timer = window.setInterval(() => void checkForShares(), 60_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [auth.ready, auth.user.id, auth.user.isGuest]);
 
   // Track admin impersonation state (set from the admin console).
   React.useEffect(() => {
