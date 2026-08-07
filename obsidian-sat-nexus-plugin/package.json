@@ -1,7 +1,0 @@
-{
-  "name": "obsidian-sat-nexus-questions",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": { "build": "esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js" },
-  "devDependencies": { "@types/node": "^22.0.0", "esbuild": "^0.25.0", "obsidian": "latest", "typescript": "^5.0.0" }
-}
