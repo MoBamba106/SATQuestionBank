@@ -17,16 +17,44 @@ import { Pool, type PoolConfig } from "pg";
  * Local development (zero-config):
  *   Embedded PGlite in .sat-nexus-db when no Postgres URL is set.
  */
+/**
+ * Clean a connection string people paste from dashboards / chat.
+ * Common failure: markdown links like host@[x](http://x) which make the
+ * URL invalid so we fall through to embedded PGlite.
+ */
+function sanitizeConnectionString(raw: string): string {
+  let value = String(raw ?? "").trim();
+  if (!value) return "";
+
+  // Strip wrapping quotes from dashboard paste.
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    value = value.slice(1, -1).trim();
+  }
+
+  // Strip accidental markdown links:
+  //   postgresql://user:pass@[host:6543/db](http://host:6543/db)
+  //   postgresql://user:pass@host:6543/db (https://…)
+  value = value.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, "$1");
+  // Trailing parenthetical URL left after a space.
+  value = value.replace(/\s*\((https?:\/\/[^)]+)\)\s*$/i, "");
+  // Bare angle brackets around host: @<host:port/db>
+  value = value.replace(/@<([^>]+)>/g, "@$1");
+  // Leading "psql " some copy buttons include.
+  value = value.replace(/^(psql|postgres)\s+/i, "");
+  // Collapse whitespace / newlines from multi-line secrets.
+  value = value.replace(/\s+/g, "");
+
+  return value.trim();
+}
+
 function firstEnv(...keys: string[]): string {
   for (const key of keys) {
-    let value = process.env[key]?.trim() || "";
-    // Vercel / dashboards sometimes wrap values in quotes.
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1).trim();
-    }
+    const raw = process.env[key];
+    if (raw == null || !String(raw).trim()) continue;
+    const value = sanitizeConnectionString(String(raw));
     if (value) return value;
   }
   return "";
@@ -49,6 +77,23 @@ function isPostgresConnectionString(value: string) {
   return false;
 }
 
+function describeUrlProblem(raw: string | undefined): string | null {
+  if (raw == null || !String(raw).trim()) return "empty / unset";
+  const cleaned = sanitizeConnectionString(String(raw));
+  if (!cleaned) return "empty after cleanup";
+  if (isPostgresConnectionString(cleaned)) return null;
+  if (/^https?:\/\//i.test(cleaned)) {
+    return "looks like http(s) — need postgresql:// not the Supabase website URL";
+  }
+  if (cleaned.includes("](") || /https?:\/\//i.test(cleaned)) {
+    return "contains markdown/link junk — paste the plain connection string only";
+  }
+  if (!cleaned.includes("://")) {
+    return "missing protocol — must start with postgresql://";
+  }
+  return "not recognized as a postgres connection string";
+}
+
 function configuredDbEnvKeys(): string[] {
   return [
     "POSTGRES_URL",
@@ -58,6 +103,46 @@ function configuredDbEnvKeys(): string[] {
     "DATABASE_MIGRATION_URL",
     "DATABASE_MODE",
   ].filter((key) => Boolean(process.env[key]?.trim()));
+}
+
+/** Safe diagnostics for logs/health — never prints passwords. */
+function dbEnvDiagnostics(): string {
+  const parts: string[] = [];
+  for (const key of [
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "DATABASE_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_MIGRATION_URL",
+    "DATABASE_MODE",
+  ]) {
+    const raw = process.env[key];
+    if (raw == null || !String(raw).trim()) {
+      parts.push(`${key}=unset`);
+      continue;
+    }
+    if (key === "DATABASE_MODE") {
+      parts.push(`${key}=${String(raw).trim()}`);
+      continue;
+    }
+    const problem = describeUrlProblem(raw);
+    if (problem) {
+      parts.push(`${key}=INVALID(${problem})`);
+      continue;
+    }
+    const cleaned = sanitizeConnectionString(String(raw));
+    let host = "?";
+    let port = "?";
+    try {
+      const u = new URL(cleaned);
+      host = u.hostname || "?";
+      port = u.port || "?";
+    } catch {
+      host = "unparseable";
+    }
+    parts.push(`${key}=ok(${host}:${port})`);
+  }
+  return parts.join("; ");
 }
 
 function deriveSupabaseSessionPoolerUrl(value: string): string {
@@ -114,8 +199,8 @@ if (wantEmbedded && hasRuntimePostgresUrl) {
 if ((onVercel || process.env.NODE_ENV === "production") && !hasRuntimePostgresUrl && !forceEmbedded) {
   console.warn(
     "[db] No usable Postgres URL found (checked POSTGRES_URL, POSTGRES_PRISMA_URL, DATABASE_URL, POSTGRES_URL_NON_POOLING). " +
-      `Present env keys: ${configuredDbEnvKeys().join(", ") || "(none)"}. ` +
-      "Vercel production requires a Supabase/Neon Postgres connection string.",
+      `${dbEnvDiagnostics()}. ` +
+      "Vercel production requires a plain postgresql:// connection string (no markdown links).",
   );
 }
 
@@ -470,14 +555,16 @@ async function runSchema() {
         ? " Supabase transaction pooler URLs (port 6543) are best for app queries. Use DATABASE_MIGRATION_URL with a direct or session-mode connection for Drizzle migrations."
         : "";
 
-    const envHint = ` Env keys present: ${configuredDbEnvKeys().join(", ") || "(none)"}.`;
+    const envHint = ` Diagnostics: ${dbEnvDiagnostics()}.`;
     throw new Error(
       `Database schema setup failed (${databaseKind}): ${message}\n` +
         `Runtime target: ${runtimeTarget}. Migration target: ${migrationTarget}.` +
         (shouldUsePostgres
           ? ` Check POSTGRES_URL / DATABASE_URL, POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL, and database credentials.${providerHint}${envHint}`
           : ` Embedded PGlite failed.${envHint} ` +
-              "If you meant to use Supabase Postgres, set POSTGRES_URL (pooler :6543) and remove DATABASE_MODE=embedded on Vercel. " +
+              "If you meant to use Supabase Postgres: set POSTGRES_URL to a PLAIN string like " +
+              "postgresql://postgres.PROJECT:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres " +
+              "(no [brackets], no (http://…) markdown links). Delete DATABASE_MODE on Vercel. " +
               "Local-only: delete .sat-nexus-db and restart."),
     );
   }

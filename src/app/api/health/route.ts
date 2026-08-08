@@ -13,20 +13,56 @@ export async function GET() {
   try {
     await ensureDatabaseReady();
     await db.execute(sql`select 1`);
-    const dbEnvKeys = [
+    const dbEnvStatus: Record<string, string> = {};
+    for (const key of [
       "POSTGRES_URL",
       "POSTGRES_PRISMA_URL",
       "DATABASE_URL",
       "POSTGRES_URL_NON_POOLING",
       "DATABASE_MIGRATION_URL",
       "DATABASE_MODE",
-    ].filter((key) => Boolean(process.env[key]?.trim()));
+    ]) {
+      const raw = process.env[key];
+      if (raw == null || !String(raw).trim()) {
+        dbEnvStatus[key] = "unset";
+        continue;
+      }
+      if (key === "DATABASE_MODE") {
+        dbEnvStatus[key] = String(raw).trim();
+        continue;
+      }
+      // Never echo secrets — only whether the value looks like a postgres URL.
+      let cleaned = String(raw).trim();
+      if (
+        (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+        (cleaned.startsWith("'") && cleaned.endsWith("'"))
+      ) {
+        cleaned = cleaned.slice(1, -1).trim();
+      }
+      cleaned = cleaned
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, "$1")
+        .replace(/\s*\((https?:\/\/[^)]+)\)\s*$/i, "")
+        .replace(/\s+/g, "");
+      const ok = /^(postgres(ql)?:\/\/)/i.test(cleaned);
+      if (!ok) {
+        dbEnvStatus[key] = cleaned.includes("](") || /https?:\/\//i.test(String(raw))
+          ? "invalid (markdown/link junk — paste plain postgresql:// string)"
+          : "invalid (must start with postgresql://)";
+        continue;
+      }
+      try {
+        const u = new URL(cleaned);
+        dbEnvStatus[key] = `ok host=${u.hostname} port=${u.port || "?"}`;
+      } catch {
+        dbEnvStatus[key] = "invalid (unparseable URL)";
+      }
+    }
     return Response.json({
       ok: true,
       database: databaseKind,
       databaseConnection: databaseConnectionInfo,
       migrationConnection: databaseMigrationConnectionInfo,
-      databaseEnvKeys: dbEnvKeys,
+      databaseEnvStatus: dbEnvStatus,
       supabaseAuth: Boolean(
         (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
           (
