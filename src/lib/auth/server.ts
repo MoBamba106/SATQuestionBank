@@ -2,9 +2,22 @@ import { cookies, headers } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { sql } from "drizzle-orm";
 import { db, ensureDatabaseReady } from "@/db";
-import { GUEST_USER, GUEST_USER_ID, type AuthUser } from "@/lib/auth/types";
+import {
+  GUEST_USER,
+  GUEST_USER_ID,
+  isLocalGuestId,
+  makeLocalGuestUser,
+  type AuthUser,
+} from "@/lib/auth/types";
+import {
+  resolveSupabaseAnonKey,
+  resolveSupabaseServiceRoleKey,
+  resolveSupabaseUrl,
+} from "@/lib/supabase";
 
 const AUTH_COOKIE = "sat_nexus_access_token";
+const GUEST_COOKIE = "sat_nexus_guest_id";
+const GUEST_HEADER = "x-sat-guest-id";
 /** Header an admin can send to act on behalf of another user ("go into their account"). */
 const IMPERSONATE_HEADER = "x-admin-impersonate";
 
@@ -24,22 +37,12 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 }
 
 function supabaseConfigured() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
-      (
-        process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
-      ),
-  );
+  return Boolean(resolveSupabaseUrl() && (resolveSupabaseServiceRoleKey() || resolveSupabaseAnonKey()));
 }
 
 function getSupabaseServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  const url = resolveSupabaseUrl();
+  const key = resolveSupabaseServiceRoleKey() || resolveSupabaseAnonKey();
 
   if (!url || !key) return null;
 
@@ -75,12 +78,27 @@ function userFromSupabasePayload(user: {
   };
 }
 
+function resolveLocalGuest(req?: Request, headerStore?: Headers, cookieStore?: Awaited<ReturnType<typeof cookies>>): AuthUser {
+  const fromHeader =
+    req?.headers.get(GUEST_HEADER)?.trim() ||
+    headerStore?.get(GUEST_HEADER)?.trim() ||
+    "";
+  const fromCookie = cookieStore?.get(GUEST_COOKIE)?.value?.trim() || "";
+  const candidate = fromHeader || fromCookie;
+  // Never fall back to the shared legacy "guest" id for new traffic.
+  if (candidate && isLocalGuestId(candidate) && candidate !== GUEST_USER_ID) {
+    return makeLocalGuestUser(candidate);
+  }
+  // No client id yet (first request / SSR) — use a throwaway row so we don't
+  // pollute the shared legacy guest. The browser will send a stable id next.
+  return makeLocalGuestUser(`${GUEST_USER_ID}_ephemeral`);
+}
+
 /**
  * Resolve the current user for an API/route handler.
  * - Authorization: Bearer <token> (preferred)
  * - Cookie sat_nexus_access_token
- * - Falls back to guest when Supabase Auth is not configured or token is absent
- *   (guest mode keeps the app usable for demos / local dev).
+ * - Per-browser guest via x-sat-guest-id / sat_nexus_guest_id cookie
  */
 export async function getRequestUser(req?: Request): Promise<RequestUser> {
   await ensureDatabaseReady();
@@ -97,15 +115,17 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
     "";
 
   if (!token || !supabaseConfigured()) {
-    await ensureUserRow(GUEST_USER);
-    return GUEST_USER;
+    const guest = resolveLocalGuest(req, headerStore, cookieStore);
+    await ensureUserRow(guest);
+    return guest;
   }
 
   try {
     const verified = await verifySupabaseToken(token);
     if (!verified) {
-      await ensureUserRow(GUEST_USER);
-      return GUEST_USER;
+      const guest = resolveLocalGuest(req, headerStore, cookieStore);
+      await ensureUserRow(guest);
+      return guest;
     }
     verified.isAdmin = isAdminEmail(verified.email);
     await ensureUserRow(verified);
@@ -127,8 +147,9 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
     return verified;
   } catch (error) {
     console.warn("[auth] token verification failed:", error instanceof Error ? error.message : error);
-    await ensureUserRow(GUEST_USER);
-    return GUEST_USER;
+    const guest = resolveLocalGuest(req, headerStore, cookieStore);
+    await ensureUserRow(guest);
+    return guest;
   }
 }
 
@@ -177,7 +198,7 @@ export async function findUserRow(id: string): Promise<AuthUser | null> {
     email: (row.email as string | null) ?? null,
     displayName: (row.displayName as string | null) ?? null,
     avatarUrl: (row.avatarUrl as string | null) ?? null,
-    isGuest: row.id === GUEST_USER_ID,
+    isGuest: isLocalGuestId(String(row.id)),
   };
 }
 

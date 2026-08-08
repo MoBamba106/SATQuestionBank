@@ -20,12 +20,13 @@ export async function GET(req: Request) {
     const users = rows<Record<string, unknown>>(
       await db.execute(sql`
         SELECT u.id, u.email, u.display_name AS "displayName",
-               u.hide_leaderboard AS "hideLeaderboard", u.created_at AS "createdAt",
+               u.hide_leaderboard AS "hideLeaderboard",
+               (u.created_at AT TIME ZONE 'UTC') AS "createdAt",
                COUNT(a.id)::int AS attempts,
                COALESCE(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END), 0)::int AS correct,
                COUNT(DISTINCT qs.id) FILTER (WHERE qs.finished_at IS NOT NULL)::int AS sessions,
-               MAX(a.created_at) AS "lastActive",
-               up.last_seen AS "lastSeen",
+               (MAX(a.created_at) AT TIME ZONE 'UTC') AS "lastActive",
+               (up.last_seen AT TIME ZONE 'UTC') AS "lastSeen",
                CASE WHEN up.last_seen >= now() - interval '2 minutes' THEN true ELSE false END AS "isOnline"
         FROM users u
         LEFT JOIN quiz_sessions qs ON qs.user_id = u.id
@@ -59,7 +60,8 @@ export async function GET(req: Request) {
 
     const activity = rows<{ date: string; attempts: number; correct: number }>(
       await db.execute(sql`
-        SELECT to_char(created_at, 'YYYY-MM-DD') AS date, COUNT(*)::int AS attempts,
+        SELECT to_char(created_at AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date,
+               COUNT(*)::int AS attempts,
                COALESCE(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END), 0)::int AS correct
         FROM attempts
         WHERE created_at >= now() - interval '30 days'

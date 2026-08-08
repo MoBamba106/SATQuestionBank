@@ -25,9 +25,12 @@ export function ShareQuestionDialog({
 
   React.useEffect(() => {
     if (!open) return;
-    setQuery("");
-    setResults([]);
-    setEmailMode("");
+    const t = window.setTimeout(() => {
+      setQuery("");
+      setResults([]);
+      setEmailMode("");
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [open]);
 
   const search = React.useCallback(async (q: string) => {

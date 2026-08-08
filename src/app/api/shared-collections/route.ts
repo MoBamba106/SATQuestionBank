@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { getRequestUser } from "@/lib/auth/server";
+import { isLocalGuestId } from "@/lib/auth/types";
 import { uid } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
-    if (user.id === "guest") return NextResponse.json({ received: [], sent: [] });
+    if (user.isGuest || isLocalGuestId(user.id)) return NextResponse.json({ received: [], sent: [] });
 
     const received = rows<Record<string, unknown>>(
       await db.execute(sql`
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
-    if (user.id === "guest") return NextResponse.json({ error: "Sign in to share collections" }, { status: 401 });
+    if (user.isGuest || isLocalGuestId(user.id)) return NextResponse.json({ error: "Sign in to share collections" }, { status: 401 });
 
     const body = await req.json();
     const collectionId = String(body?.collectionId || "").trim();

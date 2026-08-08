@@ -70,12 +70,12 @@ export function PaperMultiSelect({
   }, [values, options, placeholder]);
 
   const toggle = (value: string) => {
+    // Stay open while multi-selecting; only "All" clears and leaves the menu open
+    // so the user can confirm the empty state, then click outside to dismiss.
     if (value === "All") {
       onValuesChange([]);
-      setOpen(false);
       return;
     }
-    setOpen(false);
     onValuesChange(
       selectedSet.has(value)
         ? values.filter((v) => v !== value)
@@ -92,9 +92,10 @@ export function PaperMultiSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         data-tone={tone}
+        data-state={open ? "open" : "closed"}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "paper-select-trigger group inline-flex w-full items-center justify-between gap-2 rounded-[7px] border text-left transition-[background-color,border-color,box-shadow] duration-150",
+          "paper-select-trigger group inline-flex w-full items-center justify-between gap-2 rounded-[7px] border border-[var(--line)] bg-[var(--control-bg,var(--paper-raised))] text-left text-[var(--ink)] transition-[background-color,border-color,box-shadow] duration-150",
           "focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 data-[state=open]:ring-2 data-[state=open]:ring-[var(--accent)]/20",
           "disabled:cursor-not-allowed disabled:opacity-45",
           size === "md" ? "px-3.5 py-2.5 text-sm" : "rounded-[5px] px-2.5 py-1.5 text-[13px]",

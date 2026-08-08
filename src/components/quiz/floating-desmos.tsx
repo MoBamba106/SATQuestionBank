@@ -86,20 +86,31 @@ export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: bo
   const dragRef = React.useRef<{ id: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const resizeRef = React.useRef<{ id: number; dir: ResizeDir; sx: number; sy: number; ox: number; oy: number; ow: number; oh: number } | null>(null);
 
-  React.useEffect(() => setMounted(true), []);
-
-  React.useLayoutEffect(() => {
-    if (!open) return;
-    const c = centered(680, 600);
-    setPos({ x: c.x, y: c.y });
-    setSize({ w: c.w, h: c.h });
-  }, [open]);
-
-  // The toolbar button is also the restore control when the calculator is minimized.
   React.useEffect(() => {
-    if (!open || restoreRequest === 0) return;
-    const restore = window.setTimeout(() => setMined(false), 0);
-    return () => window.clearTimeout(restore);
+    const t = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  // Fresh open / restore: always center the calculator in the viewport.
+  // Defer setState so we don't cascade renders inside the effect body.
+  React.useEffect(() => {
+    if (!open) {
+      saved.current = null;
+      const reset = window.setTimeout(() => {
+        setMined(false);
+        setMaxed(false);
+      }, 0);
+      return () => window.clearTimeout(reset);
+    }
+    const place = window.setTimeout(() => {
+      const c = centered(680, 600);
+      setPos({ x: c.x, y: c.y });
+      setSize({ w: c.w, h: c.h });
+      setMined(false);
+      setMaxed(false);
+      saved.current = null;
+    }, 0);
+    return () => window.clearTimeout(place);
   }, [open, restoreRequest]);
 
   React.useEffect(() => {
@@ -109,8 +120,9 @@ export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: bo
       return;
     }
     let cancelled = false;
-    setStatus("loading");
-    const t = setTimeout(() => {
+    const t = window.setTimeout(() => {
+      if (cancelled) return;
+      setStatus("loading");
       loadDesmosApi()
         .then(() => {
           if (cancelled || !containerRef.current || !window.Desmos) return;
@@ -137,7 +149,7 @@ export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: bo
     }, 30);
     return () => {
       cancelled = true;
-      clearTimeout(t);
+      window.clearTimeout(t);
     };
   }, [open]);
 

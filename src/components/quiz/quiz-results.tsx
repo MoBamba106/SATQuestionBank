@@ -4,9 +4,10 @@ import * as React from "react";
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { Trophy, RotateCcw, LayoutDashboard, CheckCircle2, XCircle, MinusCircle, ChevronDown, ChevronUp, X, Eye, Maximize2 } from "lucide-react";
+import { Trophy, RotateCcw, LayoutDashboard, CheckCircle2, XCircle, MinusCircle, ChevronDown, ChevronUp, X, Eye, Maximize2, Link2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
+import { ShareQuizDialog } from "@/components/share-quiz-dialog";
 import { cn, difficultyColor, domainColor, skillColor, stripHtml } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
@@ -49,6 +50,7 @@ export function QuizResults({
   extra?: React.ReactNode;
 }) {
   const [review, setReview] = React.useState(false);
+  const [shareOpen, setShareOpen] = React.useState(false);
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set());
   const [lightbox, setLightbox] = React.useState<{ type: "img"; src: string } | { type: "svg"; html: string } | null>(null);
 
@@ -157,6 +159,9 @@ export function QuizResults({
           <button className="btn btn-soft" onClick={() => setReview((r) => !r)}>
             {review ? "Hide review" : "Review answers"}
           </button>
+          <button className="btn btn-soft" onClick={() => setShareOpen(true)}>
+            <Link2 className="h-4 w-4" /> Share quiz
+          </button>
           {missed.length > 0 && onRetryMissed && (
             <button className="btn btn-primary" onClick={onRetryMissed}>
               <RotateCcw className="h-4 w-4" /> Retry {missed.length} missed
@@ -167,6 +172,14 @@ export function QuizResults({
           </button>
         </div>
       </GlassCard>
+
+      <ShareQuizDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        label={label}
+        mode="practice"
+        questionIds={pool.map((q) => q.id)}
+      />
 
       {review && (
         <div className="space-y-5">

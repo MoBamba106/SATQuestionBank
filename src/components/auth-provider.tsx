@@ -2,14 +2,18 @@
 
 import * as React from "react";
 import type { AuthUser } from "@/lib/auth/types";
-import { GUEST_USER } from "@/lib/auth/types";
+import { isLocalGuestId, makeLocalGuestUser } from "@/lib/auth/types";
 import {
   clearAuth,
+  clearLocalGuestProgressKeys,
   getCurrentAuthState,
+  getLocalGuestUser,
+  getOrCreateLocalGuestId,
   isAuthEnabled,
   persistAuth,
   signInAnonymously,
   signInWithEmail,
+  signInWithPasskey,
   signOutSupabase,
   signUpWithEmail,
   subscribeToAuthState,
@@ -25,6 +29,7 @@ type AuthContextValue = {
   /** Server-verified admin status for the signed-in account. */
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInPasskey: (email?: string) => Promise<void>;
   signUp: (email: string, password: string, username?: string) => Promise<void>;
   updateUsername: (username: string) => Promise<void>;
   signInGuestCloud: () => Promise<void>;
@@ -34,8 +39,24 @@ type AuthContextValue = {
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
+async function migrateGuestProgress(guestId: string | null, accessToken: string | null) {
+  if (!guestId || !accessToken || !isLocalGuestId(guestId) || guestId === "guest") return;
+  try {
+    await fetch("/api/auth/migrate-guest", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ guestId }),
+    });
+  } catch {
+    /* best-effort — account still works without the import */
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<AuthUser>(GUEST_USER);
+  const [user, setUser] = React.useState<AuthUser>(() => makeLocalGuestUser());
   const [accessToken, setAccessToken] = React.useState<string | null>(null);
   const [ready, setReady] = React.useState(false);
   const [isAdmin, setIsAdmin] = React.useState(false);
@@ -71,6 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let unsubscribe: (() => void) | undefined;
 
     const timer = window.setTimeout(async () => {
+      getOrCreateLocalGuestId();
       const stored = await getCurrentAuthState();
       if (!active) return;
       setUser(stored.user);
@@ -105,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     mutateKey("collections");
     mutateKey("stats");
     mutateKey("mistakes");
+    mutateKey("leaderboard");
   }, []);
 
   const value = React.useMemo<AuthContextValue>(
@@ -115,11 +138,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authEnabled,
       isAdmin,
       async signIn(email, password) {
+        const priorGuestId = user.isGuest ? user.id : getOrCreateLocalGuestId();
         const session = await signInWithEmail(email, password);
+        // Existing account: discard temporary guest progress so it can't pollute.
+        clearLocalGuestProgressKeys();
+        // Still try to import any server-side guest rows that belong to this browser.
+        await migrateGuestProgress(priorGuestId, session.accessToken);
+        applySession(session.user, session.accessToken);
+      },
+      async signInPasskey(email) {
+        const priorGuestId = user.isGuest ? user.id : getOrCreateLocalGuestId();
+        const session = await signInWithPasskey(email);
+        clearLocalGuestProgressKeys();
+        await migrateGuestProgress(priorGuestId, session.accessToken);
         applySession(session.user, session.accessToken);
       },
       async signUp(email, password, username) {
+        const priorGuestId = user.isGuest ? user.id : getOrCreateLocalGuestId();
         const session = await signUpWithEmail(email, password, username);
+        // New account: import this browser's guest history, then clear local guest caches.
+        await migrateGuestProgress(priorGuestId, session.accessToken);
+        clearLocalGuestProgressKeys();
         applySession(session.user, session.accessToken);
       },
       async updateUsername(username) {
@@ -149,11 +188,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await signOutSupabase();
         clearAuth();
         setImpersonatedUser(null);
-        applySession(GUEST_USER, null);
+        applySession(getLocalGuestUser(), null);
       },
       continueAsLocalGuest() {
         clearAuth();
-        applySession(GUEST_USER, null);
+        applySession(getLocalGuestUser(), null);
       },
     }),
     [accessToken, applySession, authEnabled, isAdmin, ready, user],

@@ -10,20 +10,160 @@ import { Pool, type PoolConfig } from "pg";
 /**
  * Database access for SAT Nexus (web).
  *
- * Production / Vercel:
- *   - DATABASE_URL: runtime query traffic
- *   - DATABASE_MIGRATION_URL (recommended): schema migrations
+ * Production / Vercel (Supabase integration names preferred):
+ *   - POSTGRES_URL / POSTGRES_PRISMA_URL / DATABASE_URL → runtime queries
+ *   - POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL → Drizzle migrations
  *
  * Local development (zero-config):
- *   Embedded PGlite in .sat-nexus-db when DATABASE_URL is unset.
+ *   Embedded PGlite in .sat-nexus-db when no Postgres URL is set.
  */
-const rawDatabaseUrl = process.env.DATABASE_URL?.trim() || "";
+/**
+ * Clean a connection string people paste from dashboards / chat.
+ * Common failure: markdown links like host@[x](http://x) which make the
+ * URL invalid so we fall through to embedded PGlite.
+ */
+function sanitizeConnectionString(raw: string): string {
+  let value = String(raw ?? "").trim();
+  if (!value) return "";
+
+  // Strip wrapping quotes from dashboard paste.
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    value = value.slice(1, -1).trim();
+  }
+
+  // Strip accidental markdown links:
+  //   postgresql://user:pass@[host:6543/db](http://host:6543/db)
+  //   postgresql://user:pass@host:6543/db (https://…)
+  value = value.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, "$1");
+  // Trailing parenthetical URL left after a space.
+  value = value.replace(/\s*\((https?:\/\/[^)]+)\)\s*$/i, "");
+  // Bare angle brackets around host: @<host:port/db>
+  value = value.replace(/@<([^>]+)>/g, "@$1");
+  // Leading "psql " some copy buttons include.
+  value = value.replace(/^(psql|postgres)\s+/i, "");
+  // Collapse whitespace / newlines from multi-line secrets.
+  value = value.replace(/\s+/g, "");
+
+  return value.trim();
+}
 
 function isPostgresConnectionString(value: string) {
-  return (
-    /^(postgres(ql)?:\/\/)/i.test(value) ||
-    (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:"))
-  );
+  if (!value) return false;
+  // Accept standard postgres URLs and common Supabase / Prisma pooler forms
+  // (including query-string suffixes like ?pgbouncer=true&sslmode=require).
+  if (/^(postgres(ql)?:\/\/)/i.test(value)) return true;
+  if (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:")) return true;
+  return false;
+}
+
+/**
+ * First non-empty env value. Optionally require a valid postgres URL so a
+ * broken POSTGRES_URL cannot shadow a good POSTGRES_URL_NON_POOLING.
+ */
+function firstEnv(...keys: string[]): string {
+  for (const key of keys) {
+    const raw = process.env[key];
+    if (raw == null || !String(raw).trim()) continue;
+    const value = sanitizeConnectionString(String(raw));
+    if (value) return value;
+  }
+  return "";
+}
+
+function firstPostgresUrl(...keys: string[]): string {
+  for (const key of keys) {
+    const raw = process.env[key];
+    if (raw == null || !String(raw).trim()) continue;
+    const value = sanitizeConnectionString(String(raw));
+    if (value && isPostgresConnectionString(value)) return value;
+  }
+  return "";
+}
+
+/**
+ * Runtime URL — any valid Supabase/Postgres URL works.
+ * Prefer pooler (6543) names, but accept non-pooling if that's all that is set.
+ * Never return an invalid string that would block fallbacks.
+ */
+const rawDatabaseUrl = firstPostgresUrl(
+  "POSTGRES_URL",
+  "POSTGRES_PRISMA_URL",
+  "DATABASE_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "DATABASE_MIGRATION_URL",
+  "DATABASE_DIRECT_URL",
+  "DIRECT_DATABASE_URL",
+);
+
+function describeUrlProblem(raw: string | undefined): string | null {
+  if (raw == null || !String(raw).trim()) return "empty / unset";
+  const cleaned = sanitizeConnectionString(String(raw));
+  if (!cleaned) return "empty after cleanup";
+  if (isPostgresConnectionString(cleaned)) return null;
+  if (/^https?:\/\//i.test(cleaned)) {
+    return "looks like http(s) — need postgresql:// not the Supabase website URL";
+  }
+  if (cleaned.includes("](") || /https?:\/\//i.test(cleaned)) {
+    return "contains markdown/link junk — paste the plain connection string only";
+  }
+  if (!cleaned.includes("://")) {
+    return "missing protocol — must start with postgresql://";
+  }
+  return "not recognized as a postgres connection string";
+}
+
+function configuredDbEnvKeys(): string[] {
+  return [
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "DATABASE_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_MIGRATION_URL",
+    "DATABASE_MODE",
+  ].filter((key) => Boolean(process.env[key]?.trim()));
+}
+
+/** Safe diagnostics for logs/health — never prints passwords. */
+function dbEnvDiagnostics(): string {
+  const parts: string[] = [];
+  for (const key of [
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "DATABASE_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_MIGRATION_URL",
+    "DATABASE_MODE",
+  ]) {
+    const raw = process.env[key];
+    if (raw == null || !String(raw).trim()) {
+      parts.push(`${key}=unset`);
+      continue;
+    }
+    if (key === "DATABASE_MODE") {
+      parts.push(`${key}=${String(raw).trim()}`);
+      continue;
+    }
+    const problem = describeUrlProblem(raw);
+    if (problem) {
+      parts.push(`${key}=INVALID(${problem})`);
+      continue;
+    }
+    const cleaned = sanitizeConnectionString(String(raw));
+    let host = "?";
+    let port = "?";
+    try {
+      const u = new URL(cleaned);
+      host = u.hostname || "?";
+      port = u.port || "?";
+    } catch {
+      host = "unparseable";
+    }
+    parts.push(`${key}=ok(${host}:${port})`);
+  }
+  return parts.join("; ");
 }
 
 function deriveSupabaseSessionPoolerUrl(value: string): string {
@@ -43,29 +183,48 @@ const derivedMigrationUrl = isPostgresConnectionString(rawDatabaseUrl)
   ? deriveSupabaseSessionPoolerUrl(rawDatabaseUrl)
   : "";
 
+/** Direct / session URL for migrations — non-pooling first; only valid URLs. */
 const rawMigrationUrl =
-  process.env.DATABASE_MIGRATION_URL?.trim() ||
+  firstPostgresUrl(
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_MIGRATION_URL",
+    "DATABASE_DIRECT_URL",
+    "DIRECT_DATABASE_URL",
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "DATABASE_URL",
+  ) ||
   derivedMigrationUrl ||
-  process.env.DATABASE_DIRECT_URL?.trim() ||
-  process.env.DIRECT_DATABASE_URL?.trim() ||
-  process.env.POSTGRES_URL_NON_POOLING?.trim() ||
   rawDatabaseUrl;
 
 const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
-const forceEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
 const forcePostgres = mode === "postgres" || mode === "pg";
+// Only force embedded when there is NO usable Postgres URL.
+// A real POSTGRES_URL / DATABASE_URL always wins — otherwise Vercel deployments
+// with a leftover DATABASE_MODE=embedded keep falling into broken PGlite.
+const wantEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
 
 const onVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 const hasRuntimePostgresUrl = isPostgresConnectionString(rawDatabaseUrl);
+const forceEmbedded = wantEmbedded && !hasRuntimePostgresUrl;
 const shouldUsePostgres =
   !forceEmbedded &&
   hasRuntimePostgresUrl &&
-  (forcePostgres || onVercel || process.env.NODE_ENV === "production" || Boolean(rawDatabaseUrl));
+  (forcePostgres || onVercel || process.env.NODE_ENV === "production" || hasRuntimePostgresUrl);
+
+if (wantEmbedded && hasRuntimePostgresUrl) {
+  console.warn(
+    "[db] DATABASE_MODE requests embedded PGlite, but a Postgres URL is set " +
+      `(${configuredDbEnvKeys().filter((k) => k !== "DATABASE_MODE").join(", ") || "POSTGRES_URL"}). ` +
+      "Using Postgres. Remove DATABASE_MODE on Vercel to silence this.",
+  );
+}
 
 if ((onVercel || process.env.NODE_ENV === "production") && !hasRuntimePostgresUrl && !forceEmbedded) {
   console.warn(
-    "[db] DATABASE_URL is missing or not a postgres:// URL. " +
-      "Vercel production requires Postgres (CloudBase RDB / Neon / Supabase / etc.).",
+    "[db] No usable Postgres URL found (checked POSTGRES_URL, POSTGRES_PRISMA_URL, DATABASE_URL, POSTGRES_URL_NON_POOLING). " +
+      `${dbEnvDiagnostics()}. ` +
+      "Vercel production requires a plain postgresql:// connection string (no markdown links).",
   );
 }
 
@@ -90,11 +249,12 @@ function parseDatabaseUrl(value: string): URL | null {
 
 function redactHost(host: string | null): string | null {
   if (!host) return null;
-  if (/pooler\.supabase\.com$/i.test(host)) return "*.pooler.supabase.com";
-  if (/supabase\.co$/i.test(host)) return "*.supabase.co";
+  // Never emit markdown-friendly bare domains that chat UIs turn into links.
+  if (/pooler\.supabase\.com$/i.test(host)) return "aws-pooler.supabase.com";
+  if (/supabase\.co$/i.test(host)) return "db.supabase.co";
   const parts = host.split(".");
   if (parts.length <= 2) return host;
-  return `*.${parts.slice(-2).join(".")}`;
+  return `star.${parts.slice(-2).join(".")}`;
 }
 
 function getDatabaseConnectionInfo(url: string | undefined): DatabaseConnectionInfo {
@@ -420,12 +580,17 @@ async function runSchema() {
         ? " Supabase transaction pooler URLs (port 6543) are best for app queries. Use DATABASE_MIGRATION_URL with a direct or session-mode connection for Drizzle migrations."
         : "";
 
+    const envHint = ` Diagnostics: ${dbEnvDiagnostics()}.`;
     throw new Error(
       `Database schema setup failed (${databaseKind}): ${message}\n` +
         `Runtime target: ${runtimeTarget}. Migration target: ${migrationTarget}.` +
         (shouldUsePostgres
-          ? ` Check DATABASE_URL, DATABASE_MIGRATION_URL, and database credentials.${providerHint}`
-          : " Embedded PGlite failed. Delete .sat-nexus-db and restart, or set DATABASE_URL."),
+          ? ` Check POSTGRES_URL / DATABASE_URL, POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL, and database credentials.${providerHint}${envHint}`
+          : ` Embedded PGlite failed.${envHint} ` +
+              "If you meant to use Supabase Postgres: set POSTGRES_URL to a PLAIN string like " +
+              "postgresql://postgres.PROJECT:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres " +
+              "(no [brackets], no (http://…) markdown links). Delete DATABASE_MODE on Vercel. " +
+              "Local-only: delete .sat-nexus-db and restart."),
     );
   }
 }

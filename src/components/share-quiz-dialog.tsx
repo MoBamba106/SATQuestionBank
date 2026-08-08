@@ -1,39 +1,59 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Share2, Search, UserRound, Send } from "lucide-react";
+import { Check, Copy, Link2, Loader2, Search, Send, Share2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiPost } from "@/lib/api-client";
 
 type UserResult = { id: string; email: string | null; displayName: string | null };
 
-export function ShareCollectionDialog({
+type ShareQuizResponse = {
+  id: string;
+  token: string;
+  shareUrl: string;
+  label: string;
+  mode: string;
+  questionCount: number;
+  expiresInDays: number;
+};
+
+export function ShareQuizDialog({
   open,
   onOpenChange,
-  collectionId,
-  collectionName,
+  label,
+  mode = "practice",
+  questionIds,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  collectionId: string;
-  collectionName: string;
+  label: string;
+  mode?: string;
+  questionIds: string[];
 }) {
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<UserResult[]>([]);
   const [searching, setSearching] = React.useState(false);
   const [sending, setSending] = React.useState<string | null>(null);
   const [emailMode, setEmailMode] = React.useState("");
+  const [linkBusy, setLinkBusy] = React.useState(false);
+  const [shareUrl, setShareUrl] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
+  const linkCache = React.useRef<ShareQuizResponse | null>(null);
 
+  const questionKey = questionIds.join("|");
   React.useEffect(() => {
     if (!open) return;
     const t = window.setTimeout(() => {
       setQuery("");
       setResults([]);
       setEmailMode("");
+      setShareUrl(null);
+      setCopied(false);
+      linkCache.current = null;
     }, 0);
     return () => window.clearTimeout(t);
-  }, [open]);
+  }, [open, questionKey, label, mode]);
 
   const search = React.useCallback(async (q: string) => {
     if (q.trim().length < 2) {
@@ -57,23 +77,102 @@ export function ShareCollectionDialog({
     return () => clearTimeout(t);
   }, [query, search]);
 
+  const createShare = async (toUserId?: string, toEmail?: string) => {
+    return apiPost<ShareQuizResponse>("/api/shared-quizzes", {
+      label,
+      mode,
+      questionIds,
+      toUserId,
+      toEmail,
+    });
+  };
+
+  const ensureLink = async () => {
+    if (linkCache.current?.shareUrl) {
+      setShareUrl(linkCache.current.shareUrl);
+      return linkCache.current;
+    }
+    setLinkBusy(true);
+    try {
+      const res = await createShare();
+      linkCache.current = res;
+      setShareUrl(res.shareUrl);
+      return res;
+    } catch (e) {
+      toast.error("Couldn't create share link", {
+        description: e instanceof Error ? e.message : undefined,
+      });
+      return null;
+    } finally {
+      setLinkBusy(false);
+    }
+  };
+
+  const copyLink = async () => {
+    const res = await ensureLink();
+    if (!res?.shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(res.shareUrl);
+      setCopied(true);
+      toast.success("Quiz link copied", {
+        description: `Anyone with the link can open these ${res.questionCount} questions for ${res.expiresInDays} days.`,
+      });
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.message("Copy this link", { description: res.shareUrl });
+    }
+  };
+
   const shareTo = async (toUserId?: string, toEmail?: string) => {
     const key = toUserId || toEmail || "";
     setSending(key);
     try {
-      await apiPost("/api/shared-collections", { collectionId, toUserId, toEmail });
-      toast.success(`Collection "${collectionName}" shared${toEmail ? ` to ${toEmail}` : ""}!`);
+      const res = await createShare(toUserId, toEmail);
+      toast.success(`Quiz shared${toEmail ? ` to ${toEmail}` : ""}!`, {
+        description: `They’ll see ${res.questionCount} questions. Link expires in ${res.expiresInDays} days.`,
+      });
       onOpenChange(false);
     } catch (e) {
-      toast.error("Couldn't share collection", { description: e instanceof Error ? e.message : undefined });
+      toast.error("Couldn't share quiz", { description: e instanceof Error ? e.message : undefined });
     } finally {
       setSending(null);
     }
   };
 
   return (
-    <PaperDialog open={open} onOpenChange={onOpenChange} title={`Share "${collectionName}"`} description="Send this collection to another student. They'll see it in their Shared Collections tab with your name on it.">
+    <PaperDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Share this quiz"
+      description={`Send “${label}” (${questionIds.length} question${questionIds.length === 1 ? "" : "s"}) as a link or to another student. Links expire after 7 days.`}
+    >
       <div className="mt-4 space-y-4">
+        <div className="rounded-[8px] border border-[var(--line)] bg-[var(--paper-soft)]/70 p-3">
+          <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">
+            Shareable link
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn btn-primary grow sm:grow-0" disabled={linkBusy || questionIds.length === 0} onClick={() => void copyLink()}>
+              {linkBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copied" : "Copy quiz link"}
+            </button>
+            <button type="button" className="btn btn-soft" disabled={linkBusy || questionIds.length === 0} onClick={() => void ensureLink()}>
+              <Link2 className="h-4 w-4" /> Generate link
+            </button>
+          </div>
+          {shareUrl && (
+            <p className="mt-2 break-all rounded-[6px] border border-[var(--line-soft)] bg-[var(--paper-raised)] px-2.5 py-2 font-mono text-[11.5px] text-[var(--ink-soft)]">
+              {shareUrl}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="h-px grow bg-[var(--line-soft)]" />
+          <span className="text-[10px] font-bold uppercase text-[var(--ink-faint)]">or send to a student</span>
+          <div className="h-px grow bg-[var(--line-soft)]" />
+        </div>
+
         <div>
           <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Search by name or email</label>
           <div className="relative">
@@ -101,12 +200,6 @@ export function ShareCollectionDialog({
             ))}
           </ul>
         )}
-
-        <div className="flex items-center gap-2">
-          <div className="h-px grow bg-[var(--line-soft)]" />
-          <span className="text-[10px] font-bold uppercase text-[var(--ink-faint)]">or</span>
-          <div className="h-px grow bg-[var(--line-soft)]" />
-        </div>
 
         <div>
           <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Share via email</label>

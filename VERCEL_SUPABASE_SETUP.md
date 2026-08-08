@@ -1,58 +1,44 @@
 # Vercel + Supabase setup
 
-Use **two** Postgres connection strings in Vercel:
+Prefer the **names Supabase’s Vercel integration** injects. Manual aliases still work.
 
-1. `DATABASE_URL` for normal app queries
-2. `DATABASE_MIGRATION_URL` for Drizzle migrations
+## Postgres: two URLs
+
+1. **Runtime (pooler)** — serverless queries  
+   - Preferred: `POSTGRES_URL` (transaction pooler, port `6543`)  
+   - Also accepted: `POSTGRES_PRISMA_URL`, `DATABASE_URL`
+2. **Migrations (direct / session)** — Drizzle schema changes  
+   - Preferred: `POSTGRES_URL_NON_POOLING` (port `5432` or direct host)  
+   - Also accepted: `DATABASE_MIGRATION_URL`
 
 Why two URLs?
 
-- `DATABASE_URL` should use the **Supabase transaction pooler** on port `6543` for serverless app traffic.
-- `DATABASE_MIGRATION_URL` should use a **direct** connection or the **session pooler** on port `5432` for schema changes.
+- Runtime should use the **transaction pooler** (`6543`) for Vercel serverless.
+- Migrations should use a **direct** connection or the **session pooler** (`5432`).
 
-This app now runs versioned Drizzle migrations during the Vercel build via:
+Build path:
 
 ```bash
 npm run vercel-build
+# → npm run db:migrate && npm run db:seed && next build
 ```
 
-That command runs:
+If `POSTGRES_URL_NON_POOLING` / `DATABASE_MIGRATION_URL` is unset and the runtime URL is a Supabase `pooler.supabase.com:6543` string, the app auto-derives the matching `:5432` session URL.
 
-```bash
-npm run db:migrate && npm run db:seed && next build
-```
+### Migration URL options
 
-## Exact Vercel environment variables
-
-### Required
+#### Option A — Supabase direct
 
 ```env
-DATABASE_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+POSTGRES_URL_NON_POOLING=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
 ```
 
-### Strongly recommended for migrations
+If Vercel shows `ENETUNREACH` on an IPv6 address, use Option B.
 
-Use **one** of these for `DATABASE_MIGRATION_URL`:
-
-If you leave `DATABASE_MIGRATION_URL` unset and `DATABASE_URL` is a Supabase
-`pooler.supabase.com:6543` URL, this repo now auto-derives the matching
-`pooler.supabase.com:5432` session-pooler URL during the build. Explicitly
-setting `DATABASE_MIGRATION_URL` is still safer and clearer.
-
-#### Option A — Supabase direct connection
-Best when your build environment can reach the direct database host.
-
-If Vercel logs show `ENETUNREACH` with an IPv6 address on port `5432`, the direct host is not reachable from that environment. In that case, switch to **Option B** below.
+#### Option B — Session pooler
 
 ```env
-DATABASE_MIGRATION_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
-```
-
-#### Option B — Supabase session pooler
-Best fallback when you want IPv4-friendly connectivity from hosted builders.
-
-```env
-DATABASE_MIGRATION_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres
+POSTGRES_URL_NON_POOLING=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres
 ```
 
 ### Optional SSL flags
@@ -62,42 +48,41 @@ DATABASE_SSL=true
 DATABASE_SSL_REJECT_UNAUTHORIZED=true
 ```
 
-If Vercel logs show `SELF_SIGNED_CERT_IN_CHAIN`, set:
+For `SELF_SIGNED_CERT_IN_CHAIN`:
 
 ```env
 DATABASE_SSL_REJECT_UNAUTHORIZED=false
 ```
 
-This repo also retries migrations automatically with `rejectUnauthorized=false` when it detects that certificate-chain error, but setting the env var explicitly makes the behavior deterministic.
-
-### Supabase Auth values
-These are required if you want sign-up / sign-in to work.
+## Auth values
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://[PROJECT_REF].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_ANON_KEY]
-SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
+# or SUPABASE_URL from the integration
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon]
+# or SUPABASE_ANON_KEY / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / SUPABASE_PUBLISHABLE_KEY
+
+SUPABASE_SERVICE_ROLE_KEY=[service_role]
+# or SUPABASE_SECRET_KEY
 ```
 
-This repo also accepts:
+## What to delete on Vercel
 
-```env
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[YOUR_PUBLISHABLE_KEY]
-```
+If Supabase integration already set the preferred names, remove manual duplicates so values cannot drift:
 
-but `NEXT_PUBLIC_SUPABASE_ANON_KEY` is the preferred standard name.
+| Safe to remove | Keep |
+|----------------|------|
+| `DATABASE_URL` | `POSTGRES_URL` |
+| `DATABASE_MIGRATION_URL` | `POSTGRES_URL_NON_POOLING` |
+| Extra publishable/anon duplicates | One public key only |
+| `SUPABASE_JWT_SECRET` | (unused by this app) |
+| `POSTGRES_USER` / `HOST` / `PASSWORD` / `DATABASE` | (optional when full URLs exist) |
+| `DATABASE_MODE` | (local PGlite only) |
 
-## Vercel project settings checklist
+## Health check
 
-1. Add the env vars above in **Project → Settings → Environment Variables**.
-2. Make sure each environment points at the correct database:
-   - Production → production database
-   - Preview → preview / staging database
-   - Development → local or dev database
-3. Redeploy.
-4. Check `/api/health`.
-
-A healthy response should show something like:
+`GET /api/health` should look like:
 
 ```json
 {
@@ -110,17 +95,11 @@ A healthy response should show something like:
   "migrationConnection": {
     "provider": "supabase",
     "connectionMode": "session-pooler"
-  }
+  },
+  "supabaseAuth": true
 }
 ```
 
-## Security cleanup note
+## Security
 
-If a real database password was ever committed to `.env`, treat it as exposed:
-
-1. Rotate the Supabase database password
-2. Update `DATABASE_URL`
-3. Update `DATABASE_MIGRATION_URL`
-4. Redeploy
-
-Removing `.env` from the current branch does **not** erase old secrets from git history.
+If a real database password was ever committed to `.env`, rotate it in Supabase, update `POSTGRES_URL` + `POSTGRES_URL_NON_POOLING`, and redeploy.

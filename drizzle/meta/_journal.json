@@ -29,6 +29,27 @@
       "when": 1785816494390,
       "tag": "0003_shared_and_presence",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785816494391,
+      "tag": "0004_shared_quizzes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785816494392,
+      "tag": "0005_duels",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785816494393,
+      "tag": "0006_duels_skill_category",
+      "breakpoints": true
     }
   ]
 }

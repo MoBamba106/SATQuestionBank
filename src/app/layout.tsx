@@ -32,7 +32,7 @@ try {
       || '{}'
   );
   const root = document.documentElement;
-  root.dataset.theme = saved.theme || 'soft-paper';
+  root.dataset.theme = saved.theme || 'light';
   root.dataset.fontScale = saved.fontScale || 'default';
   root.dataset.density = saved.compactMode ? 'compact' : 'comfortable';
   root.dataset.reduceMotion = saved.reducedMotion ? 'true' : 'false';
@@ -42,7 +42,7 @@ try {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="soft-paper" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>

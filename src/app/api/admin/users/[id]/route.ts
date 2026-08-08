@@ -5,12 +5,16 @@ import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { AdminAuthError, requireAdmin } from "@/lib/auth/server";
 import { GUEST_USER_ID } from "@/lib/auth/types";
+import {
+  resolveSupabaseServiceRoleKey,
+  resolveSupabaseUrl,
+} from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 function getSupabaseAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const url = resolveSupabaseUrl();
+  const key = resolveSupabaseServiceRoleKey();
   if (!url || !key) return null;
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
