@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
 import {
   resolveSupabaseAnonKey,
   resolveSupabaseServiceRoleKey,
@@ -30,8 +31,6 @@ export async function POST(req: Request) {
     const serviceKey = resolveSupabaseServiceRoleKey();
     const anonKey = resolveSupabaseAnonKey();
     const resendKey = process.env.RESEND_API_KEY?.trim();
-    const fromAddress =
-      process.env.RESEND_FROM_EMAIL?.trim() || "SAT Nexus <onboarding@resend.dev>";
 
     if (!supabaseUrl || (!serviceKey && !anonKey)) {
       return NextResponse.json(
@@ -70,27 +69,16 @@ export async function POST(req: Request) {
       if (actionLink && typeof actionLink === "string" && actionLink.startsWith("http")) {
         const html = buildResetEmailHtml(actionLink);
         const text = buildResetEmailText(actionLink);
-        const resendRes = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: fromAddress,
-            to: [email],
-            subject: "Reset your SAT Nexus password",
-            html,
-            text,
-          }),
+        const emailResult = await sendEmail({
+          to: email,
+          subject: "Reset your SAT Nexus password",
+          html,
+          text,
         });
-        if (!resendRes.ok) {
-          const detail = await resendRes.text().catch(() => "");
-          console.error("[api/auth/forgot-password] Resend failed:", resendRes.status, detail);
-          // Fall through to Supabase mailer below rather than failing hard.
-        } else {
+        if (emailResult.ok) {
           return NextResponse.json({ ok: true });
         }
+        // Fall through to Supabase mailer below rather than failing hard.
       }
     }
 
