@@ -54,6 +54,15 @@ For `SELF_SIGNED_CERT_IN_CHAIN`:
 DATABASE_SSL_REJECT_UNAUTHORIZED=false
 ```
 
+**Note on `sslmode`:** Supabase dashboards append `sslmode=require` to connection
+strings. node-postgres lets that override the app's `ssl` options (and treats it
+as strict `verify-full`), which silently re-breaks `rejectUnauthorized=false`
+and re-triggers `SELF_SIGNED_CERT_IN_CHAIN`. This app strips TLS-controlling
+params from connection strings and manages TLS itself — Supabase hosts already
+default to relaxed chain verification (self-signed root CA), so the error is
+normally auto-fixed without any flag. Keep the URLs as-pasted; use the flags
+above only if you need different behavior.
+
 ## Auth values
 
 ```env
