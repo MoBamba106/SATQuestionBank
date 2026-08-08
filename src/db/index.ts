@@ -362,7 +362,9 @@ function shouldTryRelaxedSsl(error: unknown): boolean {
     errorChainHasCode(error, "SELF_SIGNED_CERT_IN_CHAIN") ||
     errorChainHasCode(error, "DEPTH_ZERO_SELF_SIGNED_CERT") ||
     errorChainHasCode(error, "UNABLE_TO_VERIFY_LEAF_SIGNATURE") ||
-    /self-signed certificate|unable to verify the first certificate|unable to verify leaf signature/i.test(
+    errorChainHasCode(error, "UNABLE_TO_GET_ISSUER_CERT") ||
+    errorChainHasCode(error, "UNABLE_TO_GET_ISSUER_CERT_LOCALLY") ||
+    /self-signed certificate|unable to verify the first certificate|unable to verify leaf signature|unable to get (local )?issuer certificate/i.test(
       extractErrorDetails(error),
     )
   );
@@ -397,13 +399,61 @@ function defaultRejectUnauthorized(connectionString: string): boolean {
   const parsed = parseDatabaseUrl(connectionString);
   const host = parsed?.hostname?.toLowerCase() || "";
 
-  // Supabase pooler connections frequently present certificate chains that
-  // Node's strict verifier rejects in hosted build environments. When the app
-  // is using the shared pooler, prefer encrypted transport without hard CA
-  // verification unless the user explicitly opts back into strict mode.
-  if (/pooler\.supabase\.com$/i.test(host)) return false;
+  // Supabase connections (pooler AND direct db.*.supabase.co) frequently
+  // present certificate chains built from a self-signed root CA that Node's
+  // strict verifier rejects in hosted build environments. Prefer encrypted
+  // transport without hard CA verification unless the user explicitly opts
+  // back into strict mode via DATABASE_SSL_REJECT_UNAUTHORIZED=true.
+  if (/(\.|^)supabase\.(com|co|in)$/i.test(host)) return false;
 
   return true;
+}
+
+/**
+ * TLS-controlling query parameters. We manage TLS exclusively through the
+ * `ssl` pool option, so these MUST NOT survive inside the connection string:
+ * node-postgres merges connection-string params OVER the explicit config, and
+ * pg-connection-string >= 2.11 converts `sslmode=require` (which Supabase
+ * dashboards/integrations append to every URL by default) into strict chain
+ * verification — silently undoing `ssl: { rejectUnauthorized: false }` and
+ * surfacing as SELF_SIGNED_CERT_IN_CHAIN on Vercel builds.
+ */
+const TLS_CONTROL_PARAMS = new Set([
+  "ssl",
+  "sslmode",
+  "sslcert",
+  "sslkey",
+  "sslpassword",
+  "sslrootcert",
+  "sslcrl",
+  "sslcrldir",
+  "sslcompression",
+  "sslfactory",
+  "sslnegotiation",
+  "ssl_min_protocol_version",
+  "ssl_max_protocol_version",
+]);
+
+/** Remove TLS-controlling query params; non-TLS params (pgbouncer, options…) stay. */
+function stripTlsControlParams(connectionString: string): string {
+  try {
+    const url = new URL(connectionString);
+    const removed: string[] = [];
+    for (const key of [...url.searchParams.keys()]) {
+      if (TLS_CONTROL_PARAMS.has(key.toLowerCase())) {
+        removed.push(key);
+        url.searchParams.delete(key);
+      }
+    }
+    if (!removed.length) return connectionString;
+    console.warn(
+      `[db] ignoring TLS param(s) in the connection string (${removed.join(", ")}); ` +
+        "TLS is managed via ssl options — use DATABASE_SSL / DATABASE_SSL_REJECT_UNAUTHORIZED instead.",
+    );
+    return url.toString();
+  } catch {
+    return connectionString;
+  }
 }
 
 function buildPoolOptions(
@@ -412,9 +462,11 @@ function buildPoolOptions(
   options?: { rejectUnauthorized?: boolean },
 ): PoolConfig {
   const rejectUnauthorized = options?.rejectUnauthorized ?? defaultRejectUnauthorized(connectionString);
+  // Keep URL TLS params (sslmode=…) from overriding the explicit ssl option.
+  const managedConnectionString = stripTlsControlParams(connectionString);
 
   return {
-    connectionString,
+    connectionString: managedConnectionString,
     max,
     allowExitOnIdle: true,
     idleTimeoutMillis: 10_000,
@@ -422,7 +474,7 @@ function buildPoolOptions(
     ssl:
       process.env.DATABASE_SSL === "false"
         ? undefined
-        : !/localhost|127\.0\.0\.1/.test(connectionString)
+        : !/localhost|127\.0\.0\.1/.test(managedConnectionString)
           ? { rejectUnauthorized }
           : undefined,
   };
