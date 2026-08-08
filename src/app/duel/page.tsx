@@ -125,7 +125,7 @@ function DuelInner() {
     const key = toUserId || toEmail || "";
     setBusy(key);
     try {
-      const res = await apiPost<{ id: string }>("/api/duels", {
+      const res = await apiPost<{ id: string; inviteEmail?: { sent: boolean; reason?: string } }>("/api/duels", {
         toUserId,
         toEmail,
         count,
@@ -135,7 +135,13 @@ function DuelInner() {
         difficulty,
         label: "Quiz duel",
       });
-      toast.success("Challenge sent!");
+      if (res.inviteEmail?.sent) {
+        toast.success("Challenge sent — invite emailed!");
+      } else {
+        toast.success("Challenge sent!", {
+          description: "They'll also see it in their Duels inbox.",
+        });
+      }
       mutateKey("duels");
       await reload();
       router.push(`/duel/${res.id}`);
