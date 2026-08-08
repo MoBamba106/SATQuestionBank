@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2, Loader2, LogIn, PartyPopper, UserPlus, KeyRound, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Loader2, LogIn, PartyPopper, UserPlus, KeyRound, ArrowLeft, Fingerprint } from "lucide-react";
 import { toast } from "sonner";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useAuth } from "@/components/auth-provider";
@@ -59,6 +59,24 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           description: message,
         });
       }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitPasskey = async () => {
+    setBusy(true);
+    try {
+      await auth.signInPasskey(email.trim() || undefined);
+      setSuccess("signin");
+      window.setTimeout(() => {
+        onOpenChange(false);
+        setSuccess(null);
+      }, 1600);
+    } catch (error) {
+      toast.error("Passkey sign-in failed", {
+        description: error instanceof Error ? error.message : undefined,
+      });
     } finally {
       setBusy(false);
     }
@@ -158,7 +176,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
                   <p className="mt-1 text-[12.5px] text-[var(--ink-faint)]">This is what shows instead of your email prefix.</p>
                 </div>
                 <label className="block text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Username</label>
-                <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="zubaidimuhammad13" />
+                <input className="input w-full" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={!auth.authEnabled || busy} placeholder="student_name" />
               </div>
             </Step>
             <Step>
@@ -253,22 +271,37 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       )}
 
       {mode === "signin" && (
-        <div className="mt-5 flex flex-wrap gap-2.5">
-          <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.authEnabled || busy}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            Sign in
-          </button>
+        <div className="mt-5 flex flex-col gap-2.5">
+          <div className="flex flex-wrap gap-2.5">
+            <button className="btn btn-primary grow" onClick={() => void submit()} disabled={!auth.authEnabled || busy}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+              Sign in
+            </button>
+            <button
+              type="button"
+              className="btn btn-soft"
+              disabled={busy}
+              onClick={() => {
+                setSignupStep(1);
+                setMode("signup");
+              }}
+            >
+              <UserPlus className="h-4 w-4" /> Need an account? Sign up
+            </button>
+          </div>
           <button
             type="button"
-            className="btn btn-soft"
-            disabled={busy}
-            onClick={() => {
-              setSignupStep(1);
-              setMode("signup");
-            }}
+            className="btn btn-soft w-full"
+            disabled={!auth.authEnabled || busy}
+            onClick={() => void submitPasskey()}
+            title="Use Face ID, Touch ID, or Windows Hello"
           >
-            <UserPlus className="h-4 w-4" /> Need an account? Sign up
+            <Fingerprint className="h-4 w-4" />
+            Sign in with passkey
           </button>
+          <p className="text-center text-[11px] text-[var(--ink-faint)]">
+            Passkeys use WebAuthn (Face ID / Touch ID / Windows Hello). Enable them in Supabase → Authentication → Providers.
+          </p>
         </div>
       )}
 

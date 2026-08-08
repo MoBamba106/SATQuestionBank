@@ -244,7 +244,7 @@ export function QuestionView({
     applyColorToCurrentSelection(highlightColor);
   };
 
-  /** Position the floating color tooltip above the live selection. */
+  /** Position the floating color tooltip centered above the live selection. */
   const showFloatingForSelection = React.useCallback(() => {
     if (highlightColor) {
       hideFloating();
@@ -255,23 +255,31 @@ export function QuestionView({
       hideFloating();
       return;
     }
-    const rect = range.getBoundingClientRect();
-    if (!rect || (rect.width === 0 && rect.height === 0)) {
+    // Prefer the first client rect (multi-line selections) so the menu sits
+    // over the actual highlighted glyphs, not the bounding box of the whole block.
+    const clientRects = Array.from(range.getClientRects()).filter((r) => r.width > 0 || r.height > 0);
+    const rect = clientRects[0] ?? range.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0 && !range.toString().trim())) {
       hideFloating();
       return;
     }
-    const pad = 8;
-    const menuW = 168;
+    const pad = 10;
+    const menuW = 220;
+    const menuH = 48;
+    const centerX = rect.left + rect.width / 2;
     const x = Math.min(
-      Math.max(pad + menuW / 2, rect.left + rect.width / 2),
+      Math.max(pad + menuW / 2, centerX),
       window.innerWidth - pad - menuW / 2,
     );
-    const y = Math.max(pad + 40, rect.top - 10);
-    setFloatingMenu({ x, y, visible: true });
+    // Prefer above the selection; if clipped, flip below.
+    const above = rect.top - 12;
+    const y = above - menuH >= pad ? above : Math.min(window.innerHeight - pad, rect.bottom + 12 + menuH);
+    const placeAbove = above - menuH >= pad;
+    setFloatingMenu({ x, y: placeAbove ? above : rect.bottom + 12, visible: true });
   }, [getValidSelectionRange, hideFloating, highlightColor]);
 
-  // Suppress the browser context menu inside question content so the custom
-  // highlight tooltip is the primary selection affordance.
+  // Suppress browser context menu + Chrome/Edge "Search / Copy / Translate"
+  // selection toolbar while selecting inside question content.
   React.useEffect(() => {
     const root = highlightRootRef.current;
     if (!root) return;
@@ -279,12 +287,31 @@ export function QuestionView({
       const selection = window.getSelection();
       if (selection && !selection.isCollapsed && root.contains(asElement(selection.anchorNode))) {
         e.preventDefault();
+        e.stopPropagation();
         if (!highlightColor) showFloatingForSelection();
       }
     };
+    // pointerup capture helps beat the browser's delayed selection UI.
+    const onSelectStart = () => {
+      // no-op; marks the region as handled for some engines
+    };
     root.addEventListener("contextmenu", onContextMenu);
-    return () => root.removeEventListener("contextmenu", onContextMenu);
+    root.addEventListener("selectstart", onSelectStart);
+    return () => {
+      root.removeEventListener("contextmenu", onContextMenu);
+      root.removeEventListener("selectstart", onSelectStart);
+    };
   }, [highlightColor, question.id, showFloatingForSelection]);
+
+  // Hide native selection bubbles on the document while our menu is up.
+  React.useEffect(() => {
+    if (!floatingMenu.visible) return;
+    const block = (e: Event) => {
+      e.preventDefault();
+    };
+    document.addEventListener("contextmenu", block, true);
+    return () => document.removeEventListener("contextmenu", block, true);
+  }, [floatingMenu.visible]);
 
   // Hide floating menu on outside click / scroll / escape.
   React.useEffect(() => {
@@ -490,7 +517,7 @@ export function QuestionView({
         )}
       </div>
 
-      {/* Floating highlight color tooltip for selections outside explicit highlight mode */}
+      {/* Floating highlight color tooltip — portaled coords are viewport-fixed */}
       {floatingMenu.visible && (
         <div
           ref={floatingRef}
@@ -501,8 +528,10 @@ export function QuestionView({
             position: "fixed",
             left: floatingMenu.x,
             top: floatingMenu.y,
+            // y is the bottom edge of the menu when placed above the selection
             transform: "translate(-50%, -100%)",
-            zIndex: 80,
+            zIndex: 9990,
+            pointerEvents: "auto",
           }}
         >
           <span className="highlight-floating-label">

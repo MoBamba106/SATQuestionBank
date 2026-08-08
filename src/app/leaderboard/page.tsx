@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { BookOpenText, Calculator, Crown, Medal, Target, Trophy } from "lucide-react";
+import { BookOpenText, Calculator, Crown, Flame, Medal, Swords, Target, Trophy } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useApi } from "@/lib/api-client";
@@ -16,6 +16,8 @@ type Payload = {
     mostAccurate: Entry[];
     mostMath: Entry[];
     mostEnglish: Entry[];
+    mostDuelsWon: Entry[];
+    mostHardMastered: Entry[];
   };
   totalRankedUsers: number;
 };
@@ -25,6 +27,8 @@ const BOARDS: { key: keyof Payload["boards"]; title: string; unit: string; icon:
   { key: "mostQuestions", title: "Most questions completed", unit: "", icon: Trophy, tone: "soft-tone-yellow" },
   { key: "mostMath", title: "Most Math completed", unit: "", icon: Calculator, tone: "soft-tone-lavender" },
   { key: "mostEnglish", title: "Most English completed", unit: "", icon: BookOpenText, tone: "soft-tone-rose" },
+  { key: "mostDuelsWon", title: "Most duels won", unit: "", icon: Swords, tone: "soft-tone-peach" },
+  { key: "mostHardMastered", title: "Hard questions mastered", unit: "", icon: Flame, tone: "soft-tone-rose" },
 ];
 
 function RankBadge({ rank }: { rank: number }) {
@@ -52,8 +56,8 @@ function LeaderboardInner() {
         <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Community rankings</p>
         <h1 className="font-display text-3xl font-bold text-[var(--ink)]">Leaderboard</h1>
         <p className="mt-1 max-w-2xl text-[14px] text-[var(--ink-faint)]">
-          See how students with accounts stack up. Accuracy requires at least 20 answered questions.
-          You can hide yourself from these boards in Settings.
+          See how students with accounts stack up. Accuracy needs 20+ answers; hard mastery shows
+          correct hard items plus accuracy. Duels rank by wins. Hide yourself in Settings.
         </p>
       </div>
 

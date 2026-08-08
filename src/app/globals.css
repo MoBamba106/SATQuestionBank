@@ -375,8 +375,19 @@ html[data-theme="soft-paper"] ::selection,
 html[data-theme="paper"] ::selection { color: #4b3829; background: #edcf63; }
 html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; }
 
-/* In-question highlighter */
+/* In-question highlighter — mute native browser selection UI chrome where possible */
+.highlight-tool-active,
+.highlight-tool-active * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
+  user-select: text;
+}
 .highlight-tool-active { cursor: text; }
+/* Soften native ::selection so our mark colors read clearly */
+.sat-content ::selection {
+  background: color-mix(in srgb, var(--hl-yellow) 55%, transparent);
+  color: inherit;
+}
 .highlight-swatch {
   min-height: 28px;
   padding: 5px 10px;

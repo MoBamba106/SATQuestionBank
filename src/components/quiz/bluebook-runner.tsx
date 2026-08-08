@@ -24,6 +24,7 @@ import { QuestionView } from "@/components/quiz/question-view";
 import { FloatingDesmos } from "@/components/quiz/floating-desmos";
 import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
 import { ShareQuestionDialog } from "@/components/share-question-dialog";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 import { SkillBands } from "@/components/quiz/skill-bands";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { useSettings } from "@/components/settings-provider";
@@ -117,6 +118,7 @@ export function BluebookRunner({
   const [desmosRestoreRequest, setDesmosRestoreRequest] = React.useState(0);
   const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false);
   const [finishing, setFinishing] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const [graded, setGraded] = React.useState<Record<string, { correct: boolean; answer: string }>>({});
@@ -431,11 +433,7 @@ export function BluebookRunner({
         <button
           type="button"
           className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]"
-          onClick={() =>
-            router.push(
-              `/feedback?mode=test&label=${encodeURIComponent(test.title)}&questionId=${encodeURIComponent(current.id)}&domain=${encodeURIComponent(current.domain)}&skill=${encodeURIComponent(current.skill)}`,
-            )
-          }
+          onClick={() => setFeedbackOpen(true)}
           title="Report feedback about this question"
           aria-label="Report feedback about this question"
         >
@@ -600,6 +598,17 @@ export function BluebookRunner({
       {navigator}
 
       <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={current?.id ?? ""} />
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        context={{
+          mode: "test",
+          label: test.title,
+          questionId: current?.id,
+          domain: current?.domain,
+          skill: current?.skill,
+        }}
+      />
       <FloatingDesmos open={desmosOpen && current.domain === "Math"} restoreRequest={desmosRestoreRequest} onClose={() => setDesmosOpen(false)} />
       <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
 

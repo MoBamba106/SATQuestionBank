@@ -15,6 +15,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
 import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { ShareQuizDialog } from "@/components/share-quiz-dialog";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 import { useSettings } from "@/components/settings-provider";
 import { apiPost, apiPatch, mutateKey } from "@/lib/api-client";
 import { answersMatch, cn, difficultyColor, domainColor, formatTime, resolveCorrectAnswer, skillColor } from "@/lib/utils";
@@ -36,7 +37,6 @@ export function PracticeRunner({
   onExit: () => void;
 }) {
   const { settings } = useSettings();
-  const router = useRouter();
   const [pool, setPool] = React.useState(initialPool);
   const [sid, setSid] = React.useState(sessionId);
   const [idx, setIdx] = React.useState(0);
@@ -53,6 +53,7 @@ export function PracticeRunner({
   const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [shareQuizOpen, setShareQuizOpen] = React.useState(false);
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false);
   const [noteDrafts, setNoteDrafts] = React.useState<Record<string, string>>({});
   const noteSaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -236,11 +237,7 @@ export function PracticeRunner({
           <button
             type="button"
             className="btn btn-ghost !px-2.5"
-            onClick={() =>
-              router.push(
-                `/feedback?mode=quiz&label=${encodeURIComponent(label)}&questionId=${encodeURIComponent(current.id)}&domain=${encodeURIComponent(current.domain)}&skill=${encodeURIComponent(current.skill)}`,
-              )
-            }
+            onClick={() => setFeedbackOpen(true)}
             title="Report feedback about this question"
             aria-label="Report feedback about this question"
           >
@@ -440,6 +437,17 @@ export function PracticeRunner({
       label={label}
       mode={mode}
       questionIds={pool.map((q) => q.id)}
+    />
+    <FeedbackDialog
+      open={feedbackOpen}
+      onOpenChange={setFeedbackOpen}
+      context={{
+        mode: "quiz",
+        label,
+        questionId: current?.id,
+        domain: current?.domain,
+        skill: current?.skill,
+      }}
     />
     <FloatingDesmos open={desmosOpen && current.domain === "Math"} restoreRequest={desmosRestoreRequest} onClose={() => setDesmosOpen(false)} />
     <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />

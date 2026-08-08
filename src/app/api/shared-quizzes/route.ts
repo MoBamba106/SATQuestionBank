@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { getRequestUser } from "@/lib/auth/server";
+import { isLocalGuestId } from "@/lib/auth/types";
 import { uid } from "@/lib/utils";
 import { randomBytes } from "node:crypto";
 
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
-    if (user.id === "guest") return NextResponse.json({ received: [], sent: [] });
+    if (user.isGuest || isLocalGuestId(user.id)) return NextResponse.json({ received: [], sent: [] });
 
     await db.execute(sql`DELETE FROM shared_quizzes WHERE expires_at < now()`);
 
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
-    if (user.id === "guest") {
+    if (user.isGuest || isLocalGuestId(user.id)) {
       return NextResponse.json({ error: "Sign in to share quizzes" }, { status: 401 });
     }
 
@@ -172,7 +173,7 @@ export async function DELETE(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
-    if (user.id === "guest") return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+    if (user.isGuest || isLocalGuestId(user.id)) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
 
     const url = new URL(req.url);
     const id = url.searchParams.get("id")?.trim();

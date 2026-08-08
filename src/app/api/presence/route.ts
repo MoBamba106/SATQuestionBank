@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { getRequestUser, requireAdmin, AdminAuthError } from "@/lib/auth/server";
+import { isLocalGuestId } from "@/lib/auth/types";
 import { ensureSeeded } from "@/lib/seed";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
-    if (user.id === "guest") {
+    if (user.isGuest || isLocalGuestId(user.id)) {
       return NextResponse.json({ ok: true, guest: true });
     }
     await db.execute(sql`
@@ -58,7 +59,7 @@ export async function GET(req: Request) {
       }
     }
     const user = await getRequestUser(req);
-    if (user.id === "guest") return NextResponse.json({ online: [] });
+    if (user.isGuest || isLocalGuestId(user.id)) return NextResponse.json({ online: [] });
     const res = await db.execute(sql`
       SELECT user_id as "userId", last_seen as "lastSeen"
       FROM user_presence WHERE user_id = ${user.id}

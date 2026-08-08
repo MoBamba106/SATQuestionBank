@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { readStoredAuth } from "@/lib/auth/client";
+import { guestIdHeader, readStoredAuth } from "@/lib/auth/client";
 
 const IMPERSONATE_KEY = "sat-nexus-impersonate";
 
@@ -34,6 +34,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     headers: {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(!accessToken ? guestIdHeader() : {}),
       ...(impersonated ? { "x-admin-impersonate": impersonated.id } : {}),
       ...(init?.headers ?? {}),
     },

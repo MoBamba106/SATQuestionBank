@@ -26,6 +26,7 @@ import {
   LogOut,
   UserRound,
   Share2,
+  Swords,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -49,6 +50,7 @@ const BASE_NAV_GROUPS = [
       { href: "/", label: "Study desk", icon: LayoutDashboard },
       { href: "/study", label: "Study library", icon: BookMarked },
       { href: "/quiz", label: "Practice quiz", icon: PenSquare },
+      { href: "/duel", label: "Quiz duels", icon: Swords },
       { href: "/bank", label: "Question bank", icon: Library },
       { href: "/bluebook", label: "Practice tests", icon: MonitorSmartphone },
     ],
@@ -125,7 +127,7 @@ function NavLinks({
                   title={label}
                   aria-label={compact ? label : undefined}
                   className={cn(
-                    "relative flex min-h-10 items-center gap-3 border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors",
+                    "relative flex min-h-10 items-center gap-3 border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors whitespace-nowrap",
                     compact ? "justify-center px-2" : "px-3",
                     active
                       ? "nav-link-active"
@@ -136,7 +138,7 @@ function NavLinks({
                     className={cn("nav-item-icon h-[17px] w-[17px] shrink-0", active ? "text-[var(--accent)]" : "text-[var(--ink-faint)]")}
                     strokeWidth={active ? 2.3 : 2}
                   />
-                  {!compact && <span className="truncate">{label}</span>}
+                  {!compact && <span className="truncate whitespace-nowrap">{label}</span>}
                 </Link>
               );
             })}
@@ -161,22 +163,24 @@ export function NavShell({ children }: { children: React.ReactNode }) {
   const [impersonating, setImpersonating] = React.useState<{ id: string; label: string } | null>(null);
   useCommandPaletteHotkey(setPaletteOpen);
 
-  // Poll for incoming shares so a recipient sees them without needing to visit Shared Questions.
+  // Poll for incoming shares + duel challenges.
   React.useEffect(() => {
     if (!auth.ready || auth.user.isGuest) return;
     let active = true;
     const storageKey = `sat-nexus-seen-shares:${auth.user.id}`;
+    const duelKey = `sat-nexus-seen-duels:${auth.user.id}`;
     const checkForShares = async () => {
       try {
-        const [questions, collections] = await Promise.all([
+        const [questions, collections, duels] = await Promise.all([
           apiGet<{ received: { id: string; fromDisplayName?: string; fromEmail?: string }[] }>("/api/shared-questions"),
           apiGet<{ received: { id: string; fromDisplayName?: string; fromEmail?: string }[] }>("/api/shared-collections"),
+          apiGet<{ inbox: { id: string; hostName?: string; hostEmail?: string; questionCount?: number }[] }>("/api/duels").catch(() => ({ inbox: [] as { id: string; hostName?: string; hostEmail?: string; questionCount?: number }[] })),
         ]);
         if (!active) return;
         const seen = new Set<string>(JSON.parse(sessionStorage.getItem(storageKey) || "[]"));
         const incoming = [
-          ...questions.received.map((share) => ({ ...share, type: "question" })),
-          ...collections.received.map((share) => ({ ...share, type: "collection" })),
+          ...questions.received.map((share) => ({ ...share, type: "question" as const })),
+          ...collections.received.map((share) => ({ ...share, type: "collection" as const })),
         ];
         const newShares = incoming.filter((share) => !seen.has(share.id));
         if (newShares.length) {
@@ -186,10 +190,27 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           }));
         }
         sessionStorage.setItem(storageKey, JSON.stringify(incoming.map((share) => share.id)));
+
+        const seenDuels = new Set<string>(JSON.parse(sessionStorage.getItem(duelKey) || "[]"));
+        const newDuels = (duels.inbox ?? []).filter((d) => !seenDuels.has(d.id));
+        if (newDuels.length) {
+          newDuels.forEach((d) =>
+            toast("Duel challenge!", {
+              description: `${d.hostName || d.hostEmail || "Someone"} challenged you${d.questionCount ? ` · ${d.questionCount} Qs` : ""}.`,
+              action: {
+                label: "View",
+                onClick: () => {
+                  window.location.href = "/duel";
+                },
+              },
+            }),
+          );
+        }
+        sessionStorage.setItem(duelKey, JSON.stringify((duels.inbox ?? []).map((d) => d.id)));
       } catch { /* A notification check should never interrupt the app. */ }
     };
     void checkForShares();
-    const timer = window.setInterval(() => void checkForShares(), 60_000);
+    const timer = window.setInterval(() => void checkForShares(), 20_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [auth.ready, auth.user.id, auth.user.isGuest]);
 
@@ -280,26 +301,40 @@ export function NavShell({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={() => setAuthOpen(true)}
               className={cn(
-                "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
-                desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+                "mb-1 flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
+                desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
               )}
               title="Sign in"
             >
-              <LogIn className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-              {desktopExpanded && "Sign in"}
+              <LogIn className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
+              <span
+                className={cn(
+                  "overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
+                  desktopExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
+                )}
+              >
+                Sign in
+              </span>
             </button>
           ) : (
             <button
               type="button"
               onClick={confirmSignOut}
               className={cn(
-                "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
-                desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+                "mb-1 flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
+                desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
               )}
               title="Sign out"
             >
-              <LogOut className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-              {desktopExpanded && "Sign out"}
+              <LogOut className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
+              <span
+                className={cn(
+                  "overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
+                  desktopExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
+                )}
+              >
+                Sign out
+              </span>
             </button>
           )}
           <button
@@ -307,33 +342,43 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             data-tour="palette"
             onClick={() => setPaletteOpen(true)}
             className={cn(
-              "mb-1 flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
-              desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+              "mb-1 flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
+              desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
             )}
             title="Go to"
           >
-            <Search className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-            {desktopExpanded && (
-              <>
-                Go to…
-                <kbd className="ml-auto rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">
-                  /
-                </kbd>
-              </>
-            )}
+            <Search className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
+            <span
+              className={cn(
+                "flex min-w-0 grow items-center overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
+                desktopExpanded ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0",
+              )}
+            >
+              Go to…
+              <kbd className="ml-auto rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">
+                /
+              </kbd>
+            </span>
           </button>
           <button
             type="button"
             data-tour="settings"
             onClick={() => setSettingsOpen(true)}
             className={cn(
-              "flex min-h-10 w-full rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
-              desktopExpanded ? "items-center gap-3 px-3" : "justify-center px-2",
+              "flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
+              desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
             )}
             title="Settings"
           >
-            <Cog className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
-            {desktopExpanded && "Settings"}
+            <Cog className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
+            <span
+              className={cn(
+                "overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
+                desktopExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
+              )}
+            >
+              Settings
+            </span>
           </button>
 
         </div>

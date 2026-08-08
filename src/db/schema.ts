@@ -291,7 +291,44 @@ export const sharedQuizzes = pgTable(
   ],
 );
 
+/**
+ * Real-time quiz duels. questionIds is a frozen snapshot for the match.
+ * status: pending | active | completed | declined | cancelled | expired
+ */
+export const duels = pgTable(
+  "duels",
+  {
+    id: text("id").primaryKey(),
+    hostUserId: text("host_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    guestUserId: text("guest_user_id").references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"),
+    label: text("label").notNull().default("Quiz duel"),
+    domain: text("domain"),
+    difficulty: text("difficulty"),
+    questionCount: integer("question_count").notNull().default(10),
+    questionIds: jsonb("question_ids").notNull().$type<string[]>(),
+    hostScore: integer("host_score").notNull().default(0),
+    guestScore: integer("guest_score").notNull().default(0),
+    currentIndex: integer("current_index").notNull().default(0),
+    /** Per-question lock: { [questionId]: { userId, answer, correct, at } } */
+    answers: jsonb("answers").notNull().default({}).$type<Record<string, unknown>>(),
+    winnerUserId: text("winner_user_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (t) => [
+    index("duels_host_idx").on(t.hostUserId),
+    index("duels_guest_idx").on(t.guestUserId),
+    index("duels_status_idx").on(t.status),
+  ],
+);
+
 export type QuestionRow = typeof questions.$inferSelect;
 export type AttemptRow = typeof attempts.$inferSelect;
 export type CollectionRow = typeof collections.$inferSelect;
 export type UserRow = typeof users.$inferSelect;
+export type DuelRow = typeof duels.$inferSelect;

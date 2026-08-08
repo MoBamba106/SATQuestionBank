@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
-import { GUEST_USER_ID } from "@/lib/auth/types";
+import { GUEST_USER_ID, LOCAL_GUEST_PREFIX } from "@/lib/auth/types";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +31,8 @@ export async function GET() {
   try {
     await ensureSeeded();
 
+    const guestLike = `${LOCAL_GUEST_PREFIX}%`;
+
     const base = sql`
       SELECT u.id, u.display_name AS name, u.email,
              COUNT(a.id)::int AS attempts,
@@ -38,12 +40,16 @@ export async function GET() {
              COALESCE(SUM(CASE WHEN q.domain = 'Math' THEN 1 ELSE 0 END), 0)::int AS math_attempts,
              COALESCE(SUM(CASE WHEN q.domain = 'Math' AND a.is_correct THEN 1 ELSE 0 END), 0)::int AS math_correct,
              COALESCE(SUM(CASE WHEN q.domain <> 'Math' THEN 1 ELSE 0 END), 0)::int AS rw_attempts,
-             COALESCE(SUM(CASE WHEN q.domain <> 'Math' AND a.is_correct THEN 1 ELSE 0 END), 0)::int AS rw_correct
+             COALESCE(SUM(CASE WHEN q.domain <> 'Math' AND a.is_correct THEN 1 ELSE 0 END), 0)::int AS rw_correct,
+             COALESCE(SUM(CASE WHEN q.difficulty = 'Hard' THEN 1 ELSE 0 END), 0)::int AS hard_attempts,
+             COALESCE(SUM(CASE WHEN q.difficulty = 'Hard' AND a.is_correct THEN 1 ELSE 0 END), 0)::int AS hard_correct
       FROM users u
       JOIN quiz_sessions qs ON qs.user_id = u.id
       JOIN attempts a ON a.session_id = qs.id
       JOIN questions q ON q.id = a.question_id
-      WHERE u.id <> ${GUEST_USER_ID} AND u.hide_leaderboard = false
+      WHERE u.id <> ${GUEST_USER_ID}
+        AND u.id NOT LIKE ${guestLike}
+        AND u.hide_leaderboard = false
       GROUP BY u.id
     `;
 
@@ -52,6 +58,7 @@ export async function GET() {
       attempts: number; correct: number;
       math_attempts: number; math_correct: number;
       rw_attempts: number; rw_correct: number;
+      hard_attempts: number; hard_correct: number;
     }>(await db.execute(base));
 
     const named = stats.map((s) => ({ ...s, label: displayName(s.name, s.email, s.id) }));
@@ -89,12 +96,58 @@ export async function GET() {
         })),
     );
 
+    const mostHardMastered: LeaderboardEntry[] = top(
+      [...named]
+        .filter((s) => s.hard_attempts > 0)
+        .sort((a, b) => b.hard_correct - a.hard_correct || b.hard_attempts - a.hard_attempts)
+        .map((s) => {
+          const acc = s.hard_attempts > 0 ? Math.round((s.hard_correct / s.hard_attempts) * 100) : 0;
+          return {
+            userId: s.id,
+            name: s.label,
+            value: s.hard_correct,
+            detail: `${s.hard_correct}/${s.hard_attempts} hard correct · ${acc}% accuracy`,
+          };
+        }),
+    );
+
+    // Duel wins (completed duels only).
+    let mostDuelsWon: LeaderboardEntry[] = [];
+    try {
+      const duelRows = rows<{ id: string; name: string | null; email: string | null; wins: number }>(
+        await db.execute(sql`
+          SELECT u.id, u.display_name AS name, u.email, COUNT(*)::int AS wins
+          FROM duels d
+          JOIN users u ON u.id = d.winner_user_id
+          WHERE d.status = 'completed'
+            AND d.winner_user_id IS NOT NULL
+            AND u.hide_leaderboard = false
+            AND u.id <> ${GUEST_USER_ID}
+            AND u.id NOT LIKE ${guestLike}
+          GROUP BY u.id
+          ORDER BY wins DESC
+          LIMIT 10
+        `),
+      );
+      mostDuelsWon = duelRows.map((r) => ({
+        userId: r.id,
+        name: displayName(r.name, r.email, r.id),
+        value: r.wins,
+        detail: `${r.wins} duel${r.wins === 1 ? "" : "s"} won`,
+      }));
+    } catch {
+      // Table may not exist until migration runs.
+      mostDuelsWon = [];
+    }
+
     return NextResponse.json({
       boards: {
         mostQuestions,
         mostAccurate,
         mostMath,
         mostEnglish,
+        mostDuelsWon,
+        mostHardMastered,
       },
       totalRankedUsers: named.length,
     });
