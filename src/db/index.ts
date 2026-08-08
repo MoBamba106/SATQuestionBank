@@ -50,6 +50,19 @@ function sanitizeConnectionString(raw: string): string {
   return value.trim();
 }
 
+function isPostgresConnectionString(value: string) {
+  if (!value) return false;
+  // Accept standard postgres URLs and common Supabase / Prisma pooler forms
+  // (including query-string suffixes like ?pgbouncer=true&sslmode=require).
+  if (/^(postgres(ql)?:\/\/)/i.test(value)) return true;
+  if (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:")) return true;
+  return false;
+}
+
+/**
+ * First non-empty env value. Optionally require a valid postgres URL so a
+ * broken POSTGRES_URL cannot shadow a good POSTGRES_URL_NON_POOLING.
+ */
 function firstEnv(...keys: string[]): string {
   for (const key of keys) {
     const raw = process.env[key];
@@ -60,22 +73,30 @@ function firstEnv(...keys: string[]): string {
   return "";
 }
 
-/** Runtime pooler URL — Supabase Vercel integration names first. */
-const rawDatabaseUrl = firstEnv(
+function firstPostgresUrl(...keys: string[]): string {
+  for (const key of keys) {
+    const raw = process.env[key];
+    if (raw == null || !String(raw).trim()) continue;
+    const value = sanitizeConnectionString(String(raw));
+    if (value && isPostgresConnectionString(value)) return value;
+  }
+  return "";
+}
+
+/**
+ * Runtime URL — any valid Supabase/Postgres URL works.
+ * Prefer pooler (6543) names, but accept non-pooling if that's all that is set.
+ * Never return an invalid string that would block fallbacks.
+ */
+const rawDatabaseUrl = firstPostgresUrl(
   "POSTGRES_URL",
   "POSTGRES_PRISMA_URL",
   "DATABASE_URL",
   "POSTGRES_URL_NON_POOLING",
+  "DATABASE_MIGRATION_URL",
+  "DATABASE_DIRECT_URL",
+  "DIRECT_DATABASE_URL",
 );
-
-function isPostgresConnectionString(value: string) {
-  if (!value) return false;
-  // Accept standard postgres URLs and common Supabase / Prisma pooler forms
-  // (including query-string suffixes like ?pgbouncer=true&sslmode=require).
-  if (/^(postgres(ql)?:\/\/)/i.test(value)) return true;
-  if (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:")) return true;
-  return false;
-}
 
 function describeUrlProblem(raw: string | undefined): string | null {
   if (raw == null || !String(raw).trim()) return "empty / unset";
@@ -162,13 +183,16 @@ const derivedMigrationUrl = isPostgresConnectionString(rawDatabaseUrl)
   ? deriveSupabaseSessionPoolerUrl(rawDatabaseUrl)
   : "";
 
-/** Direct / session URL for migrations — non-pooling first. */
+/** Direct / session URL for migrations — non-pooling first; only valid URLs. */
 const rawMigrationUrl =
-  firstEnv(
+  firstPostgresUrl(
     "POSTGRES_URL_NON_POOLING",
     "DATABASE_MIGRATION_URL",
     "DATABASE_DIRECT_URL",
     "DIRECT_DATABASE_URL",
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "DATABASE_URL",
   ) ||
   derivedMigrationUrl ||
   rawDatabaseUrl;
@@ -225,11 +249,12 @@ function parseDatabaseUrl(value: string): URL | null {
 
 function redactHost(host: string | null): string | null {
   if (!host) return null;
-  if (/pooler\.supabase\.com$/i.test(host)) return "*.pooler.supabase.com";
-  if (/supabase\.co$/i.test(host)) return "*.supabase.co";
+  // Never emit markdown-friendly bare domains that chat UIs turn into links.
+  if (/pooler\.supabase\.com$/i.test(host)) return "aws-pooler.supabase.com";
+  if (/supabase\.co$/i.test(host)) return "db.supabase.co";
   const parts = host.split(".");
   if (parts.length <= 2) return host;
-  return `*.${parts.slice(-2).join(".")}`;
+  return `star.${parts.slice(-2).join(".")}`;
 }
 
 function getDatabaseConnectionInfo(url: string | undefined): DatabaseConnectionInfo {
