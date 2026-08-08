@@ -396,6 +396,39 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
 .sat-highlight-yellow { background: var(--hl-yellow); }
 .sat-highlight-red { background: var(--hl-red); }
 .sat-highlight-blue { background: var(--hl-blue); }
+/* Keep MathML / KaTeX layout intact when wrapped by a highlight mark. */
+.sat-highlight math,
+.sat-highlight .katex,
+.sat-highlight mjx-container,
+.sat-highlight .math_expression,
+.sat-highlight .math-container {
+  background: transparent;
+}
+.highlight-floating-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  color: var(--ink);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(20, 24, 34, 0.18);
+  pointer-events: auto;
+  animation: paper-pop 120ms ease-out both;
+}
+.highlight-floating-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px 0 2px;
+  color: var(--ink-faint);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
 
 /* Theme-safe answer states; dark themes no longer inherit bright white/pastel cards. */

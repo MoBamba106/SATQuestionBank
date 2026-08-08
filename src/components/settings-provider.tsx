@@ -31,7 +31,8 @@ export type AppSettings = {
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  theme: "soft-paper",
+  /** Guests and first-time visitors land on Light. */
+  theme: "light",
   fontScale: "default",
   reducedMotion: false,
   compactMode: false,

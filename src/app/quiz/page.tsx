@@ -94,18 +94,44 @@ function QuizInner() {
     return () => { alive = false; clearTimeout(t); };
   }, [filterQS]);
 
-  // Handoff from Question Bank, Mistakes, Collections, or a practice test.
+  // Handoff from Question Bank, Mistakes, Collections, a practice test, or a shared quiz link.
   // The ref prevents React Strict Mode from consuming/starting the same pool twice.
   React.useEffect(() => {
     const poolParam = sp.get("pool");
     const testParam = sp.get("test");
-    if ((!poolParam && !testParam) || handoffStarted.current) return;
+    const shareParam = sp.get("share");
+    if ((!poolParam && !testParam && !shareParam) || handoffStarted.current) return;
     handoffStarted.current = true;
 
     (async () => {
       setBooting(true);
       setHandoffError(null);
       try {
+        if (shareParam) {
+          const shared = await apiGet<{
+            label: string;
+            mode: string;
+            questions: SATQuestion[];
+          }>(`/api/shared-quizzes/${encodeURIComponent(shareParam)}`);
+          if (!shared.questions?.length) {
+            throw new Error("This shared quiz has no questions left.");
+          }
+          const session = await apiPost<{ id: string }>("/api/sessions", {
+            mode: shared.mode || "practice",
+            label: shared.label || "Shared quiz",
+            totalQuestions: shared.questions.length,
+          });
+          setPhase({
+            kind: "practice",
+            pool: shared.questions,
+            sessionId: session.id,
+            label: shared.label || "Shared quiz",
+            mode: shared.mode || "practice",
+          });
+          router.replace("/quiz", { scroll: false });
+          return;
+        }
+
         if (testParam) {
           const test = await apiGet<PracticeTestDetail>(`/api/practice-tests/${testParam}`);
           const resume = sp.get("resume") === "1" ? readBluebookProgress(test.id) : null;
@@ -225,7 +251,7 @@ function QuizInner() {
     );
   }
 
-  if (sp.get("pool") || sp.get("test")) {
+  if (sp.get("pool") || sp.get("test") || sp.get("share")) {
     return (
       <div className="mx-auto max-w-xl py-12">
         <GlassCard hover={false} className="p-7 text-center">
@@ -246,7 +272,9 @@ function QuizInner() {
           ) : (
             <>
               <Loader2 className="mx-auto h-8 w-8 animate-spin text-[var(--accent)]" />
-              <h1 className="font-display mt-3 text-2xl font-bold text-[var(--ink)]">Loading your exact questions</h1>
+              <h1 className="font-display mt-3 text-2xl font-bold text-[var(--ink)]">
+                {sp.get("share") ? "Opening shared quiz" : "Loading your exact questions"}
+              </h1>
               <p className="mt-1 text-[13px] text-[var(--ink-faint)]">
                 {booting ? "Preparing the selected set…" : "Starting…"}
               </p>

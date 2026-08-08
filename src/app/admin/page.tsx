@@ -1,5 +1,5 @@
 "use client";
-import { formatDetroitDate, formatDetroitDateTime } from "@/lib/utils";
+import { formatDetroitDate, formatDetroitDateTime, formatDetroitRelative } from "@/lib/utils";
 
 import * as React from "react";
 import {
@@ -269,7 +269,7 @@ export default function AdminPage() {
               <GlassCard hover={false} className="p-0">
                 <div className="border-b border-[var(--line-soft)] p-4">
                   <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">
-                    Accounts ({data.users.length}) · green = online (last 2 min)
+                    Accounts ({data.users.length}) · green = online (last 2 min) · times in Detroit (ET)
                   </h2>
                 </div>
                 <div className="overflow-x-auto">
@@ -297,7 +297,13 @@ export default function AdminPage() {
                                   {user.isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />}
                                   <span
                                     className={`relative inline-flex h-2.5 w-2.5 rounded-full ${user.isOnline ? "bg-green-500" : "bg-[var(--line-soft)]"}`}
-                                    title={user.isOnline ? "Online now" : user.lastSeen ? `Last seen ${formatDetroitDateTime(user.lastSeen)}` : "Offline"}
+                                    title={
+                                      user.isOnline
+                                        ? "Online now (Detroit time)"
+                                        : user.lastSeen
+                                          ? `Last seen ${formatDetroitDateTime(user.lastSeen)}`
+                                          : "Offline"
+                                    }
                                   />
                                 </span>
                                 <div className="min-w-0">
@@ -314,11 +320,22 @@ export default function AdminPage() {
                             <td className="px-4 py-3 font-mono">{user.sessions}</td>
                             <td className="px-4 py-3 text-[12px]">
                               {user.isOnline ? (
-                                <span className="inline-flex items-center gap-1 font-semibold text-green-600">● Online now</span>
+                                <span className="inline-flex items-center gap-1 font-semibold text-green-600">
+                                  ● Online now
+                                  {user.lastSeen ? (
+                                    <span className="font-normal text-[var(--ink-faint)]">
+                                      · {formatDetroitDateTime(user.lastSeen)}
+                                    </span>
+                                  ) : null}
+                                </span>
                               ) : user.lastSeen ? (
-                                <span className="text-[var(--ink-faint)]">Seen {formatDetroitDateTime(user.lastSeen)}</span>
+                                <span className="text-[var(--ink-faint)]" title={formatDetroitDateTime(user.lastSeen)}>
+                                  {formatDetroitRelative(user.lastSeen)}
+                                </span>
                               ) : user.lastActive ? (
-                                <span className="text-[var(--ink-faint)]">Active {formatDetroitDate(user.lastActive)}</span>
+                                <span className="text-[var(--ink-faint)]" title={formatDetroitDateTime(user.lastActive)}>
+                                  Active {formatDetroitRelative(user.lastActive)}
+                                </span>
                               ) : (
                                 <span className="text-[var(--ink-faint)]">never</span>
                               )}

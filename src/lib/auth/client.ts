@@ -3,7 +3,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import type { AuthUser } from "@/lib/auth/types";
 import { GUEST_USER } from "@/lib/auth/types";
-import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { getSupabaseBrowserClient, resolveSupabaseAnonKey, resolveSupabaseUrl } from "@/lib/supabase";
 
 const TOKEN_KEY = "sat_nexus_access_token";
 const USER_KEY = "sat_nexus_auth_user";
@@ -13,14 +13,6 @@ export type ClientAuthState = {
   accessToken: string | null;
   ready: boolean;
 };
-
-function supabasePublicKey() {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
-    ""
-  );
-}
 
 function userFromSupabase(user: User | null | undefined): AuthUser {
   if (!user) return GUEST_USER;
@@ -90,7 +82,7 @@ export function clearAuth() {
 }
 
 export function isAuthEnabled() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && supabasePublicKey());
+  return Boolean(resolveSupabaseUrl() && resolveSupabaseAnonKey());
 }
 
 export async function getCurrentAuthState(): Promise<{ user: AuthUser; accessToken: string | null }> {
@@ -188,6 +180,51 @@ export async function signOutSupabase() {
   const { error } = await getSupabaseBrowserClient().auth.signOut();
   if (error) throw error;
   clearAuth();
+}
+
+/**
+ * Request a password-reset email. Prefer the app API (Resend) when configured;
+ * otherwise fall back to Supabase Auth's built-in recovery mailer.
+ */
+export async function requestPasswordReset(email: string) {
+  const trimmed = email.trim().toLowerCase();
+  if (!trimmed || !trimmed.includes("@")) {
+    throw new Error("Enter a valid email address.");
+  }
+
+  // App route can send a branded Resend email and still uses Supabase to mint the link.
+  try {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: trimmed }),
+    });
+    const data = (await res.json().catch(() => null)) as { error?: string; ok?: boolean } | null;
+    if (res.ok) return;
+    // If the route is missing/unconfigured, fall through to the client Supabase path.
+    if (res.status !== 404 && res.status !== 501 && data?.error) {
+      // 200-style soft success is preferred; only throw real client errors.
+      if (res.status >= 400 && res.status < 500 && res.status !== 404) {
+        throw new Error(data.error);
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message && !error.message.includes("fetch")) {
+      // Re-throw intentional API errors (invalid email, rate limit, etc.).
+      if (!/Failed to fetch|NetworkError|404/i.test(error.message)) throw error;
+    }
+  }
+
+  if (!isAuthEnabled()) {
+    throw new Error("Password reset is unavailable until Supabase Auth is configured.");
+  }
+
+  const redirectTo =
+    typeof window !== "undefined" ? `${window.location.origin}/` : undefined;
+  const { error } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(trimmed, {
+    redirectTo,
+  });
+  if (error) throw error;
 }
 
 export function authHeaders(accessToken: string | null | undefined): HeadersInit {

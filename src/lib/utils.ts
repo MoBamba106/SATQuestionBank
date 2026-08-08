@@ -316,9 +316,81 @@ export function skillColor(skill: string): string {
 
 /** SAT Nexus displays calendar times in its home time zone (Detroit / Eastern). */
 export const DETROIT_TIME_ZONE = "America/Detroit";
-export function formatDetroitDate(value: string | number | Date, options: Intl.DateTimeFormatOptions = {}) {
-  return new Intl.DateTimeFormat("en-US", { timeZone: DETROIT_TIME_ZONE, ...options }).format(new Date(value));
+
+/**
+ * Parse API/DB timestamps into a real UTC Date.
+ *
+ * node-pg often returns `timestamp without time zone` as `"2026-08-07 19:30:00"`
+ * (no `Z`). `new Date(...)` then treats that as the *browser's* local zone, which
+ * shifts Detroit times when the viewer isn't already on Eastern. Treat bare
+ * SQL timestamps as UTC instants so `formatDetroit*` can convert correctly.
+ */
+export function parseUtcDate(value: string | number | Date | null | undefined): Date | null {
+  if (value == null || value === "") return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === "number") {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  let raw = String(value).trim();
+  if (!raw) return null;
+
+  // "2026-08-07 19:30:00.123+00" / "...Z" / ISO with T
+  if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(raw)) {
+    const d = new Date(raw.includes("T") ? raw : raw.replace(" ", "T"));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  // Bare SQL timestamp → assume UTC wall clock from Postgres `now()`.
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(raw)) {
+    raw = raw.replace(" ", "T");
+    if (!raw.endsWith("Z")) raw = `${raw}Z`;
+    const d = new Date(raw);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  // Date-only YYYY-MM-DD — keep calendar day stable in Detroit.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    const d = new Date(`${raw}T12:00:00Z`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
+
+export function formatDetroitDate(value: string | number | Date, options: Intl.DateTimeFormatOptions = {}) {
+  const date = parseUtcDate(value);
+  if (!date) return "—";
+  return new Intl.DateTimeFormat("en-US", { timeZone: DETROIT_TIME_ZONE, ...options }).format(date);
+}
+
 export function formatDetroitDateTime(value: string | number | Date) {
-  return formatDetroitDate(value, { dateStyle: "medium", timeStyle: "short" });
+  return formatDetroitDate(value, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
+/** Relative presence label in Detroit time (e.g. "3 min ago · 4:12 PM EDT"). */
+export function formatDetroitRelative(value: string | number | Date | null | undefined): string {
+  const date = parseUtcDate(value ?? null);
+  if (!date) return "never";
+  const diffMs = Date.now() - date.getTime();
+  const abs = Math.abs(diffMs);
+  const mins = Math.round(abs / 60_000);
+  const hours = Math.round(abs / 3_600_000);
+  const days = Math.round(abs / 86_400_000);
+  let rel: string;
+  if (mins < 1) rel = "just now";
+  else if (mins < 60) rel = `${mins} min ago`;
+  else if (hours < 48) rel = `${hours} hr ago`;
+  else rel = `${days} day${days === 1 ? "" : "s"} ago`;
+  return `${rel} · ${formatDetroitDateTime(date)}`;
 }

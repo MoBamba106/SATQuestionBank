@@ -10,14 +10,28 @@ import { Pool, type PoolConfig } from "pg";
 /**
  * Database access for SAT Nexus (web).
  *
- * Production / Vercel:
- *   - DATABASE_URL: runtime query traffic
- *   - DATABASE_MIGRATION_URL (recommended): schema migrations
+ * Production / Vercel (Supabase integration names preferred):
+ *   - POSTGRES_URL / POSTGRES_PRISMA_URL / DATABASE_URL → runtime queries
+ *   - POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL → Drizzle migrations
  *
  * Local development (zero-config):
- *   Embedded PGlite in .sat-nexus-db when DATABASE_URL is unset.
+ *   Embedded PGlite in .sat-nexus-db when no Postgres URL is set.
  */
-const rawDatabaseUrl = process.env.DATABASE_URL?.trim() || "";
+function firstEnv(...keys: string[]): string {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+  return "";
+}
+
+/** Runtime pooler URL — Supabase Vercel integration names first. */
+const rawDatabaseUrl = firstEnv(
+  "POSTGRES_URL",
+  "POSTGRES_PRISMA_URL",
+  "DATABASE_URL",
+  "POSTGRES_URL_NON_POOLING",
+);
 
 function isPostgresConnectionString(value: string) {
   return (
@@ -43,12 +57,15 @@ const derivedMigrationUrl = isPostgresConnectionString(rawDatabaseUrl)
   ? deriveSupabaseSessionPoolerUrl(rawDatabaseUrl)
   : "";
 
+/** Direct / session URL for migrations — non-pooling first. */
 const rawMigrationUrl =
-  process.env.DATABASE_MIGRATION_URL?.trim() ||
+  firstEnv(
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_MIGRATION_URL",
+    "DATABASE_DIRECT_URL",
+    "DIRECT_DATABASE_URL",
+  ) ||
   derivedMigrationUrl ||
-  process.env.DATABASE_DIRECT_URL?.trim() ||
-  process.env.DIRECT_DATABASE_URL?.trim() ||
-  process.env.POSTGRES_URL_NON_POOLING?.trim() ||
   rawDatabaseUrl;
 
 const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
@@ -424,8 +441,8 @@ async function runSchema() {
       `Database schema setup failed (${databaseKind}): ${message}\n` +
         `Runtime target: ${runtimeTarget}. Migration target: ${migrationTarget}.` +
         (shouldUsePostgres
-          ? ` Check DATABASE_URL, DATABASE_MIGRATION_URL, and database credentials.${providerHint}`
-          : " Embedded PGlite failed. Delete .sat-nexus-db and restart, or set DATABASE_URL."),
+          ? ` Check POSTGRES_URL / DATABASE_URL, POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL, and database credentials.${providerHint}`
+          : " Embedded PGlite failed. Delete .sat-nexus-db and restart, or set POSTGRES_URL / DATABASE_URL."),
     );
   }
 }

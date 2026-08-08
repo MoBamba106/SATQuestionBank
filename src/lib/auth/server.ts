@@ -3,6 +3,11 @@ import { createClient } from "@supabase/supabase-js";
 import { sql } from "drizzle-orm";
 import { db, ensureDatabaseReady } from "@/db";
 import { GUEST_USER, GUEST_USER_ID, type AuthUser } from "@/lib/auth/types";
+import {
+  resolveSupabaseAnonKey,
+  resolveSupabaseServiceRoleKey,
+  resolveSupabaseUrl,
+} from "@/lib/supabase";
 
 const AUTH_COOKIE = "sat_nexus_access_token";
 /** Header an admin can send to act on behalf of another user ("go into their account"). */
@@ -24,22 +29,12 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 }
 
 function supabaseConfigured() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
-      (
-        process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()
-      ),
-  );
+  return Boolean(resolveSupabaseUrl() && (resolveSupabaseServiceRoleKey() || resolveSupabaseAnonKey()));
 }
 
 function getSupabaseServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  const url = resolveSupabaseUrl();
+  const key = resolveSupabaseServiceRoleKey() || resolveSupabaseAnonKey();
 
   if (!url || !key) return null;
 

@@ -264,6 +264,33 @@ export const sharedCollections = pgTable(
   ],
 );
 
+/**
+ * Shareable quiz snapshots. Anyone with the token can open the same question set.
+ * Optional toUserId supports in-app delivery (mirrors shared questions/collections).
+ */
+export const sharedQuizzes = pgTable(
+  "shared_quizzes",
+  {
+    id: text("id").primaryKey(),
+    token: text("token").notNull(),
+    fromUserId: text("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: text("to_user_id").references(() => users.id, { onDelete: "cascade" }),
+    label: text("label").notNull().default("Shared quiz"),
+    mode: text("mode").notNull().default("practice"),
+    questionIds: jsonb("question_ids").notNull().$type<string[]>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+  },
+  (t) => [
+    uniqueIndex("shared_quizzes_token_uidx").on(t.token),
+    index("shared_quizzes_to_user_idx").on(t.toUserId),
+    index("shared_quizzes_from_user_idx").on(t.fromUserId),
+    index("shared_quizzes_expires_idx").on(t.expiresAt),
+  ],
+);
+
 export type QuestionRow = typeof questions.$inferSelect;
 export type AttemptRow = typeof attempts.$inferSelect;
 export type CollectionRow = typeof collections.$inferSelect;
