@@ -306,6 +306,10 @@ export const duels = pgTable(
     status: text("status").notNull().default("pending"),
     label: text("label").notNull().default("Quiz duel"),
     domain: text("domain"),
+    /** SAT domain category (e.g. Algebra, Craft and Structure). */
+    skill: text("skill"),
+    /** Finer skill within a category (subskill). */
+    category: text("category"),
     difficulty: text("difficulty"),
     questionCount: integer("question_count").notNull().default(10),
     questionIds: jsonb("question_ids").notNull().$type<string[]>(),

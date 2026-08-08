@@ -19,7 +19,14 @@ import { Pool, type PoolConfig } from "pg";
  */
 function firstEnv(...keys: string[]): string {
   for (const key of keys) {
-    const value = process.env[key]?.trim();
+    let value = process.env[key]?.trim() || "";
+    // Vercel / dashboards sometimes wrap values in quotes.
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1).trim();
+    }
     if (value) return value;
   }
   return "";
@@ -34,10 +41,23 @@ const rawDatabaseUrl = firstEnv(
 );
 
 function isPostgresConnectionString(value: string) {
-  return (
-    /^(postgres(ql)?:\/\/)/i.test(value) ||
-    (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:"))
-  );
+  if (!value) return false;
+  // Accept standard postgres URLs and common Supabase / Prisma pooler forms
+  // (including query-string suffixes like ?pgbouncer=true&sslmode=require).
+  if (/^(postgres(ql)?:\/\/)/i.test(value)) return true;
+  if (/^[\w.-]+:\d+\//.test(value) && !value.startsWith("file:")) return true;
+  return false;
+}
+
+function configuredDbEnvKeys(): string[] {
+  return [
+    "POSTGRES_URL",
+    "POSTGRES_PRISMA_URL",
+    "DATABASE_URL",
+    "POSTGRES_URL_NON_POOLING",
+    "DATABASE_MIGRATION_URL",
+    "DATABASE_MODE",
+  ].filter((key) => Boolean(process.env[key]?.trim()));
 }
 
 function deriveSupabaseSessionPoolerUrl(value: string): string {
@@ -69,20 +89,33 @@ const rawMigrationUrl =
   rawDatabaseUrl;
 
 const mode = (process.env.DATABASE_MODE || "").trim().toLowerCase();
-const forceEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
 const forcePostgres = mode === "postgres" || mode === "pg";
+// Only force embedded when there is NO usable Postgres URL.
+// A real POSTGRES_URL / DATABASE_URL always wins — otherwise Vercel deployments
+// with a leftover DATABASE_MODE=embedded keep falling into broken PGlite.
+const wantEmbedded = mode === "embedded" || mode === "pglite" || mode === "local";
 
 const onVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 const hasRuntimePostgresUrl = isPostgresConnectionString(rawDatabaseUrl);
+const forceEmbedded = wantEmbedded && !hasRuntimePostgresUrl;
 const shouldUsePostgres =
   !forceEmbedded &&
   hasRuntimePostgresUrl &&
-  (forcePostgres || onVercel || process.env.NODE_ENV === "production" || Boolean(rawDatabaseUrl));
+  (forcePostgres || onVercel || process.env.NODE_ENV === "production" || hasRuntimePostgresUrl);
+
+if (wantEmbedded && hasRuntimePostgresUrl) {
+  console.warn(
+    "[db] DATABASE_MODE requests embedded PGlite, but a Postgres URL is set " +
+      `(${configuredDbEnvKeys().filter((k) => k !== "DATABASE_MODE").join(", ") || "POSTGRES_URL"}). ` +
+      "Using Postgres. Remove DATABASE_MODE on Vercel to silence this.",
+  );
+}
 
 if ((onVercel || process.env.NODE_ENV === "production") && !hasRuntimePostgresUrl && !forceEmbedded) {
   console.warn(
-    "[db] DATABASE_URL is missing or not a postgres:// URL. " +
-      "Vercel production requires Postgres (CloudBase RDB / Neon / Supabase / etc.).",
+    "[db] No usable Postgres URL found (checked POSTGRES_URL, POSTGRES_PRISMA_URL, DATABASE_URL, POSTGRES_URL_NON_POOLING). " +
+      `Present env keys: ${configuredDbEnvKeys().join(", ") || "(none)"}. ` +
+      "Vercel production requires a Supabase/Neon Postgres connection string.",
   );
 }
 
@@ -437,12 +470,15 @@ async function runSchema() {
         ? " Supabase transaction pooler URLs (port 6543) are best for app queries. Use DATABASE_MIGRATION_URL with a direct or session-mode connection for Drizzle migrations."
         : "";
 
+    const envHint = ` Env keys present: ${configuredDbEnvKeys().join(", ") || "(none)"}.`;
     throw new Error(
       `Database schema setup failed (${databaseKind}): ${message}\n` +
         `Runtime target: ${runtimeTarget}. Migration target: ${migrationTarget}.` +
         (shouldUsePostgres
-          ? ` Check POSTGRES_URL / DATABASE_URL, POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL, and database credentials.${providerHint}`
-          : " Embedded PGlite failed. Delete .sat-nexus-db and restart, or set POSTGRES_URL / DATABASE_URL."),
+          ? ` Check POSTGRES_URL / DATABASE_URL, POSTGRES_URL_NON_POOLING / DATABASE_MIGRATION_URL, and database credentials.${providerHint}${envHint}`
+          : ` Embedded PGlite failed.${envHint} ` +
+              "If you meant to use Supabase Postgres, set POSTGRES_URL (pooler :6543) and remove DATABASE_MODE=embedded on Vercel. " +
+              "Local-only: delete .sat-nexus-db and restart."),
     );
   }
 }

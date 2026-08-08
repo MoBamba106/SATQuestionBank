@@ -14,7 +14,8 @@ import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { RequireAccount } from "@/components/require-account";
 import { useApi, apiPost, apiPatch, mutateKey } from "@/lib/api-client";
 import { useAuth } from "@/components/auth-provider";
-import { cn, formatDetroitDateTime } from "@/lib/utils";
+import { skillsForDomain, subskillsFor } from "@/lib/sat-categories";
+import { cn, formatDetroitDateTime, skillTone } from "@/lib/utils";
 
 type UserResult = { id: string; email: string | null; displayName: string | null };
 
@@ -26,6 +27,8 @@ type DuelList = {
     hostEmail?: string;
     questionCount: number;
     domain?: string | null;
+    skill?: string | null;
+    category?: string | null;
     difficulty?: string | null;
     createdAt: string;
     expiresAt: string;
@@ -56,6 +59,8 @@ function DuelInner() {
   const { data, loading, reload } = useApi<DuelList>("/api/duels", "duels");
 
   const [domain, setDomain] = React.useState("All");
+  const [skill, setSkill] = React.useState("All");
+  const [category, setCategory] = React.useState("All");
   const [difficulty, setDifficulty] = React.useState("All");
   const [count, setCount] = React.useState(10);
   const [query, setQuery] = React.useState("");
@@ -63,6 +68,29 @@ function DuelInner() {
   const [searching, setSearching] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [busy, setBusy] = React.useState<string | null>(null);
+
+  const skillOpts = React.useMemo(
+    () => [
+      { value: "All", label: "All categories", tone: "blue" as const },
+      ...skillsForDomain(domain).map((item) => ({
+        value: item,
+        label: item,
+        tone: skillTone(item),
+      })),
+    ],
+    [domain],
+  );
+  const categoryOpts = React.useMemo(
+    () => [
+      { value: "All", label: "All skills", tone: "green" as const },
+      ...subskillsFor(domain, skill).map((item) => ({
+        value: item,
+        label: item,
+        tone: "green" as const,
+      })),
+    ],
+    [domain, skill],
+  );
 
   React.useEffect(() => {
     if (query.trim().length < 2) {
@@ -102,6 +130,8 @@ function DuelInner() {
         toEmail,
         count,
         domain,
+        skill,
+        category,
         difficulty,
         label: "Quiz duel",
       });
@@ -161,6 +191,8 @@ function DuelInner() {
                 <div className="text-[12px] text-[var(--ink-faint)]">
                   {d.questionCount} questions
                   {d.domain ? ` · ${d.domain}` : ""}
+                  {d.skill ? ` · ${d.skill}` : ""}
+                  {d.category ? ` · ${d.category}` : ""}
                   {d.difficulty ? ` · ${d.difficulty}` : ""}
                   {" · expires "}
                   {formatDetroitDateTime(d.expiresAt)}
@@ -218,12 +250,43 @@ function DuelInner() {
             <PaperSelect
               tone="lavender"
               value={domain}
-              onValueChange={setDomain}
+              onValueChange={(v) => {
+                setDomain(v);
+                setSkill("All");
+                setCategory("All");
+              }}
               options={[
                 { value: "All", label: "All sections" },
                 { value: "Math", label: "Math" },
                 { value: "Reading & Writing", label: "Reading & Writing" },
               ]}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+              Category
+            </label>
+            <PaperSelect
+              tone="blue"
+              value={skill}
+              onValueChange={(v) => {
+                setSkill(v);
+                setCategory("All");
+              }}
+              options={skillOpts}
+              disabled={domain === "All"}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+              Skill
+            </label>
+            <PaperSelect
+              tone="green"
+              value={category}
+              onValueChange={setCategory}
+              options={categoryOpts}
+              disabled={skill === "All"}
             />
           </div>
           <div>

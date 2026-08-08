@@ -43,6 +43,13 @@
       "when": 1785816494392,
       "tag": "0005_duels",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785816494393,
+      "tag": "0006_duels_skill_category",
+      "breakpoints": true
     }
   ]
 }

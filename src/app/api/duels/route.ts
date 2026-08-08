@@ -29,7 +29,8 @@ export async function GET(req: Request) {
 
     const inbox = rows<Record<string, unknown>>(
       await db.execute(sql`
-        SELECT d.id, d.label, d.status, d.domain, d.difficulty, d.question_count AS "questionCount",
+        SELECT d.id, d.label, d.status, d.domain, d.skill, d.category, d.difficulty,
+               d.question_count AS "questionCount",
                d.host_score AS "hostScore", d.guest_score AS "guestScore",
                d.created_at AS "createdAt", d.expires_at AS "expiresAt",
                hu.id AS "hostId", hu.display_name AS "hostName", hu.email AS "hostEmail"
@@ -43,7 +44,8 @@ export async function GET(req: Request) {
 
     const active = rows<Record<string, unknown>>(
       await db.execute(sql`
-        SELECT d.id, d.label, d.status, d.domain, d.difficulty, d.question_count AS "questionCount",
+        SELECT d.id, d.label, d.status, d.domain, d.skill, d.category, d.difficulty,
+               d.question_count AS "questionCount",
                d.host_score AS "hostScore", d.guest_score AS "guestScore",
                d.current_index AS "currentIndex",
                d.host_user_id AS "hostUserId", d.guest_user_id AS "guestUserId",
@@ -77,7 +79,10 @@ export async function GET(req: Request) {
 
 /**
  * Create a duel challenge.
- * Body: { toUserId?, toEmail?, count?, domain?, difficulty?, label? }
+ * Body: { toUserId?, toEmail?, count?, domain?, skill?, category?, difficulty?, label? }
+ * - domain: Math | Reading & Writing
+ * - skill: SAT domain category (Algebra, Craft and Structure, …)
+ * - category: finer subskill within that skill
  */
 export async function POST(req: Request) {
   try {
@@ -92,6 +97,8 @@ export async function POST(req: Request) {
     const toEmail = String(body?.toEmail || "").trim().toLowerCase();
     const count = Math.min(30, Math.max(5, Number(body?.count) || 10));
     const domain = body?.domain && body.domain !== "All" ? String(body.domain) : null;
+    const skill = body?.skill && body.skill !== "All" ? String(body.skill) : null;
+    const category = body?.category && body.category !== "All" ? String(body.category) : null;
     const difficulty = body?.difficulty && body.difficulty !== "All" ? String(body.difficulty) : null;
     const label = String(body?.label || "Quiz duel").trim().slice(0, 120) || "Quiz duel";
 
@@ -110,6 +117,8 @@ export async function POST(req: Request) {
 
     const where = buildQuestionFilters({
       domain,
+      skill,
+      subskill: category,
       difficulty,
       userId: user.id,
     });
@@ -121,7 +130,7 @@ export async function POST(req: Request) {
     });
     if (pool.length < 5) {
       return NextResponse.json(
-        { error: "Not enough questions match those filters (need at least 5)." },
+        { error: "Not enough questions match those filters (need at least 5). Widen section/skill/category." },
         { status: 400 },
       );
     }
@@ -132,10 +141,11 @@ export async function POST(req: Request) {
 
     await db.execute(sql`
       INSERT INTO duels (
-        id, host_user_id, guest_user_id, status, label, domain, difficulty,
+        id, host_user_id, guest_user_id, status, label, domain, skill, category, difficulty,
         question_count, question_ids, expires_at
       ) VALUES (
-        ${id}, ${user.id}, ${toUserId}, 'pending', ${label}, ${domain}, ${difficulty},
+        ${id}, ${user.id}, ${toUserId}, 'pending', ${label},
+        ${domain}, ${skill}, ${category}, ${difficulty},
         ${ids.length}, ${idsJson}::jsonb, now() + interval '15 minutes'
       )
     `);

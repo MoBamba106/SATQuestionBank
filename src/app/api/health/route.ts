@@ -13,11 +13,20 @@ export async function GET() {
   try {
     await ensureDatabaseReady();
     await db.execute(sql`select 1`);
+    const dbEnvKeys = [
+      "POSTGRES_URL",
+      "POSTGRES_PRISMA_URL",
+      "DATABASE_URL",
+      "POSTGRES_URL_NON_POOLING",
+      "DATABASE_MIGRATION_URL",
+      "DATABASE_MODE",
+    ].filter((key) => Boolean(process.env[key]?.trim()));
     return Response.json({
       ok: true,
       database: databaseKind,
       databaseConnection: databaseConnectionInfo,
       migrationConnection: databaseMigrationConnectionInfo,
+      databaseEnvKeys: dbEnvKeys,
       supabaseAuth: Boolean(
         (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
           (
