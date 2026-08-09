@@ -2,20 +2,24 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Play, Loader2, PartyPopper, Shuffle } from "lucide-react";
+import { RotateCcw, Play, Loader2, PartyPopper, Shuffle, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperSelect } from "@/components/ui/paper-select";
 import { QuestionCard } from "@/components/question-card";
-import { useApi } from "@/lib/api-client";
+import { useAuth } from "@/components/auth-provider";
+import { apiPost, getImpersonatedUser, mutateKey, useApi } from "@/lib/api-client";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { cn } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
 export default function MistakesPage() {
   const router = useRouter();
+  const auth = useAuth();
   const [domain, setDomain] = React.useState("All");
   const [daysBack, setDaysBack] = React.useState("0");
   const [neverCorrected, setNeverCorrected] = React.useState(false);
+  const [overriding, setOverriding] = React.useState<string | null>(null);
 
   const qs = React.useMemo(() => {
     const p = new URLSearchParams();
@@ -52,6 +56,38 @@ export default function MistakesPage() {
     if (mistakes.length === 0) return;
     const shuffled = [...mistakes].sort(() => Math.random() - 0.5).slice(0, 10);
     launchPoolQuiz(router, { label: "Mistake blitz · 10 random", ids: shuffled.map((q) => q.id), mode: "mistakes" });
+  };
+
+  /**
+   * Admin-only manual override: mark any question as correct for the user
+   * currently in view (the impersonated account when an admin is "Viewing as"
+   * someone, otherwise the signed-in admin). This flips every wrong attempt
+   * for (user, question) to correct, which removes the entry from the mistake
+   * bank and restores global accuracy metrics.
+   */
+  const adminOverride = async (q: SATQuestion) => {
+    if (overriding) return;
+    setOverriding(q.id);
+    try {
+      const targetId = getImpersonatedUser()?.id ?? auth.user.id;
+      const res = await apiPost<{ updated: number }>("/api/admin/override", {
+        userId: targetId,
+        questionId: q.id,
+      });
+      toast.success("Marked correct", {
+        description:
+          res.updated > 0
+            ? `${res.updated} attempt${res.updated === 1 ? "" : "s"} corrected — removed from the mistake bank.`
+            : "Question removed from the mistake bank.",
+      });
+      mutateKey("mistakes");
+      mutateKey("stats");
+      mutateKey("admin-overview");
+    } catch (e) {
+      toast.error("Couldn't override", { description: e instanceof Error ? e.message : "Please try again" });
+    } finally {
+      setOverriding(null);
+    }
   };
 
   return (
@@ -120,19 +156,19 @@ export default function MistakesPage() {
         </div>
       </GlassCard>
 
-      {/* Stats */}
+      {/* Stats — sans-serif metrics with theme tokens to match the global design system */}
       <div className="grid grid-cols-3 gap-4">
         <GlassCard hover={false} className="p-5 text-center">
-          <div className="font-display text-3xl font-bold text-[#d95670]">{loading ? "…" : mistakes.length}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Open mistakes</div>
+          <div className="font-sans text-[28px] font-bold leading-tight tracking-tight text-[var(--ink)]">{loading ? "…" : mistakes.length}</div>
+          <div className="mt-1 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-faint)]">Open mistakes</div>
         </GlassCard>
         <GlassCard hover={false} className="p-5 text-center">
-          <div className="font-display text-3xl font-bold text-[#d9922e]">{loading ? "…" : `${avgMastery}%`}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Avg mastery</div>
+          <div className="font-sans text-[28px] font-bold leading-tight tracking-tight text-[var(--ink)]">{loading ? "…" : `${avgMastery}%`}</div>
+          <div className="mt-1 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-faint)]">Avg mastery</div>
         </GlassCard>
         <GlassCard hover={false} className="p-5 text-center">
-          <div className="font-display text-3xl font-bold text-[#3a5fc8]">{loading ? "…" : neverCount}</div>
-          <div className="mt-1 text-[12px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">Never corrected</div>
+          <div className="font-sans text-[28px] font-bold leading-tight tracking-tight text-[var(--ink)]">{loading ? "…" : neverCount}</div>
+          <div className="mt-1 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-faint)]">Never corrected</div>
         </GlassCard>
       </div>
 
@@ -169,16 +205,32 @@ export default function MistakesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {mistakes.map((q) => (
-            <div key={q.id} className="relative">
-              <QuestionCard question={q} />
-              <button
-                onClick={() => practiceOne(q)}
-                title="Retry this question"
-                className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-[#f3ccd4] bg-[#fdf0f2] px-2.5 py-1 text-[10.5px] font-bold text-[#a33046] transition-all hover:bg-[#fce3e8]"
-              >
-                <RotateCcw className="h-3 w-3" /> Retry
-              </button>
-            </div>
+            <QuestionCard
+              key={q.id}
+              question={q}
+              footer={
+                <div className="flex w-full flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => practiceOne(q)}
+                    title="Retry this question"
+                    className="btn btn-primary !min-h-8 !px-3 !py-1.5 !text-[12px]"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> Retry
+                  </button>
+                  {auth.isAdmin && (
+                    <button
+                      onClick={() => void adminOverride(q)}
+                      disabled={overriding !== null}
+                      title="Admin override: mark this question correct for the user in view, removing it from their mistake bank"
+                      className="btn btn-soft !min-h-8 !px-3 !py-1.5 !text-[12px]"
+                    >
+                      {overriding === q.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                      Admin Override
+                    </button>
+                  )}
+                </div>
+              }
+            />
           ))}
         </div>
       )}

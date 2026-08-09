@@ -503,7 +503,7 @@ export function QuestionView({
                 onChange={(e) => onSelect(e.target.value)}
               />
               {graded && (
-                <span className="text-[13px] font-semibold text-[#238a5e]">
+                <span className="text-[13px] font-semibold text-[var(--good)]">
                   Answer: {formatAcceptedAnswer(correctKey)}
                 </span>
               )}
@@ -514,7 +514,7 @@ export function QuestionView({
         {graded && showExplanation && question.explanation && (
           <div className="answer-explanation rounded-[6px] border p-4 sm:p-5">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#238a5e]">Explanation</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.12em] text-[var(--good)]">Explanation</p>
               {onOverrideCorrect && selected && !answersMatch(selected, correctKey) && (
                 <button
                   type="button"

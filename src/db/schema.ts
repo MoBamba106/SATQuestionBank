@@ -323,11 +323,18 @@ export const duels = pgTable(
     startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),
     expiresAt: timestamp("expires_at").notNull(),
+    /**
+     * Last WebSocket heartbeat / user action in the room. Active duels with
+     * no heartbeat for STALE_DUEL_MS (90s) are auto-expired so abandoned
+     * rooms don't linger in the "Active duels" list.
+     */
+    lastActiveAt: timestamp("last_active_at"),
   },
   (t) => [
     index("duels_host_idx").on(t.hostUserId),
     index("duels_guest_idx").on(t.guestUserId),
     index("duels_status_idx").on(t.status),
+    index("duels_last_active_idx").on(t.lastActiveAt),
   ],
 );
 

@@ -56,11 +56,18 @@ export async function handleGuestApi(url: string, init?: RequestInit): Promise<a
     const db = getGuestDb();
     let recorded = 0;
     let duplicates = 0;
+    let overridden = 0;
     const list = Array.isArray(body.attempts) ? body.attempts : [{ questionId: body.questionId, isCorrect: body.isCorrect, answer: body.answer }];
     for (const a of list) {
       if (!a.questionId || typeof a.isCorrect !== "boolean") continue;
       const exists = db.attempts.find((x: any) => x.sessionId === body.sessionId && x.questionId === a.questionId);
-      if (exists) {
+      // "I was actually right": flip the existing graded row to correct so
+      // accuracy recalculates and the question leaves the mistake bank.
+      if (exists && body.override) {
+        exists.isCorrect = true;
+        exists.answer = a.answer ?? exists.answer;
+        overridden++;
+      } else if (exists) {
         duplicates++;
       } else {
         db.attempts.push({
@@ -76,7 +83,7 @@ export async function handleGuestApi(url: string, init?: RequestInit): Promise<a
       }
     }
     saveGuestDb(db);
-    return { recorded, duplicates };
+    return { recorded, duplicates, overridden };
   }
 
   if (cleanUrl === "/api/stats" && method === "GET") {

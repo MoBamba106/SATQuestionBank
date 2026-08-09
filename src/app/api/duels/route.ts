@@ -7,6 +7,7 @@ import { isLocalGuestId } from "@/lib/auth/types";
 import { escapeHtml, sendEmail } from "@/lib/email";
 import { uid } from "@/lib/utils";
 import { fetchQuestionsByIds, queryQuestions, buildQuestionFilters } from "@/lib/server-questions";
+import { DUEL_STALE_INTERVAL_SQL } from "@/lib/duels";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,15 @@ export async function GET(req: Request) {
     await db.execute(sql`
       UPDATE duels SET status = 'expired'
       WHERE status = 'pending' AND expires_at < now()
+    `);
+
+    // Auto-expire abandoned active rooms: no WebSocket heartbeat or user
+    // action in the staleness window (90s). They disappear from "Active duels"
+    // and move into the recent/expired list.
+    await db.execute(sql`
+      UPDATE duels SET status = 'expired', finished_at = now()
+      WHERE status = 'active'
+        AND COALESCE(last_active_at, started_at, created_at) < now() - ${sql.raw(DUEL_STALE_INTERVAL_SQL)}
     `);
 
     const inbox = rows<Record<string, unknown>>(

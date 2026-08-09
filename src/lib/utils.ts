@@ -218,8 +218,11 @@ function singleAnswerMatch(student: string, accepted: string): boolean {
   const sNum = parseLooseNumber(s);
   const tNum = parseLooseNumber(t);
   if (sNum != null && tNum != null) {
-    // Absolute epsilon for small values, relative for large ones.
-    const tol = Math.max(1e-9, Math.abs(tNum) * 1e-9);
+    // SAT scoring accepts any answer within 1/1000 of the exact value. This
+    // also makes fraction inputs equivalent to their (possibly rounded)
+    // decimal keys — e.g. 21/29 ≈ .7241 or 3/4 === 0.75 — while staying
+    // strict enough to reject wrong answers.
+    const tol = Math.min(1e-2, Math.max(1e-3, Math.abs(tNum) * 1e-6));
     if (Math.abs(sNum - tNum) <= tol) return true;
   }
   return false;
