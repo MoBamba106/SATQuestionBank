@@ -65,6 +65,54 @@ export default function StudySessionsPage() {
       },
     },
     {
+      id: "math-module-1",
+      name: "Math Module 1",
+      desc: "Timed interactive quiz on Algebra and Problem-Solving skills.",
+      duration: "~15 min",
+      icon: Calculator,
+      tone: "bg-[#e8eef8] text-[#315eaa] border-[#c9d6eb]",
+      build: async () => {
+        const d = await apiGet<QuestionSummary>("/api/questions?domain=Math&skill=Algebra&random=1&limit=10");
+        return { label: "Math Module 1", ids: d.questions.map((q) => q.id) };
+      },
+    },
+    {
+      id: "math-module-2",
+      name: "Math Module 2",
+      desc: "Timed interactive quiz on Advanced Math and Geometry skills.",
+      duration: "~15 min",
+      icon: Calculator,
+      tone: "bg-[#e8eef8] text-[#315eaa] border-[#c9d6eb]",
+      build: async () => {
+        const d = await apiGet<QuestionSummary>("/api/questions?domain=Math&skill=Advanced%20Math&random=1&limit=10");
+        return { label: "Math Module 2", ids: d.questions.map((q) => q.id) };
+      },
+    },
+    {
+      id: "rw-module-1",
+      name: "Reading & Writing Module 1",
+      desc: "Timed interactive quiz on Information, Craft, and Expression skills.",
+      duration: "~15 min",
+      icon: BookOpen,
+      tone: "bg-[#e5f2e9] text-[#287a55] border-[#bad6c7]",
+      build: async () => {
+        const d = await apiGet<QuestionSummary>("/api/questions?domain=Reading%20%26%20Writing&random=1&limit=10");
+        return { label: "Reading & Writing Module 1", ids: d.questions.map((q) => q.id) };
+      },
+    },
+    {
+      id: "rw-module-2",
+      name: "Reading & Writing Module 2",
+      desc: "Timed interactive quiz on advanced inferencing and cross-text skills.",
+      duration: "~15 min",
+      icon: BookOpen,
+      tone: "bg-[#e5f2e9] text-[#287a55] border-[#bad6c7]",
+      build: async () => {
+        const d = await apiGet<QuestionSummary>("/api/questions?domain=Reading%20%26%20Writing&random=1&limit=10");
+        return { label: "Reading & Writing Module 2", ids: d.questions.map((q) => q.id) };
+      },
+    },
+    {
       id: "mixed-review",
       name: "Mixed Review",
       desc: "Twenty questions across every domain and category.",

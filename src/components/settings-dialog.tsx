@@ -57,6 +57,7 @@ const THEMES: {
   { id: "soft-paper", name: "Soft Paper", description: "Warm tactile notebook", swatches: ["#eee6dd", "#69d8cf", "#d19548", "#8a3d18"] },
   { id: "paper", name: "Paper", description: "Deckled handmade stationery", swatches: ["#f1eadc", "#e8dece", "#67c7be", "#b96d36"] },
   { id: "cardboard", name: "Cardboard", description: "Kraft board, ink and tape", swatches: ["#b88955", "#d1ad7b", "#5b412d", "#e8d3ad"] },
+  { id: "maroon", name: "Maroon", description: "Deep crimson and warm dark tones", swatches: ["#3b0a1a", "#4a1522", "#800000", "#f2e0d8"] },
 ];
 
 function Toggle({

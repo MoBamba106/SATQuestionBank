@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-export type AppTheme = "light" | "dark" | "obsidian" | "highlighter" | "liquid-glass" | "soft-paper" | "paper" | "cardboard";
+export type AppTheme = "light" | "dark" | "obsidian" | "highlighter" | "liquid-glass" | "soft-paper" | "paper" | "cardboard" | "maroon";
 export type FontScale = "small" | "default" | "large";
 export type QuizModeSetting = "practice" | "exam";
 export type PassageLayout = "scroll" | "expand";
