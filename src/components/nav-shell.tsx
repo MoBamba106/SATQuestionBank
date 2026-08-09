@@ -311,7 +311,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setAuthOpen(true)}
-              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
               style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
               title="Sign in"
             >
@@ -326,7 +326,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={confirmSignOut}
-              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
               style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
               title="Sign out"
             >
@@ -342,7 +342,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="palette"
             onClick={() => setPaletteOpen(true)}
-            className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
             style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
             title="Go to"
           >
@@ -365,7 +365,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="settings"
             onClick={() => setSettingsOpen(true)}
-            className="mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            className="mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
             style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
             title="Settings"
           >
