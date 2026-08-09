@@ -204,7 +204,7 @@ export function FlashcardDeck({
     const total = deck.length;
     return (
       <GlassCard hover={false} className="mx-auto max-w-3xl p-8 text-center">
-        <p className="font-display text-3xl font-bold text-[var(--ink)]">Round complete! 🎉</p>
+        <p className="font-display text-3xl font-bold text-[var(--ink)]">Round complete!</p>
         <p className="mt-2 text-[14px] text-[var(--ink-faint)]">
           {settings.swipeMode
             ? `You knew ${knownCount} of ${total} card${total === 1 ? "" : "s"}.`

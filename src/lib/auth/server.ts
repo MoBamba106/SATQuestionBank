@@ -30,7 +30,11 @@ export function adminEmails(): string[] {
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
-  return adminEmails().includes(email.trim().toLowerCase());
+  const emails = adminEmails();
+  if (emails.length === 0 && (process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development")) {
+    return true; // Auto-grant admin in preview/dev if ADMIN_EMAILS is not configured
+  }
+  return emails.includes(email.trim().toLowerCase());
 }
 
 function supabaseConfigured() {

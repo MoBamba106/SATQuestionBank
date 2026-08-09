@@ -127,7 +127,7 @@ function NavLinks({
               </div>
             )}
             {group.items.map(({ href, label, icon: Icon }) => {
-              const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+              const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
               return (
                 <Link
                   key={href}
@@ -137,18 +137,19 @@ function NavLinks({
                   title={label}
                   aria-label={compact ? label : undefined}
                   className={cn(
-                    "relative flex min-h-10 items-center gap-3 border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors whitespace-nowrap",
-                    compact ? "justify-center px-2" : "px-3",
+                    "relative flex min-h-10 items-center overflow-hidden whitespace-nowrap border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors",
                     active
                       ? "nav-link-active"
                       : "border-transparent text-[var(--ink-soft)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
                   )}
                 >
-                  <Icon
-                    className={cn("nav-item-icon h-[17px] w-[17px] shrink-0", active ? "text-[var(--accent)]" : "text-[var(--ink-faint)]")}
-                    strokeWidth={active ? 2.3 : 2}
-                  />
-                  {!compact && <span className="truncate whitespace-nowrap">{label}</span>}
+                  <div className="flex w-[71px] shrink-0 items-center justify-center">
+                    <Icon
+                      className={cn("nav-item-icon h-[17px] w-[17px]", active ? "text-[var(--accent)]" : "text-[var(--ink-faint)]")}
+                      strokeWidth={active ? 2.3 : 2}
+                    />
+                  </div>
+                  <span className={cn("truncate transition-opacity duration-200", compact ? "opacity-0" : "opacity-100")}>{label}</span>
                 </Link>
               );
             })}
@@ -260,20 +261,20 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         data-tour="sidebar"
         initial={false}
         animate={{ width: desktopExpanded ? 236 : 74 }}
-        transition={{ type: "spring", stiffness: 320, damping: 32 }}
+        transition={{ duration: 0.25, ease: "easeInOut" }}
         onMouseEnter={() => setDesktopExpanded(true)}
         onMouseLeave={() => setDesktopExpanded(false)}
         className="shell-aside fixed inset-y-0 left-0 z-40 hidden flex-col overflow-hidden border-r border-[var(--line)] bg-[var(--paper-soft)] md:flex"
         style={desktopExpanded ? { boxShadow: "0 10px 28px rgba(20,24,34,0.16)" } : { boxShadow: "0 0 0 rgba(0,0,0,0)" }}
       >
-        <Link href="/" className={cn("flex items-center border-b border-[var(--line)] py-5", desktopExpanded ? "gap-3 px-5" : "justify-center px-2")}>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center">
+        <Link href="/" className="flex items-center overflow-hidden whitespace-nowrap border-b border-[var(--line)] py-5">
+          <div className="flex w-[74px] shrink-0 items-center justify-center">
             <img src="/favicon.ico" alt="Logo" className="h-[22px] w-[22px]" />
           </div>
           <motion.div
             initial={false}
-            animate={{ opacity: desktopExpanded ? 1 : 0, x: desktopExpanded ? 0 : -8, width: desktopExpanded ? "auto" : 0 }}
-            transition={{ duration: 0.22 }}
+            animate={{ opacity: desktopExpanded ? 1 : 0, width: desktopExpanded ? "auto" : 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
             className="overflow-hidden whitespace-nowrap"
           >
             <div className="font-display text-[19px] font-bold leading-none text-[var(--ink)]">SAT Nexus</div>
@@ -310,19 +311,13 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setAuthOpen(true)}
-              className={cn(
-                "mb-1 flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
-                desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
-              )}
+              className="mb-1 flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
               title="Sign in"
             >
-              <LogIn className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
-              <span
-                className={cn(
-                  "overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
-                  desktopExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
-                )}
-              >
+              <div className="flex w-[74px] shrink-0 items-center justify-center">
+                <LogIn className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+              </div>
+              <span className={cn("transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
                 Sign in
               </span>
             </button>
@@ -330,19 +325,13 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={confirmSignOut}
-              className={cn(
-                "mb-1 flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
-                desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
-              )}
+              className="mb-1 flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
               title="Sign out"
             >
-              <LogOut className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
-              <span
-                className={cn(
-                  "overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
-                  desktopExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
-                )}
-              >
+              <div className="flex w-[74px] shrink-0 items-center justify-center">
+                <LogOut className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+              </div>
+              <span className={cn("transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
                 Sign out
               </span>
             </button>
@@ -351,17 +340,16 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="palette"
             onClick={() => setPaletteOpen(true)}
-            className={cn(
-              "mb-1 flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
-              desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
-            )}
+            className="mb-1 flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
             title="Go to"
           >
-            <Search className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
+            <div className="flex w-[74px] shrink-0 items-center justify-center">
+              <Search className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+            </div>
             <span
               className={cn(
-                "flex min-w-0 grow items-center overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
-                desktopExpanded ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0",
+                "flex min-w-0 grow items-center transition-opacity duration-200 pr-3",
+                desktopExpanded ? "opacity-100" : "opacity-0",
               )}
             >
               Go to…
@@ -374,19 +362,13 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="settings"
             onClick={() => setSettingsOpen(true)}
-            className={cn(
-              "flex min-h-10 w-full items-center rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] whitespace-nowrap",
-              desktopExpanded ? "gap-3 px-3" : "justify-center px-2",
-            )}
+            className="flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
             title="Settings"
           >
-            <Cog className="h-[17px] w-[17px] shrink-0 text-[var(--ink-faint)]" />
-            <span
-              className={cn(
-                "overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
-                desktopExpanded ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0",
-              )}
-            >
+            <div className="flex w-[74px] shrink-0 items-center justify-center">
+              <Cog className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
+            </div>
+            <span className={cn("transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
               Settings
             </span>
           </button>

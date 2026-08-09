@@ -173,7 +173,9 @@ function DuelInner() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-[var(--accent-soft)] text-2xl">⚔️</div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-[var(--accent-soft)]">
+          <Swords className="h-6 w-6 text-[var(--accent)]" />
+        </div>
         <div>
           <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Head to head</p>
           <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
