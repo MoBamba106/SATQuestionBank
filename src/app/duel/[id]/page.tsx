@@ -59,20 +59,49 @@ export default function DuelRoomPage() {
   React.useEffect(() => {
     void load();
     const supabase = getSupabaseBrowserClient();
+    const roomChannelName = `duel_room_${id}`;
+
     if (!supabase) {
       const t = window.setInterval(() => void load(), 2000);
       return () => window.clearInterval(t);
     }
+
     const channel = supabase
-      .channel(`duel-${id}`)
+      .channel(roomChannelName)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "duels", filter: `id=eq.${id}` },
-        () => void load()
+        () => void load(),
       )
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [id, load]);
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          // Broadcast player joined for this room
+          void channel.send({
+            type: "broadcast",
+            event: "PLAYER_JOINED",
+            payload: { userId: auth.user.id, at: new Date().toISOString() },
+          });
+        }
+      });
+
+    // Listen to direct broadcast events from other clients
+    channel
+      .on("broadcast", { event: "PLAYER_JOINED" }, (payload) => {
+        if (payload.payload?.userId && payload.payload.userId !== auth.user.id) {
+          toast.success("Opponent joined the lobby!");
+          void load();
+        }
+      })
+      .on("broadcast", { event: "ANSWER_SUBMITTED" }, (payload) => {
+        if (payload.payload?.questionId && payload.payload?.userId !== auth.user.id) {
+          void load();
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [id, load, auth.user.id]);
 
   React.useEffect(() => {
     setSelected("");
@@ -187,6 +216,21 @@ export default function DuelRoomPage() {
     setBusy(true);
     setSelected(answer);
     try {
+      // Broadcast answer event immediately for live UI updates
+      const supabase = getSupabaseBrowserClient();
+      if (supabase) {
+        const roomChannelName = `duel_room_${duel.id}`;
+        void supabase?.channel(roomChannelName).send({
+          type: "broadcast",
+          event: "ANSWER_SUBMITTED",
+          payload: {
+            userId: auth.user.id,
+            questionId: q.id,
+            answer,
+            at: new Date().toISOString(),
+          },
+        });
+      }
       const res = await apiPatch<{
         correct?: boolean;
         hostScore: number;

@@ -13,6 +13,7 @@ export const THEME_GLOW: Record<AppTheme, string> = {
   "soft-paper": "#4fc4b8",
   paper: "#67c7be",
   cardboard: "#e8bd66",
+  maroon: "#800000",
 };
 
 export function glowColorForTheme(theme: AppTheme): string {

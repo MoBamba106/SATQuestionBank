@@ -131,7 +131,7 @@ export function buildQuestionFilters(p: {
   const eq = (v?: string | null) => v && v !== "All" && v !== "all";
   if (eq(p.domain)) conds.push(sql`q.domain = ${p.domain}`);
   if (eq(p.skill)) conds.push(sql`q.skill = ${p.skill}`);
-  if (eq(p.subskill)) conds.push(sql`q.subskill = ${p.subskill}`);
+  if (eq(p.subskill)) conds.push(sql`TRIM(LOWER(q.subskill)) = TRIM(LOWER(${p.subskill}))`);
   if (eq(p.difficulty)) {
     const parts = p.difficulty!.split(",").map((part) => part.trim()).filter(Boolean);
     if (parts.length === 1) {

@@ -15,10 +15,6 @@ const TOPICS: { topic: StudyTopic; tone: string }[] = [
   { topic: "Grammar", tone: "soft-tone-lavender" },
   { topic: "Math formulas", tone: "soft-tone-teal" },
   { topic: "Test strategy", tone: "soft-tone-yellow" },
-  { topic: "Math Module 1", tone: "soft-tone-blue" },
-  { topic: "Math Module 2", tone: "soft-tone-blue" },
-  { topic: "Reading & Writing Module 1", tone: "soft-tone-green" },
-  { topic: "Reading & Writing Module 2", tone: "soft-tone-green" },
 ];
 const STORAGE_KEY = "sat-nexus-study-mastered";
 

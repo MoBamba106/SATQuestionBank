@@ -50,5 +50,4 @@ export default withSentryConfig(nextConfig, {
   project: process.env.SENTRY_PROJECT,
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  disableLogger: true,
 });

@@ -1067,6 +1067,43 @@ html[data-theme="paper"] .filter-search {
 }
 html[data-theme="paper"] .filter-label { color: #8b674c; }
 
+html[data-theme="maroon"] {
+  --hl-yellow: rgba(232, 196, 74, .55);
+  --hl-red: rgba(220, 130, 140, .38);
+  --hl-blue: rgba(160, 170, 200, .32);
+  --paper: #3b0a1a;
+  --paper-raised: #4a1522;
+  --paper-soft: #2f0812;
+  --paper-deep: #1a040a;
+  --control-bg: #4a1522;
+  --ink: #f2e0d8;
+  --ink-soft: #d9b3ab;
+  --ink-faint: #a88882;
+  --line: #8a3a4d;
+  --line-soft: #5a1a28;
+  --accent: #800000;
+  --accent-dark: #5a0000;
+  --accent-soft: #4a1522;
+  --good: #5ca37a;
+  --bad: #cf6679;
+  --warn: #c7a05a;
+}
+html[data-theme="maroon"] body {
+  background-color: #2a060e;
+  background-image: linear-gradient(145deg, #2a060e, #3b0a1a 48%, #1a040a);
+}
+html[data-theme="maroon"] .glass {
+  border-color: #8a3a4d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px rgba(0,0,0,.45);
+}
+html[data-theme="maroon"] .paper-select-trigger,
+html[data-theme="maroon"] .filter-search {
+  background: #4a1522 !important;
+  border-color: #8a3a4d !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+html[data-theme="maroon"] .filter-label { color: #cfa8a8; }
+
 /* Cardboard uses corrugation, kraft fibers, stamped ink and masking-tape tabs. */
 html[data-theme="cardboard"] {
   --hl-yellow: rgba(232, 189, 102, .52);

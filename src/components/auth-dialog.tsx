@@ -16,7 +16,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
   const [password, setPassword] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [signupStep, setSignupStep] = React.useState(1);
-  const [success, setSuccess] = React.useState<"signin" | "signup" | "forgot" | null>(null);
+  const [success, setSuccess] = React.useState<"signin" | "signup" | "forgot" | "verify" | null>(null);
   const [prevOpen, setPrevOpen] = React.useState(open);
 
   // Always land on the sign-in view when the dialog opens.
@@ -53,7 +53,9 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
     } catch (error) {
       const message = error instanceof Error ? error.message : undefined;
       if (mode === "signup" && message?.startsWith("Account created,")) {
-        toast.message("Check your email to finish sign-up", { description: message });
+        setSuccess("verify");
+        setBusy(false);
+        return;
       } else {
         toast.error(mode === "signin" ? "Could not sign in" : "Could not sign up", {
           description: message,
@@ -92,18 +94,22 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             <CheckCircle2 className="h-10 w-10 text-[var(--good)]" />
           )}
           <p className="font-display text-2xl font-bold text-[var(--ink)]">
-            {success === "signup"
-              ? "Welcome to SAT Nexus!"
-              : success === "forgot"
-                ? "Check your inbox"
-                : "Welcome back!"}
+            {success === "verify"
+              ? "Check your inbox"
+              : success === "signup"
+                ? "Welcome to SAT Nexus!"
+                : success === "forgot"
+                  ? "Check your inbox"
+                  : "Welcome back!"}
           </p>
           <p className="max-w-xs text-[13.5px] text-[var(--ink-faint)]">
-            {success === "signup"
-              ? "Your account is ready. Your progress now syncs to the cloud."
-              : success === "forgot"
-                ? "If an account exists for that email, we sent a secure link to reset your password. It may take a minute to arrive."
-                : "You're signed in. Your progress and collections are synced."}
+            {success === "verify"
+              ? "We sent a confirmation link to finish setting up your account. Once confirmed, you can sign in."
+              : success === "signup"
+                ? "Your account is ready. Your progress now syncs to the cloud."
+                : success === "forgot"
+                  ? "If an account exists for that email, we sent a secure link to reset your password. It may take a minute to arrive."
+                  : "You're signed in. Your progress and collections are synced."}
           </p>
           {success === "forgot" && (
             <button
