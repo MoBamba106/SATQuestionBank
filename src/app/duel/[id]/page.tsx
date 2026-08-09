@@ -76,7 +76,11 @@ export default function DuelRoomPage() {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
           // Broadcast player joined for this room
-          void supabase.channel(roomChannelName).broadcast("PLAYER_JOINED", { userId: auth.user.id, at: new Date().toISOString() });
+          void channel.send({
+            type: "broadcast",
+            event: "PLAYER_JOINED",
+            payload: { userId: auth.user.id, at: new Date().toISOString() },
+          });
         }
       });
 
@@ -216,11 +220,15 @@ export default function DuelRoomPage() {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
         const roomChannelName = `duel_room_${duel.id}`;
-        void supabase.channel(roomChannelName).broadcast("ANSWER_SUBMITTED", {
-          userId: auth.user.id,
-          questionId: q.id,
-          answer,
-          at: new Date().toISOString(),
+        void supabase?.channel(roomChannelName).send({
+          type: "broadcast",
+          event: "ANSWER_SUBMITTED",
+          payload: {
+            userId: auth.user.id,
+            questionId: q.id,
+            answer,
+            at: new Date().toISOString(),
+          },
         });
       }
       const res = await apiPatch<{
