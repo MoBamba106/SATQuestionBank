@@ -284,37 +284,38 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           </motion.div>
         </Link>
 
-        <div className={cn("min-h-0 flex-1 overflow-hidden py-5", desktopExpanded ? "px-3" : "px-2")}>
+        <div className="min-h-0 flex-1 overflow-hidden py-5">
           <NavLinks compact={!desktopExpanded} isAdmin={auth.isAdmin} showGroupLabels={false} />
         </div>
 
-        <div className={cn("mt-auto border-t border-[var(--line)] py-3", desktopExpanded ? "px-3" : "px-2")}>
+        <div className="mt-auto border-t border-[var(--line)] py-3">
           <div
             data-tour="account"
             className={cn(
-              "mb-2 flex min-h-[58px] rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5",
-              desktopExpanded ? "items-center gap-2 px-3" : "items-center justify-center px-2",
+              "mb-2 flex min-h-[58px] overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5 mx-auto",
+              desktopExpanded ? "w-[calc(100%-24px)]" : "w-[58px]"
             )}
             title={accountLabel}
           >
-            <UserRound className="h-4 w-4 shrink-0 text-[var(--accent)]" />
-            {desktopExpanded && (
-              <div className="min-w-0 grow">
-                <div className="truncate text-[12.5px] font-bold text-[var(--ink)]">{accountLabel}</div>
-                <div className="truncate text-[10.5px] text-[var(--ink-faint)]">
-                  {auth.user.isGuest ? "Local guest session" : auth.isAdmin ? "Admin account" : "Supabase account"}
-                </div>
+            <div className="flex w-[58px] shrink-0 items-center justify-center">
+              <UserRound className="h-4 w-4 text-[var(--accent)]" />
+            </div>
+            <div className={cn("min-w-0 grow transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
+              <div className="truncate text-[12.5px] font-bold text-[var(--ink)]">{accountLabel}</div>
+              <div className="truncate text-[10.5px] text-[var(--ink-faint)]">
+                {auth.user.isGuest ? "Local guest session" : auth.isAdmin ? "Admin account" : "Supabase account"}
               </div>
-            )}
+            </div>
           </div>
           {auth.user.isGuest ? (
             <button
               type="button"
               onClick={() => setAuthOpen(true)}
-              className="mb-1 flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
               title="Sign in"
             >
-              <div className="flex w-[74px] shrink-0 items-center justify-center">
+              <div className="flex w-[58px] shrink-0 items-center justify-center">
                 <LogIn className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
               </div>
               <span className={cn("transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
@@ -325,10 +326,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={confirmSignOut}
-              className="mb-1 flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+              style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
               title="Sign out"
             >
-              <div className="flex w-[74px] shrink-0 items-center justify-center">
+              <div className="flex w-[58px] shrink-0 items-center justify-center">
                 <LogOut className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
               </div>
               <span className={cn("transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
@@ -340,10 +342,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="palette"
             onClick={() => setPaletteOpen(true)}
-            className="mb-1 flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
             title="Go to"
           >
-            <div className="flex w-[74px] shrink-0 items-center justify-center">
+            <div className="flex w-[58px] shrink-0 items-center justify-center">
               <Search className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
             </div>
             <span
@@ -362,10 +365,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="settings"
             onClick={() => setSettingsOpen(true)}
-            className="flex min-h-10 w-full items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            className="mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
+            style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
             title="Settings"
           >
-            <div className="flex w-[74px] shrink-0 items-center justify-center">
+            <div className="flex w-[58px] shrink-0 items-center justify-center">
               <Cog className="h-[17px] w-[17px] text-[var(--ink-faint)]" />
             </div>
             <span className={cn("transition-opacity duration-200", desktopExpanded ? "opacity-100" : "opacity-0")}>
