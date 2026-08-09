@@ -13,6 +13,7 @@ import {
   Square,
   Trash2,
   Triangle,
+  TriangleRight,
   Type,
   Undo2,
   X,
@@ -21,10 +22,17 @@ import { cn } from "@/lib/utils";
 import { useSettings } from "@/components/settings-provider";
 
 type Point = { x: number; y: number };
-type Tool = "select" | "pen" | "line" | "rect" | "ellipse" | "triangle" | "text" | "eraser";
+type Tool = "select" | "pen" | "line" | "rect" | "ellipse" | "triangle" | "right-triangle" | "text" | "eraser";
 type DrawItem =
   | { id: string; type: "path"; points: Point[]; color: string; width: number }
-  | { id: string; type: "line" | "rect" | "ellipse" | "triangle"; start: Point; end: Point; color: string; width: number }
+  | {
+      id: string;
+      type: "line" | "rect" | "ellipse" | "triangle" | "right-triangle";
+      start: Point;
+      end: Point;
+      color: string;
+      width: number;
+    }
   | { id: string; type: "text"; point: Point; text: string; color: string; size: number };
 
 const TOOLS: { id: Tool; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -34,6 +42,7 @@ const TOOLS: { id: Tool; label: string; icon: React.ComponentType<{ className?: 
   { id: "rect", label: "Rectangle", icon: Square },
   { id: "ellipse", label: "Circle", icon: Circle },
   { id: "triangle", label: "Triangle", icon: Triangle },
+  { id: "right-triangle", label: "Right triangle", icon: TriangleRight },
   { id: "text", label: "Text", icon: Type },
   { id: "eraser", label: "Eraser", icon: Eraser },
 ];
@@ -42,8 +51,9 @@ const uid = () => `draw-${crypto.randomUUID()}`;
 
 /** Theme-aware default pen colors — ink on light paper, soft chalk on dark. */
 function defaultPenForTheme(theme: string): string {
-  if (theme === "dark") return "#d7e6f5";
+  if (theme === "dark") return "#e8eef7";
   if (theme === "obsidian") return "#e4dfd4";
+  if (theme === "maroon") return "#4a1522";
   if (theme === "cardboard") return "#2c1c12";
   if (theme === "highlighter") return "#292b2f";
   if (theme === "liquid-glass") return "#172742";
@@ -62,10 +72,331 @@ function moveItem(item: DrawItem, dx: number, dy: number): DrawItem {
   return { ...item, start: { x: item.start.x + dx, y: item.start.y + dy }, end: { x: item.end.x + dx, y: item.end.y + dy } };
 }
 
+/* ------------------------------------------------------------------ */
+/* Smart shape recognition (auto-correct strokes)                      */
+/*                                                                     */
+/* Converts rough pen scribbles into crisp geometry: lines, circles,   */
+/* rectangles, triangles / right triangles, and a handful of common    */
+/* single-stroke glyphs (1 2 5 7 v c u n). Controlled by the           */
+/* "Enable Canvas Smart Shape Recognition" toggle in Settings.         */
+/* ------------------------------------------------------------------ */
+
+export type RecognizedShape =
+  | { kind: "line"; x1: number; y1: number; x2: number; y2: number }
+  | { kind: "ellipse" | "rect" | "triangle" | "right-triangle"; x: number; y: number; width: number; height: number }
+  | { kind: "text"; text: string; x: number; y: number; size: number };
+
+function bboxOf(points: Point[]) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const p of points) {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }
+  return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+}
+
+function perpendicularDistance(p: Point, a: Point, b: Point): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+/** Ramer–Douglas–Peucker polyline simplification. */
+function rdp(points: Point[], epsilon: number): Point[] {
+  if (points.length < 3) return [...points];
+  let maxDist = 0;
+  let index = 0;
+  const first = points[0];
+  const last = points[points.length - 1];
+  for (let i = 1; i < points.length - 1; i++) {
+    const d = perpendicularDistance(points[i], first, last);
+    if (d > maxDist) {
+      maxDist = d;
+      index = i;
+    }
+  }
+  if (maxDist > epsilon) {
+    const left = rdp(points.slice(0, index + 1), epsilon);
+    const right = rdp(points.slice(index), epsilon);
+    return [...left.slice(0, -1), ...right];
+  }
+  return [first, last];
+}
+
+/** Angle (degrees) between two segments a→b and b→c. */
+function turnAngle(a: Point, b: Point, c: Point): number {
+  const v1 = { x: b.x - a.x, y: b.y - a.y };
+  const v2 = { x: c.x - b.x, y: c.y - b.y };
+  const dot = v1.x * v2.x + v1.y * v2.y;
+  const len = Math.hypot(v1.x, v1.y) * Math.hypot(v2.x, v2.y);
+  if (len === 0) return 0;
+  const cos = Math.max(-1, Math.min(1, dot / len));
+  return (Math.acos(cos) * 180) / Math.PI;
+}
+
+/** Quantize a segment direction into one of 8 compass directions (screen coords, y grows down). */
+function directionOf(a: Point, b: Point): string {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const ang = (Math.atan2(dy, dx) * 180) / Math.PI; // 0 = E, 45 = SE, 90 = S, …
+  const dirs = ["E", "SE", "S", "SW", "W", "NW", "N", "NE"];
+  const idx = ((Math.round(ang / 45) % 8) + 8) % 8;
+  return dirs[idx]!;
+}
+
+export function recognizeStroke(points: Point[]): RecognizedShape | null {
+  if (points.length < 4) return null;
+  const bbox = bboxOf(points);
+  const diag = Math.hypot(bbox.width, bbox.height);
+  // Too small to be meaningful — leave the scribble as-is.
+  if (diag < 14) return null;
+
+  const start = points[0];
+  const end = points[points.length - 1];
+  const closedDist = Math.hypot(end.x - start.x, end.y - start.y);
+  const closed = closedDist < Math.max(22, diag * 0.18);
+
+  const simplified = rdp(points, Math.max(4, diag * 0.045));
+
+  if (closed) return recognizeClosed(simplified, points, bbox, diag);
+  return recognizeOpen(simplified, bbox, diag);
+}
+
+function recognizeClosed(simplified: Point[], _points: Point[], bbox: { minX: number; minY: number; width: number; height: number }, _diag: number): RecognizedShape | null {
+  const { minX, minY, width, height } = bbox;
+  if (width < 12 || height < 12) return null;
+
+  const first = simplified[0];
+  const last = simplified[simplified.length - 1];
+  const closesOnStart = Math.hypot(last.x - first.x, last.y - first.y) < 12;
+
+  // Distinct corners = points where the closed loop turns sharply. When the
+  // stroke closes on its start point, evaluate the seam corner (formed by the
+  // last and first segments) explicitly — RDP leaves near-duplicate closing
+  // points that otherwise produce a degenerate 0° angle at the seam.
+  const raw: { p: Point; angle: number }[] = [];
+  for (let i = 1; i < simplified.length - 1; i++) {
+    const angle = turnAngle(simplified[i - 1], simplified[i], simplified[i + 1]);
+    if (angle > 30) raw.push({ p: simplified[i], angle });
+  }
+  if (closesOnStart && simplified.length >= 3) {
+    const angle = turnAngle(simplified[simplified.length - 2], first, simplified[1]);
+    if (angle > 30) raw.push({ p: first, angle });
+  }
+  // Merge near-duplicate corners (e.g. the closing point ≈ the start point),
+  // keeping the strongest turn angle for each cluster.
+  const corners: { p: Point; angle: number }[] = [];
+  for (const c of raw) {
+    const existing = corners.find((d) => Math.hypot(d.p.x - c.p.x, d.p.y - c.p.y) < 10);
+    if (existing) existing.angle = Math.max(existing.angle, c.angle);
+    else corners.push({ p: c.p, angle: c.angle });
+  }
+
+  const bboxCorners = [
+    { x: minX, y: minY },
+    { x: minX + width, y: minY },
+    { x: minX + width, y: minY + height },
+    { x: minX, y: minY + height },
+  ];
+  const cornerTolerance = Math.max(10, Math.max(width, height) * 0.26);
+  const nearBboxCorner = (p: Point) =>
+    bboxCorners.some((c) => Math.hypot(p.x - c.x, p.y - c.y) < cornerTolerance);
+
+  // Rectangle: 4+ (deduped) corners, every corner on a bbox corner, and every
+  // bbox corner actually visited by the stroke.
+  if (
+    corners.length >= 4 &&
+    corners.length <= 6 &&
+    corners.every((c) => c.angle > 45 && nearBboxCorner(c.p)) &&
+    bboxCorners.every((bc) => corners.some((c) => Math.hypot(c.p.x - bc.x, c.p.y - bc.y) < cornerTolerance))
+  ) {
+    return { kind: "rect", x: minX, y: minY, width, height };
+  }
+
+  // Triangle: take the 3 sharpest corners (a scribbled loop can produce one
+  // spurious low-angle corner along a long edge) and require a chunky area
+  // relative to the bbox.
+  if (corners.length >= 3) {
+    const top = [...corners].sort((x, y) => y.angle - x.angle).slice(0, 3);
+    if (top.every((c) => c.angle > 45)) {
+      const [a, b, c] = [top[0].p, top[1].p, top[2].p];
+      const area = Math.abs((a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2);
+      const bboxArea = Math.max(1, width * height);
+      if (area > bboxArea * 0.32) {
+        // Right triangle check: two sides nearly perpendicular (dot ≈ 0).
+        const sides = [
+          [a, b],
+          [b, c],
+          [c, a],
+        ];
+        for (let i = 0; i < 3; i++) {
+          const p = sides[i]![0];
+          const q = sides[i]![1];
+          const other = sides[(i + 1) % 3]!.find((s) => s !== p && s !== q) ?? sides[(i + 1) % 3]![1];
+          const v1 = { x: q.x - p.x, y: q.y - p.y };
+          const v2 = { x: other.x - p.x, y: other.y - p.y };
+          const dot = v1.x * v2.x + v1.y * v2.y;
+          const len = Math.hypot(v1.x, v1.y) * Math.hypot(v2.x, v2.y);
+          if (len > 0 && Math.abs(dot / len) < 0.18) {
+            return { kind: "right-triangle", x: minX, y: minY, width, height };
+          }
+        }
+        return { kind: "triangle", x: minX, y: minY, width, height };
+      }
+    }
+  }
+
+  // Everything else that closes on itself becomes a crisp circle/ellipse.
+  return { kind: "ellipse", x: minX, y: minY, width, height };
+}
+
+function recognizeOpen(simplified: Point[], bbox: { minX: number; minY: number; width: number; height: number }, diag: number): RecognizedShape | null {
+  const { minX, minY, width, height } = bbox;
+  const first = simplified[0];
+  const last = simplified[simplified.length - 1];
+
+  // Straight stroke → crisp line. RDP only collapses to two points when the
+  // whole scribble stays within epsilon of the start→end chord, so no extra
+  // deviation check is needed here.
+  if (simplified.length === 2 && diag > 16) {
+    return { kind: "line", x1: first.x, y1: first.y, x2: last.x, y2: last.y };
+  }
+
+  const midX = minX + width / 2;
+  const midY = minY + height / 2;
+
+  // "v": two long segments meeting at a bottom apex.
+  if (simplified.length === 3) {
+    const d1 = directionOf(simplified[0], simplified[1]);
+    const d2 = directionOf(simplified[1], simplified[2]);
+    const isDown = d1.startsWith("S");
+    const isUp = d2.startsWith("N");
+    const apexLow = simplified[1].y > first.y + height * 0.4 && simplified[1].y > last.y + height * 0.4;
+    if (isDown && isUp && apexLow && turnAngle(simplified[0], simplified[1], simplified[2]) > 40) {
+      return { kind: "text", text: "v", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+    }
+  }
+
+  // Segments as compass directions, plus whole-stroke verticality.
+  const dirs: string[] = [];
+  for (let i = 0; i < simplified.length - 1; i++) dirs.push(directionOf(simplified[i], simplified[i + 1]));
+
+  const dxTotal = last.x - first.x;
+  const dyTotal = last.y - first.y;
+  const horizontal = (d: string) => d === "E" || d === "W";
+
+  // "1" / "l": near-vertical single stroke with a SHORT top serif hook.
+  if (Math.abs(dyTotal) > Math.abs(dxTotal) * 2.2 && height > 22) {
+    const firstSeg = dirs[0];
+    const hookLen = Math.hypot(simplified[1].x - simplified[0].x, simplified[1].y - simplified[0].y);
+    if ((firstSeg === "E" || firstSeg === "SE" || firstSeg === "NE") && hookLen < diag * 0.28) {
+      return { kind: "text", text: "1", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+    }
+  }
+
+  // "7": short top horizontal then a single long down diagonal (only fires
+  // when the whole stroke collapses to the top + one dominant tail).
+  if (simplified.length === 3) {
+    const topDir = dirs[0] ?? "";
+    const topLen = Math.hypot(simplified[1].x - simplified[0].x, simplified[1].y - simplified[0].y);
+    const tailDir = dirs[1] ?? "";
+    const tailLen = Math.hypot(last.x - simplified[1].x, last.y - simplified[1].y);
+    if (
+      horizontal(topDir) &&
+      topLen > diag * 0.18 &&
+      tailLen > height * 0.55 &&
+      (tailDir === "SW" || tailDir === "SE" || tailDir === "S")
+    ) {
+      return { kind: "text", text: "7", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+    }
+  }
+
+  // "2" / "5": top horizontal, a descent on the left, and a bottom sweep to
+  // the bottom-right. 2 drops diagonally late; 5 reaches the left edge early.
+  if (simplified.length >= 4 && Math.abs(dxTotal) > height * 0.35) {
+    const firstDir = dirs[0] ?? "";
+    const lastDir = dirs[dirs.length - 1] ?? "";
+    const endsBottomRight = last.x > minX + width * 0.5 && last.y > minY + height * 0.6;
+    if (horizontal(firstDir) && (horizontal(lastDir) || lastDir === "SE" || lastDir === "SW") && endsBottomRight) {
+      // Find the first point after the top stroke that reaches the left edge.
+      const leftThreshold = minX + width * 0.35;
+      let firstLeftReach: Point | null = null;
+      for (let i = 2; i < simplified.length; i++) {
+        if (simplified[i].x < leftThreshold) {
+          firstLeftReach = simplified[i];
+          break;
+        }
+      }
+      const five = firstLeftReach !== null && firstLeftReach.y < minY + height * 0.5;
+      return { kind: "text", text: five ? "5" : "2", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+    }
+  }
+
+  // "c": open curve, both ends on the right, middle swings left.
+  const startRight = first.x > midX;
+  const endRight = last.x > midX;
+  const midLeft = simplified.length >= 3 && simplified[Math.floor(simplified.length / 2)].x < midX;
+  if (startRight && endRight && midLeft) {
+    return { kind: "text", text: "c", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+  }
+
+  // "u" / "n": ends level at the top (u) or bottom (n), middle bulges away.
+  const levelness = Math.abs(first.y - last.y);
+  if (simplified.length >= 4 && levelness < height * 0.35) {
+    const mid = simplified[Math.floor(simplified.length / 2)];
+    const bulgeUp = mid.y < midY - height * 0.15;
+    const bulgeDown = mid.y > midY + height * 0.15;
+    if (bulgeDown) return { kind: "text", text: "u", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+    if (bulgeUp) return { kind: "text", text: "n", x: midX, y: midY, size: Math.round(Math.max(18, height * 0.9)) };
+  }
+
+  return null;
+}
+
+function itemFromRecognized(shape: RecognizedShape, color: string, width: number): DrawItem {
+  const common = { id: uid(), color, width };
+  switch (shape.kind) {
+    case "line":
+      return {
+        ...common,
+        type: "line",
+        start: { x: shape.x1, y: shape.y1 },
+        end: { x: shape.x2, y: shape.y2 },
+      };
+    case "ellipse":
+    case "rect":
+    case "triangle":
+    case "right-triangle":
+      return {
+        ...common,
+        type: shape.kind,
+        start: { x: shape.x, y: shape.y },
+        end: { x: shape.x + shape.width, y: shape.y + shape.height },
+      };
+    case "text":
+      return {
+        ...common,
+        type: "text",
+        point: { x: shape.x - (shape.size * 0.3), y: shape.y + shape.size * 0.4 },
+        text: shape.text,
+        size: shape.size,
+      };
+  }
+}
+
 export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { settings } = useSettings();
   const theme = settings.theme;
   const dark = isDarkTheme(theme);
+  const smartShapes = settings.canvasSmartShapes;
 
   const [position, setPosition] = React.useState({ x: 40, y: 70 });
   const [minimized, setMinimized] = React.useState(false);
@@ -102,10 +433,12 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
     setRedo([]);
   }, [color]);
 
+  // Alt + letter OR Alt + digit inserts a quick label/number onto the canvas.
   React.useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!event.altKey || !/^[a-z]$/i.test(event.key)) return;
+      if (!event.altKey || event.ctrlKey || event.metaKey) return;
+      if (!/^[a-z0-9]$/i.test(event.key)) return;
       event.preventDefault();
       addText(event.key);
       setTool("select");
@@ -168,6 +501,18 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
 
   const finishDrawing = () => {
     if (draft) {
+      // Smart shape recognition: convert rough pen scribbles into crisp
+      // shapes / legible glyphs when the setting is enabled.
+      if (draft.type === "path" && smartShapes && draft.points.length > 2) {
+        const recognized = recognizeStroke(draft.points);
+        if (recognized) {
+          setItems((current) => [...current, itemFromRecognized(recognized, draft.color, draft.width)]);
+          setRedo([]);
+          setDraft(null);
+          drawDrag.current = null;
+          return;
+        }
+      }
       setItems((current) => [...current, draft]);
       setRedo([]);
     }
@@ -223,6 +568,10 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
         <ellipse key={item.id} {...common} cx={x + width / 2} cy={y + height / 2} rx={width / 2} ry={height / 2} />
       );
     }
+    if (item.type === "right-triangle") {
+      // Right angle at the bottom-left corner.
+      return <polygon key={item.id} {...common} points={`${x},${y + height} ${x},${y} ${x + width},${y + height}`} />;
+    }
     return (
       <polygon
         key={item.id}
@@ -232,10 +581,31 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
     );
   };
 
-  // Soft grid: muted in dark mode so lines don't glow against the paper.
-  const surfaceBg = dark ? "#121a26" : "#f8f7f2";
-  const gridLine = dark ? "rgba(148, 168, 192, 0.14)" : "#e8e6df";
-  const borderCol = dark ? "rgba(120, 145, 170, 0.28)" : "#cbc8bf";
+  // Theme-aware grid surface:
+  //  - Maroon: subtle light-red tint (#fff5f5) with soft maroon grid lines.
+  //  - Charcoal (dark): pure black canvas with clean white grid lines.
+  //  - Other dark themes: muted navy so lines don't glow.
+  //  - Light themes: warm paper white.
+  let surfaceBg = "#f8f7f2";
+  let gridLine = "#e8e6df";
+  let borderCol = "#cbc8bf";
+  if (theme === "maroon") {
+    surfaceBg = "#fff5f5";
+    gridLine = "#eccfd5";
+    borderCol = "#d9a3ae";
+  } else if (theme === "dark") {
+    surfaceBg = "#000000";
+    gridLine = "rgba(255,255,255,0.16)";
+    borderCol = "rgba(255,255,255,0.35)";
+  } else if (theme === "obsidian") {
+    surfaceBg = "#121a26";
+    gridLine = "rgba(148, 168, 192, 0.14)";
+    borderCol = "rgba(120, 145, 170, 0.28)";
+  } else if (dark) {
+    surfaceBg = "#121a26";
+    gridLine = "rgba(148, 168, 192, 0.14)";
+    borderCol = "rgba(120, 145, 170, 0.28)";
+  }
   const padBg = dark ? "var(--paper-soft)" : "#f8f7f2";
 
   return (
@@ -271,7 +641,7 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
       >
         <GripHorizontal className="h-4 w-4 text-[var(--ink-faint)]" />
         <span className="grow text-[13px] font-bold text-[var(--ink)]">Math Canvas</span>
-        <span className="hidden text-[10.5px] text-[var(--ink-faint)] sm:inline">Alt + letter adds a label</span>
+        <span className="hidden text-[10.5px] text-[var(--ink-faint)] sm:inline">Alt + letter/digit adds a label</span>
         <button
           type="button"
           className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)]"
@@ -402,6 +772,17 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
                 {letter}
               </button>
             ))}
+            <span
+              className={cn(
+                "ml-auto hidden items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide sm:inline-flex",
+                smartShapes
+                  ? "border-[var(--good)]/60 bg-[color-mix(in_srgb,var(--good)_12%,var(--paper-raised))] text-[var(--good)]"
+                  : "border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink-faint)]",
+              )}
+              title={smartShapes ? "Rough scribbles snap to crisp shapes and glyphs" : "Smart shape recognition is off (Settings → Math canvas)"}
+            >
+              {smartShapes ? "Smart shapes on" : "Smart shapes off"}
+            </span>
           </div>
           <div className="min-h-0 grow p-2" style={{ background: padBg }}>
             <svg
@@ -427,7 +808,7 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
             </svg>
           </div>
           <div className="flex items-center justify-between border-t border-[var(--line)] bg-[var(--paper-soft)] px-3 py-2 text-[10.5px] text-[var(--ink-faint)]">
-            <span>Pen for algebra work · presets for geometry · Move tool repositions objects</span>
+            <span>Pen for algebra work · presets for geometry · Alt+0–9 insert numbers · Move tool repositions objects</span>
             <span>{items.length} objects</span>
           </div>
         </>

@@ -16,6 +16,8 @@ type QuestionCardProps = {
   selectable?: boolean;
   selected?: boolean;
   onSelect?: () => void;
+  /** Optional action bar rendered as a dedicated footer row inside the card. */
+  footer?: React.ReactNode;
 };
 
 function QuestionCardInner({
@@ -23,6 +25,7 @@ function QuestionCardInner({
   selectable = false,
   selected = false,
   onSelect,
+  footer,
 }: QuestionCardProps) {
   const [open, setOpen] = React.useState(false);
   const [reveal, setReveal] = React.useState(false);
@@ -118,6 +121,12 @@ function QuestionCardInner({
             </div>
           )}
         </div>
+
+        {footer && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--line-soft)] pt-3">
+            {footer}
+          </div>
+        )}
       </GlassCard>
 
       <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={question.id} />
@@ -149,10 +158,10 @@ function QuestionCardInner({
                   <div
                     key={choice.key}
                     className={cn(
-                      "flex gap-3 rounded-[6px] border px-4 py-2.5",
+                      "flex gap-3 rounded-[6px] border px-4 py-2.5 text-[var(--ink)]",
                       reveal && choice.key.toUpperCase() === question.correctAnswer.toUpperCase()
-                        ? "border-[#76ad91] bg-[#edf7f1]"
-                        : "border-[#d4cfc3] bg-white",
+                        ? "border-[var(--good)] bg-[color-mix(in_srgb,var(--good)_12%,var(--paper-raised))]"
+                        : "border-[var(--line)] bg-[var(--paper-raised)]",
                     )}
                   >
                     <span className="mt-0.5 font-mono text-[13px] font-bold text-[var(--ink-faint)]">{choice.key})</span>
@@ -162,11 +171,11 @@ function QuestionCardInner({
               </div>
             )}
             {reveal ? (
-              <div className="rounded-[6px] border border-[#bad6c7] bg-[#f2faf5] p-4">
-                <p className="mb-1 text-[12px] font-bold uppercase tracking-wide text-[#287a55]">
+              <div className="answer-explanation rounded-[6px] border p-4">
+                <p className="mb-1 text-[12px] font-bold uppercase tracking-wide text-[var(--good)]">
                   Correct answer: {question.correctAnswer}
                 </p>
-                <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
+                <SafeHtml html={question.explanation} className="sat-content text-[14px] text-[var(--ink)]" />
               </div>
             ) : (
               <button type="button" className="btn btn-soft w-full" onClick={() => setReveal(true)}>

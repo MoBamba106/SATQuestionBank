@@ -6,6 +6,7 @@ import { getRequestUser } from "@/lib/auth/server";
 import { isLocalGuestId } from "@/lib/auth/types";
 import { fetchQuestionsByIds } from "@/lib/server-questions";
 import { answersMatch, resolveCorrectAnswer } from "@/lib/utils";
+import { DUEL_STALE_INTERVAL_SQL } from "@/lib/duels";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,19 @@ async function loadDuel(id: string) {
   return rows<Record<string, unknown>>(res)[0] ?? null;
 }
 
+/**
+ * Auto-expire an active room whose players have been silent (no WebSocket
+ * heartbeat / user action) for the 90s staleness window. Runs before reads
+ * so a stale room surfaces to clients as "Expired" instead of a live duel.
+ */
+async function expireIfStale(id: string) {
+  await db.execute(sql`
+    UPDATE duels SET status = 'expired', finished_at = now()
+    WHERE id = ${id} AND status = 'active'
+      AND COALESCE(last_active_at, started_at, created_at) < now() - ${sql.raw(DUEL_STALE_INTERVAL_SQL)}
+  `);
+}
+
 function participant(userId: string, duel: Record<string, unknown>) {
   if (duel.host_user_id === userId) return "host" as const;
   if (duel.guest_user_id === userId) return "guest" as const;
@@ -63,6 +77,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     await ensureSeeded();
     const user = await getRequestUser(req);
     const { id } = await ctx.params;
+    await expireIfStale(id);
     const duel = await loadDuel(id);
     if (!duel) return NextResponse.json({ error: "Duel not found" }, { status: 404 });
     if (!participant(user.id, duel)) {
@@ -119,7 +134,7 @@ import { z } from "zod";
 import { sanitizeOptionalString } from "@/lib/validation";
 
 const duelPatchSchema = z.object({
-  action: z.enum(["accept", "decline", "cancel", "answer"]),
+  action: z.enum(["accept", "decline", "cancel", "answer", "heartbeat"]),
   questionId: z.string().optional(),
   answer: sanitizeOptionalString,
 });
@@ -139,17 +154,31 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
     }
     const { action, questionId, answer } = parsed.data;
+    await expireIfStale(id);
     const duel = await loadDuel(id);
     if (!duel) return NextResponse.json({ error: "Duel not found" }, { status: 404 });
     const role = participant(user.id, duel);
     if (!role) return NextResponse.json({ error: "Not a participant" }, { status: 403 });
+
+    // WebSocket-room heartbeat — a participant is alive in the room. Any
+    // action below also refreshes last_active_at so user actions count too.
+    if (action === "heartbeat") {
+      if (duel.status !== "active" && duel.status !== "pending") {
+        return NextResponse.json({ ok: true, status: duel.status });
+      }
+      await db.execute(sql`
+        UPDATE duels SET last_active_at = now()
+        WHERE id = ${id} AND status = ${duel.status}
+      `);
+      return NextResponse.json({ ok: true, status: duel.status, at: new Date().toISOString() });
+    }
 
     if (action === "accept") {
       if (role !== "guest" || duel.status !== "pending") {
         return NextResponse.json({ error: "Only the challenged player can accept." }, { status: 400 });
       }
       await db.execute(sql`
-        UPDATE duels SET status = 'active', started_at = now()
+        UPDATE duels SET status = 'active', started_at = now(), last_active_at = now()
         WHERE id = ${id} AND status = 'pending'
       `);
       return NextResponse.json({ ok: true, status: "active" });
@@ -160,7 +189,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         return NextResponse.json({ error: "Only the challenged player can decline." }, { status: 400 });
       }
       await db.execute(sql`
-        UPDATE duels SET status = 'declined', finished_at = now()
+        UPDATE duels SET status = 'declined', finished_at = now(), last_active_at = now()
         WHERE id = ${id} AND status = 'pending'
       `);
       return NextResponse.json({ ok: true, status: "declined" });
@@ -171,7 +200,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         return NextResponse.json({ error: "Only the host can cancel a pending duel." }, { status: 400 });
       }
       await db.execute(sql`
-        UPDATE duels SET status = 'cancelled', finished_at = now()
+        UPDATE duels SET status = 'cancelled', finished_at = now(), last_active_at = now()
         WHERE id = ${id} AND status = 'pending'
       `);
       return NextResponse.json({ ok: true, status: "cancelled" });
@@ -243,7 +272,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
           current_index = ${finished ? currentIndex : nextIndex},
           status = ${finished ? "completed" : "active"},
           winner_user_id = ${winner},
-          finished_at = CASE WHEN ${finished} THEN now() ELSE finished_at END
+          finished_at = CASE WHEN ${finished} THEN now() ELSE finished_at END,
+          last_active_at = now()
         WHERE id = ${id} AND status = 'active'
       `);
 

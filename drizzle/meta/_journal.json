@@ -50,6 +50,13 @@
       "when": 1785816494393,
       "tag": "0006_duels_skill_category",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786816494394,
+      "tag": "0008_duels_heartbeat",
+      "breakpoints": true
     }
   ]
 }

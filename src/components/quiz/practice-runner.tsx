@@ -125,15 +125,24 @@ export function PracticeRunner({
   const doOverrideCorrect = React.useCallback(async () => {
     if (!current || !chosen) return;
     try {
-      await apiPost("/api/attempts", {
+      const res = await apiPost<{ overridden?: number; recorded?: number }>("/api/attempts", {
         sessionId: sid,
         mode,
         questionId: current.id,
         isCorrect: true,
         answer: chosen,
+        // Flip the already-graded wrong attempt in this session to correct so
+        // global accuracy recalculates and the question leaves the mistake
+        // bank instead of being penalized twice.
+        override: true,
       });
       setGraded((g) => ({ ...g, [current.id]: { correct: true, answer: chosen } }));
-      toast.success("Marked as correct", { description: "You've been granted credit for this question." });
+      toast.success("Marked as correct", {
+        description:
+          res.overridden && res.overridden > 0
+            ? "Your earlier wrong grade was corrected — stats and mistakes updated."
+            : "You've been granted credit for this question.",
+      });
       mutateKey("stats");
       mutateKey("mistakes");
     } catch (e) {

@@ -28,6 +28,8 @@ export type AppSettings = {
   bankPageSize: number;
   /** Site navigation style: classic sidebar, keyboard-only, or floating dock. */
   navMode: NavMode;
+  /** Math Canvas: auto-correct rough pen scribbles into crisp shapes/glyphs. */
+  canvasSmartShapes: boolean;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -46,6 +48,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showQuestionMeta: true,
   bankPageSize: 48,
   navMode: "default",
+  canvasSmartShapes: true,
 };
 
 const STORAGE_KEY = "sat-nexus-settings-v3";

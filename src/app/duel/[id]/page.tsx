@@ -15,6 +15,7 @@ import { FloatingDesmos } from "@/components/quiz/floating-desmos";
 import { AddToCollectionButton } from "@/components/add-to-collection";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { DUEL_HEARTBEAT_MS } from "@/lib/duels";
 
 type DuelDetail = {
   id: string;
@@ -106,6 +107,37 @@ export default function DuelRoomPage() {
   React.useEffect(() => {
     setSelected("");
   }, [duel?.currentIndex, duel?.id]);
+
+  // Room heartbeat: keep the duel alive while this player is actually in the
+  // room. Sends a WebSocket broadcast (visible to the opponent's client) plus
+  // a server-recorded heartbeat so abandoned rooms auto-expire after 90s of
+  // total silence (see lib/duels.ts and the duels API routes).
+  React.useEffect(() => {
+    if (!id) return;
+    // Once the duel reaches a terminal state, stop beating.
+    const status = duel?.status;
+    if (status && status !== "active" && status !== "pending") return;
+
+    const send = async () => {
+      const supabase = getSupabaseBrowserClient();
+      if (supabase) {
+        void supabase.channel(`duel_room_${id}`).send({
+          type: "broadcast",
+          event: "HEARTBEAT",
+          payload: { userId: auth.user.id, at: new Date().toISOString() },
+        });
+      }
+      try {
+        await apiPatch(`/api/duels/${id}`, { action: "heartbeat" });
+      } catch {
+        // Room may be gone / expired — the realtime + poll loop surfaces it.
+      }
+    };
+
+    void send();
+    const timer = window.setInterval(() => void send(), DUEL_HEARTBEAT_MS);
+    return () => window.clearInterval(timer);
+  }, [id, auth.user.id, duel?.status]);
 
   if (error) {
     return (

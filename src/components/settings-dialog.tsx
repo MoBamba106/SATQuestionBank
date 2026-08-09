@@ -15,6 +15,7 @@ import {
   Loader2,
   Maximize2,
   PlayCircle,
+  PencilRuler,
   RotateCcw,
   Cog,
   Save,
@@ -338,6 +339,22 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                 options={[12, 24, 48, 96].map((value) => ({ value: String(value), label: `${value} per page`, tone: "lavender" as const }))}
               />
             </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <PencilRuler className="h-4 w-4 text-[var(--sp-blue)]" />
+            <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Math canvas</h2>
+          </div>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            <Toggle
+              checked={settings.canvasSmartShapes}
+              onChange={(canvasSmartShapes) => updateSettings({ canvasSmartShapes })}
+              label="Enable Canvas Smart Shape Recognition"
+              description="Auto-correct rough pen strokes on the Math Canvas into crisp circles, triangles, rectangles, lines, and legible letters/numbers."
+              icon={PencilRuler}
+            />
           </div>
         </section>
 
