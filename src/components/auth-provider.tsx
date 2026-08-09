@@ -13,7 +13,6 @@ import {
   persistAuth,
   signInAnonymously,
   signInWithEmail,
-  signInWithPasskey,
   signOutSupabase,
   signUpWithEmail,
   subscribeToAuthState,
@@ -147,11 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         applySession(session.user, session.accessToken);
       },
       async signInPasskey(email) {
-        const priorGuestId = user.isGuest ? user.id : getOrCreateLocalGuestId();
-        const session = await signInWithPasskey(email);
-        clearLocalGuestProgressKeys();
-        await migrateGuestProgress(priorGuestId, session.accessToken);
-        applySession(session.user, session.accessToken);
+        throw new Error("Passkey authentication is disabled.");
       },
       async signUp(email, password, username) {
         const priorGuestId = user.isGuest ? user.id : getOrCreateLocalGuestId();

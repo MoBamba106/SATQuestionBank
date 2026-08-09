@@ -25,29 +25,38 @@ export async function GET(req: Request) {
   }
 }
 
+import { z } from "zod";
+import { sanitizeString } from "@/lib/validation";
+
+const profileUpdateSchema = z.object({
+  hideLeaderboard: z.boolean().optional(),
+  displayName: sanitizeString.pipe(
+    z.string().min(3, "Username must be 3-32 characters.").max(32).regex(/^[a-zA-Z0-9_.-]+$/, "Username can only use letters, numbers, underscores, dots, and dashes.")
+  ).optional(),
+});
+
 export async function PATCH(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
     if (user.isGuest) return NextResponse.json({ error: "Sign in to change profile settings" }, { status: 401 });
     const body = await req.json();
+    
+    const parsed = profileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
+
     const updates: string[] = [];
-    if (typeof body?.hideLeaderboard === "boolean") {
+    if (parsed.data.hideLeaderboard !== undefined) {
       await db.execute(sql`
-        UPDATE users SET hide_leaderboard = ${body.hideLeaderboard}, updated_at = now() WHERE id = ${user.id}
+        UPDATE users SET hide_leaderboard = ${parsed.data.hideLeaderboard}, updated_at = now() WHERE id = ${user.id}
       `);
       updates.push("hideLeaderboard");
     }
-    if (typeof body?.displayName === "string") {
-      const displayName = body.displayName.trim();
-      if (displayName.length < 3 || displayName.length > 32) {
-        return NextResponse.json({ error: "Username must be 3-32 characters." }, { status: 400 });
-      }
-      if (!/^[a-zA-Z0-9_.-]+$/.test(displayName)) {
-        return NextResponse.json({ error: "Username can only use letters, numbers, underscores, dots, and dashes." }, { status: 400 });
-      }
+    if (parsed.data.displayName !== undefined) {
       await db.execute(sql`
-        UPDATE users SET display_name = ${displayName}, updated_at = now() WHERE id = ${user.id}
+        UPDATE users SET display_name = ${parsed.data.displayName}, updated_at = now() WHERE id = ${user.id}
       `);
       updates.push("displayName");
     }

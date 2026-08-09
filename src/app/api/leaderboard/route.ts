@@ -27,11 +27,16 @@ function displayName(name: string | null, email: string | null, id: string): str
  * Public leaderboards across signed-up accounts.
  * Guests and users who opted out (hide_leaderboard) are excluded.
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await ensureSeeded();
+    
+    const url = new URL(req.url);
+    const timeframe = url.searchParams.get("timeframe") === "week" ? "week" : "all";
 
     const guestLike = `${LOCAL_GUEST_PREFIX}%`;
+    const attemptFilter = timeframe === "week" ? sql` AND a.created_at >= now() - interval '7 days'` : sql``;
+    const duelFilter = timeframe === "week" ? sql` AND d.finished_at >= now() - interval '7 days'` : sql``;
 
     const base = sql`
       SELECT u.id, u.display_name AS name, u.email,
@@ -45,12 +50,13 @@ export async function GET() {
              COALESCE(SUM(CASE WHEN q.difficulty = 'Hard' AND a.is_correct THEN 1 ELSE 0 END), 0)::int AS hard_correct
       FROM users u
       JOIN quiz_sessions qs ON qs.user_id = u.id
-      JOIN attempts a ON a.session_id = qs.id
+      JOIN attempts a ON a.session_id = qs.id ${attemptFilter}
       JOIN questions q ON q.id = a.question_id
       WHERE u.id <> ${GUEST_USER_ID}
         AND u.id NOT LIKE ${guestLike}
         AND u.hide_leaderboard = false
       GROUP BY u.id
+      HAVING COUNT(a.id) > 0
     `;
 
     const stats = rows<{
@@ -124,6 +130,7 @@ export async function GET() {
             AND u.hide_leaderboard = false
             AND u.id <> ${GUEST_USER_ID}
             AND u.id NOT LIKE ${guestLike}
+            ${duelFilter}
           GROUP BY u.id
           ORDER BY wins DESC
           LIMIT 10

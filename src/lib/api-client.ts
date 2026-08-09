@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { guestIdHeader, readStoredAuth } from "@/lib/auth/client";
+import { handleGuestApi } from "@/lib/guest-mock";
 
 const IMPERSONATE_KEY = "sat-nexus-impersonate";
 
@@ -27,6 +28,9 @@ export function setImpersonatedUser(target: { id: string; label: string } | null
 }
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const guestResult = await handleGuestApi(url, init);
+  if (guestResult !== null) return guestResult as T;
+
   const { accessToken } = readStoredAuth();
   const impersonated = getImpersonatedUser();
   const res = await fetch(url, {

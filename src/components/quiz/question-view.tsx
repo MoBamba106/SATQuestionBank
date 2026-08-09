@@ -164,6 +164,7 @@ export function QuestionView({
   graded,
   lockSelection,
   showExplanation = true,
+  onOverrideCorrect,
 }: {
   question: SATQuestion;
   selected: string | undefined;
@@ -171,6 +172,7 @@ export function QuestionView({
   graded: boolean;
   lockSelection?: boolean;
   showExplanation?: boolean;
+  onOverrideCorrect?: () => void;
 }) {
   const { settings } = useSettings();
   const correctKey = resolveCorrectAnswer(question.correctAnswer, question.explanation);
@@ -511,7 +513,18 @@ export function QuestionView({
 
         {graded && showExplanation && question.explanation && (
           <div className="answer-explanation rounded-[6px] border p-4 sm:p-5">
-            <p className="mb-2 text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#238a5e]">Explanation</p>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.12em] text-[#238a5e]">Explanation</p>
+              {onOverrideCorrect && selected && !answersMatch(selected, correctKey) && (
+                <button
+                  type="button"
+                  onClick={onOverrideCorrect}
+                  className="btn btn-soft !min-h-7 !px-2.5 !py-1 !text-[11px]"
+                >
+                  I was actually right
+                </button>
+              )}
+            </div>
             <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
           </div>
         )}

@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Trash2,
   Users,
+  Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -21,6 +22,57 @@ import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useApi, apiPatch, apiDeleteJson, mutateKey, setImpersonatedUser, getImpersonatedUser } from "@/lib/api-client";
 import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
+import { QuestionView } from "@/components/quiz/question-view";
+import { PaperDialog } from "@/components/ui/paper-dialog";
+import type { SATQuestion } from "@/lib/types";
+
+function AdminQuestionModal({
+  questionId,
+  open,
+  onOpenChange,
+}: {
+  questionId: string | null;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { data, loading, error } = useApi<{ question: SATQuestion }>(
+    open && questionId ? `/api/questions/${questionId}` : null,
+    `admin-question-${questionId}`
+  );
+  
+  return (
+    <PaperDialog open={open} onOpenChange={onOpenChange} title="Question Context" description={`ID: ${questionId}`}>
+      {loading ? (
+        <div className="flex h-32 items-center justify-center text-[var(--ink-faint)]">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : error || !data?.question ? (
+        <div className="text-[var(--bad)] p-4">{error || "Not found"}</div>
+      ) : (
+        <div className="space-y-4 pt-2">
+          <QuestionView
+            question={data.question}
+            selected={undefined}
+            onSelect={() => {}}
+            graded={true}
+            showExplanation={true}
+          />
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                window.open(`/quiz?ids=${questionId}`, "_blank");
+              }}
+            >
+              <Play className="h-4 w-4" /> Test in Quiz Mode
+            </button>
+          </div>
+        </div>
+      )}
+    </PaperDialog>
+  );
+}
 
 type AdminUser = {
   id: string;
@@ -86,6 +138,7 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<AdminUser | null>(null);
   const [deleting, setDeleting] = React.useState(false);
   const impersonating = getImpersonatedUser();
+  const [selectedQId, setSelectedQId] = React.useState<string | null>(null);
 
   if (!auth.ready) return <PageSkeleton cards={4} />;
 
@@ -412,10 +465,18 @@ export default function AdminPage() {
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.message}</p>
                 {item.context && (
-                  <p className="mt-2 rounded-[5px] border border-[var(--line-soft)] bg-[var(--paper-soft)] px-3 py-2 text-[12px] leading-relaxed text-[var(--ink-soft)]">
+                  <button
+                    type="button"
+                    className="mt-2 text-left w-full rounded-[5px] border border-[var(--line-soft)] bg-[var(--paper-soft)] px-3 py-2 text-[12px] leading-relaxed text-[var(--ink-soft)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                    onClick={() => {
+                      const match = item.context?.match(/Question ([a-f0-9\-]+)/i);
+                      if (match?.[1]) setSelectedQId(match[1]);
+                      else toast.info("No specific question attached.");
+                    }}
+                  >
                     <span className="font-bold uppercase tracking-wide text-[var(--ink-faint)]">Context: </span>
                     {item.context}
-                  </p>
+                  </button>
                 )}
                 <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--line-soft)] pt-3">
                   <span className="text-[12px] text-[var(--ink-faint)]">
@@ -432,7 +493,7 @@ export default function AdminPage() {
                     </a>
                   )}
                   <div className="ml-auto flex gap-1.5">
-                    {["new", "reviewed", "done"].map((status) => (
+                    {["new", "reviewed"].map((status) => (
                       <button
                         key={status}
                         type="button"
@@ -451,9 +512,9 @@ export default function AdminPage() {
                       disabled={updating === item.id}
                       onClick={() => void deleteFeedback(item.id)}
                       title="Delete this feedback once addressed"
-                      className="btn !min-h-7 !px-2.5 !py-1 !text-[11px] text-[var(--bad)] hover:!border-[var(--bad)] hover:!bg-[#f9e9ec]"
+                      className="btn btn-good !min-h-7 !px-2.5 !py-1 !text-[11px]"
                     >
-                      <Trash2 className="h-3.5 w-3.5" /> Delete
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Done / Resolve
                     </button>
                   </div>
                 </div>
@@ -465,6 +526,14 @@ export default function AdminPage() {
           </button>
         </div>
       )}
+
+      <AdminQuestionModal
+        questionId={selectedQId}
+        open={!!selectedQId}
+        onOpenChange={(open) => {
+          if (!open) setSelectedQId(null);
+        }}
+      />
 
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">

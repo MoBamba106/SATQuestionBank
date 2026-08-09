@@ -16,6 +16,8 @@ import { AddToCollectionButton } from "@/components/add-to-collection";
 import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { ShareQuizDialog } from "@/components/share-quiz-dialog";
 import { FeedbackDialog } from "@/components/feedback-dialog";
+import posthog from "posthog-js";
+
 import { useSettings } from "@/components/settings-provider";
 import { apiPost, apiPatch, mutateKey } from "@/lib/api-client";
 import { answersMatch, cn, difficultyColor, domainColor, formatTime, resolveCorrectAnswer, skillColor } from "@/lib/utils";
@@ -120,6 +122,25 @@ export function PracticeRunner({
     }
   }, [checking, chosen, current, isGraded, mode, sid]);
 
+  const doOverrideCorrect = React.useCallback(async () => {
+    if (!current || !chosen) return;
+    try {
+      await apiPost("/api/attempts", {
+        sessionId: sid,
+        mode,
+        questionId: current.id,
+        isCorrect: true,
+        answer: chosen,
+      });
+      setGraded((g) => ({ ...g, [current.id]: { correct: true, answer: chosen } }));
+      toast.success("Marked as correct", { description: "You've been granted credit for this question." });
+      mutateKey("stats");
+      mutateKey("mistakes");
+    } catch (e) {
+      toast.error("Couldn't override answer", { description: e instanceof Error ? e.message : "Please try again" });
+    }
+  }, [chosen, current, mode, sid]);
+
   /** Finish = grade EVERYTHING with an entered answer, even questions the user
    *  never pressed "Check" on. "Unanswered" therefore means literally nothing
    *  was entered — fixing the old all-unanswered results bug. */
@@ -139,6 +160,7 @@ export function PracticeRunner({
       const correctCount = pool.filter((q) => merged[q.id]?.correct).length;
       const answeredCount = pool.filter((q) => answers[q.id] && answers[q.id].trim() !== "").length;
       await apiPatch(`/api/sessions/${sid}`, { correctCount, answeredCount });
+      posthog.capture("quiz_completed", { mode, correctCount, answeredCount, totalCount: pool.length });
       mutateKey("stats");
       mutateKey("mistakes");
       setDone(true);
@@ -332,6 +354,7 @@ export function PracticeRunner({
             graded={isGraded}
             lockSelection={!isExam && isGraded}
             showExplanation={!isExam}
+            onOverrideCorrect={doOverrideCorrect}
           />
 
           {noteOpen && (

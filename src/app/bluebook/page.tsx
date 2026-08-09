@@ -142,7 +142,7 @@ export default function BluebookPage() {
                     {t.isCustom ? "Generated Test" : "Practice Test"}
                   </div>
                   <div className={t.isCustom ? "font-display mt-1 text-2xl font-bold text-[var(--accent)]" : "font-display mt-0.5 text-5xl font-bold text-[var(--accent)]"}>
-                    {t.isCustom ? "Custom" : t.testNumber}
+                    {t.isCustom ? t.title : t.testNumber}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

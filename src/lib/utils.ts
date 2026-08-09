@@ -208,13 +208,12 @@ function singleAnswerMatch(student: string, accepted: string): boolean {
       .trim()
       .toLowerCase()
       .replace(/[\u2212\u2013\u2014]/g, "-")
-      .replace(/\s+/g, "")
       .replace(/,/g, "");
 
   const s = normText(student);
   const t = normText(accepted);
   if (!s || !t) return false;
-  if (s === t) return true;
+  if (s.replace(/\s+/g, "") === t.replace(/\s+/g, "")) return true;
 
   const sNum = parseLooseNumber(s);
   const tNum = parseLooseNumber(t);
@@ -231,8 +230,19 @@ function parseLooseNumber(raw: string): number | null {
   if (!x) return null;
   // leading-dot decimals: .5 → 0.5
   if (/^[+-]?\.\d+$/.test(x)) x = x.replace(".", "0.");
+  
+  // mixed number: "1 3/4"
+  const mixed = /^([+-]?\d+)\s+(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/.exec(x);
+  if (mixed) {
+    const whole = Number(mixed[1]);
+    const num = Number(mixed[2]);
+    const den = Number(mixed[3]);
+    if (!Number.isFinite(whole) || !Number.isFinite(num) || !Number.isFinite(den) || den === 0) return null;
+    return (Math.abs(whole) + num / den) * (whole < 0 || x.startsWith('-') ? -1 : 1);
+  }
+  
   // simple fraction a/b
-  const frac = /^([+-]?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/.exec(x);
+  const frac = /^([+-]?\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/.exec(x);
   if (frac) {
     const num = Number(frac[1]);
     const den = Number(frac[2]);

@@ -68,6 +68,25 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: "SAT Nexus",
+            url: "https://satnexus.com",
+            description: "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
+            applicationCategory: "EducationalApplication",
+            operatingSystem: "Any",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+          }),
+        }}
+      />
       <section className="glass border-l-[4px] border-l-[var(--accent)] p-6 sm:p-8">
         <p className="text-[10.5px] font-bold uppercase tracking-[0.17em] text-[var(--accent)]">
           SAT study workspace

@@ -85,6 +85,20 @@ export async function GET(req: Request) {
  * - skill: SAT domain category (Algebra, Craft and Structure, …)
  * - category: finer subskill within that skill
  */
+import { z } from "zod";
+import { sanitizeString } from "@/lib/validation";
+
+const duelCreateSchema = z.object({
+  toUserId: z.string().optional(),
+  toEmail: z.string().trim().email().optional().or(z.literal("")),
+  count: z.number().min(5).max(30).default(10),
+  domain: z.string().optional(),
+  skill: z.string().optional(),
+  category: z.string().optional(),
+  difficulty: z.string().optional(),
+  label: z.string().max(120).default("Quiz duel"),
+});
+
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
@@ -94,14 +108,19 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    let toUserId = String(body?.toUserId || "").trim();
-    const toEmail = String(body?.toEmail || "").trim().toLowerCase();
-    const count = Math.min(30, Math.max(5, Number(body?.count) || 10));
-    const domain = body?.domain && body.domain !== "All" ? String(body.domain) : null;
-    const skill = body?.skill && body.skill !== "All" ? String(body.skill) : null;
-    const category = body?.category && body.category !== "All" ? String(body.category) : null;
-    const difficulty = body?.difficulty && body.difficulty !== "All" ? String(body.difficulty) : null;
-    const label = String(body?.label || "Quiz duel").trim().slice(0, 120) || "Quiz duel";
+    const parsed = duelCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
+
+    let toUserId = parsed.data.toUserId || "";
+    const toEmail = parsed.data.toEmail || "";
+    const count = parsed.data.count;
+    const domain = parsed.data.domain && parsed.data.domain !== "All" ? parsed.data.domain : null;
+    const skill = parsed.data.skill && parsed.data.skill !== "All" ? parsed.data.skill : null;
+    const category = parsed.data.category && parsed.data.category !== "All" ? parsed.data.category : null;
+    const difficulty = parsed.data.difficulty && parsed.data.difficulty !== "All" ? parsed.data.difficulty : null;
+    const label = parsed.data.label || "Quiz duel";
 
     if (!toUserId && toEmail) {
       const found = rows<{ id: string }>(

@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
-import {
-  resolveSupabaseAnonKey,
-  resolveSupabaseServiceRoleKey,
-  resolveSupabaseUrl,
-} from "@/lib/supabase";
+import { resolveSupabaseAnonKey, resolveSupabaseUrl } from "@/lib/supabase";
+import { resolveSupabaseServiceRoleKey } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 

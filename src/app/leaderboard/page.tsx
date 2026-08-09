@@ -48,17 +48,42 @@ export default function LeaderboardPage() {
 
 function LeaderboardInner() {
   const auth = useAuth();
-  const { data, loading, error } = useApi<Payload>("/api/leaderboard", "leaderboard");
+  const [timeframe, setTimeframe] = React.useState<"all" | "week">("all");
+  const { data, loading, error } = useApi<Payload>(`/api/leaderboard?timeframe=${timeframe}`, "leaderboard");
 
   return (
     <div className="space-y-5">
-      <div>
-        <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Community rankings</p>
-        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">Leaderboard</h1>
-        <p className="mt-1 max-w-2xl text-[14px] text-[var(--ink-faint)]">
-          See how students with accounts stack up. Accuracy needs 20+ answers; hard mastery shows
-          correct hard items plus accuracy. Duels rank by wins. Hide yourself in Settings.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Community rankings</p>
+          <h1 className="font-display text-3xl font-bold text-[var(--ink)]">Leaderboard</h1>
+          <p className="mt-1 max-w-2xl text-[14px] text-[var(--ink-faint)]">
+            See how students with accounts stack up. Accuracy needs 20+ answers; hard mastery shows
+            correct hard items plus accuracy. Duels rank by wins. Hide yourself in Settings.
+          </p>
+        </div>
+        <div className="flex overflow-hidden rounded-[6px] border border-[var(--line-soft)] bg-[var(--paper-soft)] p-0.5">
+          <button
+            type="button"
+            onClick={() => setTimeframe("all")}
+            className={cn(
+              "px-3 py-1.5 text-[12px] font-bold transition-colors rounded-[4px]",
+              timeframe === "all" ? "bg-[var(--paper)] shadow-sm text-[var(--ink)]" : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)]"
+            )}
+          >
+            All-Time
+          </button>
+          <button
+            type="button"
+            onClick={() => setTimeframe("week")}
+            className={cn(
+              "px-3 py-1.5 text-[12px] font-bold transition-colors rounded-[4px]",
+              timeframe === "week" ? "bg-[var(--paper)] shadow-sm text-[var(--ink)]" : "text-[var(--ink-faint)] hover:text-[var(--ink-soft)]"
+            )}
+          >
+            This Week
+          </button>
+        </div>
       </div>
 
       {error && (

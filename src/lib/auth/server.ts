@@ -9,11 +9,8 @@ import {
   makeLocalGuestUser,
   type AuthUser,
 } from "@/lib/auth/types";
-import {
-  resolveSupabaseAnonKey,
-  resolveSupabaseServiceRoleKey,
-  resolveSupabaseUrl,
-} from "@/lib/supabase";
+import { resolveSupabaseAnonKey, resolveSupabaseUrl } from "@/lib/supabase";
+import { resolveSupabaseServiceRoleKey } from "@/lib/supabase-server";
 
 const AUTH_COOKIE = "sat_nexus_access_token";
 const GUEST_COOKIE = "sat_nexus_guest_id";
@@ -33,7 +30,11 @@ export function adminEmails(): string[] {
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
-  return adminEmails().includes(email.trim().toLowerCase());
+  const emails = adminEmails();
+  if (emails.length === 0 && (process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development")) {
+    return true; // Auto-grant admin in preview/dev if ADMIN_EMAILS is not configured
+  }
+  return emails.includes(email.trim().toLowerCase());
 }
 
 function supabaseConfigured() {
@@ -116,7 +117,6 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
 
   if (!token || !supabaseConfigured()) {
     const guest = resolveLocalGuest(req, headerStore, cookieStore);
-    await ensureUserRow(guest);
     return guest;
   }
 
@@ -124,7 +124,6 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
     const verified = await verifySupabaseToken(token);
     if (!verified) {
       const guest = resolveLocalGuest(req, headerStore, cookieStore);
-      await ensureUserRow(guest);
       return guest;
     }
     verified.isAdmin = isAdminEmail(verified.email);
@@ -148,7 +147,6 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
   } catch (error) {
     console.warn("[auth] token verification failed:", error instanceof Error ? error.message : error);
     const guest = resolveLocalGuest(req, headerStore, cookieStore);
-    await ensureUserRow(guest);
     return guest;
   }
 }

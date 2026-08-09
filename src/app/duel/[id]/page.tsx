@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, Swords, Trophy, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { Loader2, Swords, Trophy, CheckCircle2, XCircle, ArrowLeft, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { SafeHtml } from "@/components/ui/safe-html";
@@ -11,6 +11,10 @@ import { useAuth } from "@/components/auth-provider";
 import { apiGet, apiPatch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
+import { FloatingDesmos } from "@/components/quiz/floating-desmos";
+import { AddToCollectionButton } from "@/components/add-to-collection";
+
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 type DuelDetail = {
   id: string;
@@ -38,6 +42,8 @@ export default function DuelRoomPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [selected, setSelected] = React.useState("");
+  const [desmosOpen, setDesmosOpen] = React.useState(false);
+  const [desmosRestoreRequest, setDesmosRestoreRequest] = React.useState(0);
 
   const load = React.useCallback(async () => {
     if (!id) return;
@@ -52,9 +58,21 @@ export default function DuelRoomPage() {
 
   React.useEffect(() => {
     void load();
-    const t = window.setInterval(() => void load(), 2000);
-    return () => window.clearInterval(t);
-  }, [load]);
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      const t = window.setInterval(() => void load(), 2000);
+      return () => window.clearInterval(t);
+    }
+    const channel = supabase
+      .channel(`duel-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "duels", filter: `id=eq.${id}` },
+        () => void load()
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [id, load]);
 
   React.useEffect(() => {
     setSelected("");
@@ -217,6 +235,29 @@ export default function DuelRoomPage() {
 
       {q ? (
         <GlassCard hover={false} className="space-y-4 p-5 sm:p-7">
+          <div className="flex items-center justify-between mb-4 border-b border-[var(--line-soft)] pb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
+                {q.domain} · {q.skill}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {q.domain === "Math" && (
+                <button
+                  type="button"
+                  className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]"
+                  onClick={() => {
+                    setDesmosOpen(true);
+                    setDesmosRestoreRequest((n) => n + 1);
+                  }}
+                >
+                  <Calculator className="h-3.5 w-3.5" /> Desmos
+                </button>
+              )}
+              <AddToCollectionButton questionId={q.id} />
+            </div>
+          </div>
+
           {q.passageHtml && (
             <div className="glass-subtle max-h-[280px] overflow-y-auto p-4 scrollbar-thin">
               <SafeHtml html={q.passageHtml} className="sat-content text-[14px] text-[var(--ink-soft)]" />
@@ -293,6 +334,14 @@ export default function DuelRoomPage() {
         </GlassCard>
       ) : (
         <p className="py-10 text-center text-[var(--ink-faint)]">No question loaded.</p>
+      )}
+
+      {q && (
+        <FloatingDesmos
+          open={desmosOpen && q.domain === "Math"}
+          restoreRequest={desmosRestoreRequest}
+          onClose={() => setDesmosOpen(false)}
+        />
       )}
     </div>
   );

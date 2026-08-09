@@ -17,7 +17,7 @@ type Step = {
 
 const STEPS: Step[] = [
   {
-    title: "Welcome to SAT Nexus! 👋",
+    title: "Welcome to SAT Nexus!",
     body: "This quick tour shows you around. You can skip it at any time — restart it later from Settings.",
     placement: "center",
   },
@@ -46,7 +46,7 @@ const STEPS: Step[] = [
     placement: "right",
   },
   {
-    title: "That's it — good luck! 🎯",
+    title: "That's it — good luck!",
     body: "Start with a practice quiz or browse the question bank. You've got this.",
     placement: "center",
   },
@@ -72,6 +72,10 @@ export function IntroTutorial({ forceOpen, onClose }: { forceOpen?: boolean; onC
 
   // Offer the tutorial on first visit to the home page.
   React.useEffect(() => {
+    // Suppress tutorial on mobile viewports
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return;
+    }
     if (forceOpen) {
       const timer = window.setTimeout(() => {
         setStep(0);

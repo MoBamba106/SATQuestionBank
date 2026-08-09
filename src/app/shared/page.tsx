@@ -151,8 +151,8 @@ function SharedPageInner() {
                         <button type="button" className="btn btn-primary !min-h-8 !px-3 !text-[12px]" onClick={() => openQuestionQuiz(row.questionId, stripHtml(row.question_html || row.question_text).slice(0, 40))}>
                           <Play className="h-3.5 w-3.5" /> Open
                         </button>
-                        <button type="button" className="btn btn-ghost !min-h-8 !px-2.5" onClick={() => void deleteSharedQ(row.id)} title="Dismiss">
-                          <Trash2 className="h-4 w-4" />
+                        <button type="button" className="btn btn-ghost !min-h-8 !px-2.5" onClick={() => void deleteSharedQ(row.id)} title="Remove">
+                          <Trash2 className="h-4 w-4 mr-1" /> Remove
                         </button>
                       </div>
                     </div>
@@ -172,7 +172,9 @@ function SharedPageInner() {
                     <span>→</span>
                     <span>{(row as any).toDisplayName || (row as any).toEmail || (row as any).toId}</span>
                     <span className="ml-auto">{formatDetroitDate(row.createdAt)}</span>
-                    <button type="button" className="btn btn-ghost !min-h-6 !px-2" onClick={() => void deleteSharedQ(row.id)}><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" className="btn btn-ghost !min-h-6 !px-2" onClick={() => void deleteSharedQ(row.id)} title="Remove">
+                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                    </button>
                   </div>
                 ))}
               </div>
@@ -207,7 +209,9 @@ function SharedPageInner() {
                       <button type="button" className="btn btn-primary !min-h-8 !px-3 !text-[12px]" onClick={() => void openCollectionQuiz(row.collectionId, row.name, (row as any).questionIds)}>
                         <Play className="h-3.5 w-3.5" /> Practice
                       </button>
-                      <button type="button" className="btn btn-ghost !min-h-8 !px-2.5" onClick={() => void deleteSharedC(row.id)}><Trash2 className="h-4 w-4" /></button>
+                      <button type="button" className="btn btn-ghost !min-h-8 !px-2.5" onClick={() => void deleteSharedC(row.id)} title="Remove">
+                        <Trash2 className="h-4 w-4 mr-1" /> Remove
+                      </button>
                     </div>
                   </div>
                 </GlassCard>
@@ -225,7 +229,9 @@ function SharedPageInner() {
                     <span>→</span>
                     <span>{(row as any).toDisplayName || (row as any).toEmail || (row as any).toId}</span>
                     <span className="ml-auto">{formatDetroitDate(row.createdAt)}</span>
-                    <button type="button" className="btn btn-ghost !min-h-6 !px-2" onClick={() => void deleteSharedC(row.id)}><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" className="btn btn-ghost !min-h-6 !px-2" onClick={() => void deleteSharedC(row.id)} title="Remove">
+                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                    </button>
                   </div>
                 ))}
               </div>
