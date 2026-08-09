@@ -6,7 +6,7 @@ import type { AppTheme } from "@/components/settings-provider";
  */
 export const THEME_GLOW: Record<AppTheme, string> = {
   light: "#19a7e0",
-  dark: "#31b7e8",
+  dark: "#ffffff",
   obsidian: "#8400ff",
   highlighter: "#f090a0",
   "liquid-glass": "#6699ff",

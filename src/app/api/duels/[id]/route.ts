@@ -115,6 +115,15 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
  *  { action: "accept" | "decline" | "cancel" }
  *  { action: "answer", questionId, answer }
  */
+import { z } from "zod";
+import { sanitizeOptionalString } from "@/lib/validation";
+
+const duelPatchSchema = z.object({
+  action: z.enum(["accept", "decline", "cancel", "answer"]),
+  questionId: z.string().optional(),
+  answer: sanitizeOptionalString,
+});
+
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded();
@@ -124,7 +133,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     }
     const { id } = await ctx.params;
     const body = await req.json().catch(() => ({}));
-    const action = String(body?.action || "").trim();
+    
+    const parsed = duelPatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
+    const { action, questionId, answer } = parsed.data;
     const duel = await loadDuel(id);
     if (!duel) return NextResponse.json({ error: "Duel not found" }, { status: 404 });
     const role = participant(user.id, duel);

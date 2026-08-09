@@ -1,5 +1,8 @@
 "use client";
 
+import posthog from "posthog-js";
+
+// ... existing imports ...
 import type { Session, User } from "@supabase/supabase-js";
 import type { AuthUser } from "@/lib/auth/types";
 import { isLocalGuestId, makeLocalGuestUser } from "@/lib/auth/types";
@@ -195,93 +198,39 @@ export function subscribeToAuthState(
   return () => subscription.unsubscribe();
 }
 
+async function mergeGuestData(accessToken: string) {
+  try {
+    const raw = localStorage.getItem("sat_guest_db");
+    if (!raw) return;
+    const db = JSON.parse(raw);
+    if (!db.sessions?.length && !db.attempts?.length) return;
+    
+    await fetch("/api/sessions/merge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ sessions: db.sessions, attempts: db.attempts })
+    });
+    localStorage.removeItem("sat_guest_db");
+  } catch (e) {
+    console.error("Failed to merge guest data", e);
+  }
+}
+
 export async function signInWithEmail(email: string, password: string) {
   const { data, error } = await getSupabaseBrowserClient().auth.signInWithPassword({ email, password });
   if (error) throw error;
   if (!data.session || !data.user) throw new Error("Sign-in succeeded but no session was returned.");
   persistSessionState(data.session);
+  await mergeGuestData(data.session.access_token);
   return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
 }
 
-/**
- * WebAuthn / passkey sign-in via Supabase Auth.
- * Requires Passkeys enabled under Supabase → Authentication → Providers.
- * Uses the browser's PublicKeyCredential API (Face ID, Touch ID, Windows Hello).
- */
-export async function signInWithPasskey(email?: string) {
-  if (!isAuthEnabled()) throw new Error("Supabase Auth is not configured.");
-  if (typeof window === "undefined" || !window.PublicKeyCredential) {
-    throw new Error("This browser doesn't support passkeys.");
-  }
-  const client = getSupabaseBrowserClient();
-  // Supabase JS exposes experimental WebAuthn helpers when passkeys are enabled.
-  const auth = client.auth as typeof client.auth & {
-    signInWithWebAuthn?: (args?: { email?: string }) => Promise<{
-      data: { session: Session | null; user: User | null };
-      error: Error | null;
-    }>;
-    signInWithOtp?: (args: { email: string; options?: Record<string, unknown> }) => Promise<{
-      data: { session: Session | null; user: User | null };
-      error: Error | null;
-    }>;
-  };
+// Passkey logic removed
 
-  if (typeof auth.signInWithWebAuthn === "function") {
-    const { data, error } = await auth.signInWithWebAuthn(email?.trim() ? { email: email.trim() } : undefined);
-    if (error) throw error;
-    if (!data.session || !data.user) throw new Error("Passkey sign-in did not return a session.");
-    persistSessionState(data.session);
-    return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
-  }
-
-  // Fallback path used by some Supabase versions: start a WebAuthn ceremony through the GoTrue REST API.
-  const url = resolveSupabaseUrl().replace(/\/$/, "");
-  const key = resolveSupabaseAnonKey();
-  if (!url || !key) throw new Error("Supabase Auth is not configured.");
-
-  const startRes = await fetch(`${url}/auth/v1/webauthn/authenticate`, {
-    method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(email?.trim() ? { email: email.trim() } : {}),
-  });
-  if (!startRes.ok) {
-    const detail = await startRes.text().catch(() => "");
-    throw new Error(
-      detail.includes("not enabled") || startRes.status === 404
-        ? "Passkeys are not enabled on this Supabase project yet. Enable them under Authentication → Providers → Passkeys (WebAuthn)."
-        : `Passkey start failed (${startRes.status}).`,
-    );
-  }
-  throw new Error(
-    "Passkey ceremony requires the latest Supabase JS WebAuthn helpers. Enable Passkeys in Supabase and upgrade @supabase/supabase-js, or use email/password for now.",
-  );
-}
-
-export async function registerPasskey() {
-  if (!isAuthEnabled()) throw new Error("Supabase Auth is not configured.");
-  if (typeof window === "undefined" || !window.PublicKeyCredential) {
-    throw new Error("This browser doesn't support passkeys.");
-  }
-  const client = getSupabaseBrowserClient();
-  const auth = client.auth as typeof client.auth & {
-    enrollWebAuthn?: () => Promise<{ data: unknown; error: Error | null }>;
-    mfa?: {
-      enroll?: (args: { factorType: string }) => Promise<{ data: unknown; error: Error | null }>;
-    };
-  };
-  if (typeof auth.enrollWebAuthn === "function") {
-    const { error } = await auth.enrollWebAuthn();
-    if (error) throw error;
-    return;
-  }
-  throw new Error(
-    "Passkey registration needs Supabase Passkeys (WebAuthn) enabled. Turn it on in the Supabase dashboard under Authentication → Providers.",
-  );
-}
+// Passkey functions removed as requested.
 
 export async function signUpWithEmail(email: string, password: string, username?: string) {
   const displayName = username?.trim() || email.split("@")[0] || "Student";
@@ -300,7 +249,14 @@ export async function signUpWithEmail(email: string, password: string, username?
       "Account created, but email confirmation is required before you can sign in. Check your inbox or disable email confirmation in Supabase Auth settings.",
     );
   }
+  
+  if (typeof window !== "undefined") {
+    posthog.capture("account_created", { method: "email" });
+    posthog.identify(data.user.id, { email });
+  }
+
   persistSessionState(data.session);
+  await mergeGuestData(data.session.access_token);
   return { user: userFromSupabase(data.user), accessToken: data.session.access_token };
 }
 

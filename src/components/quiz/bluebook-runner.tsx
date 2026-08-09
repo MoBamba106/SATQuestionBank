@@ -27,6 +27,8 @@ import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 import { SkillBands } from "@/components/quiz/skill-bands";
 import { PaperDialog } from "@/components/ui/paper-dialog";
+import posthog from "posthog-js";
+
 import { useSettings } from "@/components/settings-provider";
 import { apiPatch, apiPost, mutateKey } from "@/lib/api-client";
 import { scoreModule } from "@/lib/adaptive";
@@ -256,6 +258,7 @@ export function BluebookRunner({
         ...score,
         finish: true,
       });
+      posthog.capture("practice_test_completed", { testId: test.id, totalScore: score.totalScore, rwScore: score.rwScore, mathScore: score.mathScore });
       mutateKey("stats");
       mutateKey("mistakes");
       removeBluebookProgress(test.id);

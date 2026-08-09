@@ -17,6 +17,8 @@ import { useAuth } from "@/components/auth-provider";
 import { skillsForDomain, subskillsFor } from "@/lib/sat-categories";
 import { cn, formatDetroitDateTime, skillTone } from "@/lib/utils";
 
+import posthog from "posthog-js";
+
 type UserResult = { id: string; email: string | null; displayName: string | null };
 
 type DuelList = {
@@ -142,6 +144,7 @@ function DuelInner() {
           description: "They'll also see it in their Duels inbox.",
         });
       }
+      posthog.capture("duel_started", { domain, count });
       mutateKey("duels");
       await reload();
       router.push(`/duel/${res.id}`);
@@ -169,14 +172,17 @@ function DuelInner() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Head to head</p>
-        <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
-          Quiz <span className="hl-blue px-1">Duels</span>
-        </h1>
-        <p className="mt-1 text-[14px] text-[var(--ink-faint)]">
-          Challenge an online student. First correct lock on each question scores the point.
-        </p>
+      <div className="flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-[var(--accent-soft)] text-2xl">⚔️</div>
+        <div>
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Head to head</p>
+          <h1 className="font-display text-3xl font-bold text-[var(--ink)]">
+            Quiz <span className="hl-blue px-1">Duels</span>
+          </h1>
+          <p className="mt-1 text-[14px] text-[var(--ink-faint)]">
+            Challenge an online student. First correct lock on each question scores the point.
+          </p>
+        </div>
       </div>
 
       {(data?.inbox?.length ?? 0) > 0 && (

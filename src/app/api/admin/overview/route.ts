@@ -32,7 +32,7 @@ export async function GET(req: Request) {
         LEFT JOIN quiz_sessions qs ON qs.user_id = u.id
         LEFT JOIN attempts a ON a.session_id = qs.id
         LEFT JOIN user_presence up ON up.user_id = u.id
-        WHERE u.id <> ${GUEST_USER_ID}
+        WHERE u.id <> ${GUEST_USER_ID} AND u.id NOT LIKE 'guest_%'
         GROUP BY u.id, up.last_seen
         ORDER BY up.last_seen DESC NULLS LAST, MAX(a.created_at) DESC NULLS LAST, u.created_at DESC
         LIMIT 500
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     const totals = rows<{ users: number; attempts: number; correct: number; sessions: number }>(
       await db.execute(sql`
         SELECT
-          (SELECT COUNT(*)::int FROM users WHERE id <> ${GUEST_USER_ID}) AS users,
+          (SELECT COUNT(*)::int FROM users WHERE id <> ${GUEST_USER_ID} AND id NOT LIKE 'guest_%') AS users,
           (SELECT COUNT(*)::int FROM attempts) AS attempts,
           (SELECT COALESCE(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END), 0)::int FROM attempts) AS correct,
           (SELECT COUNT(*)::int FROM quiz_sessions WHERE finished_at IS NOT NULL) AS sessions

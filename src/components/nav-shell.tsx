@@ -41,6 +41,7 @@ import { NavDock } from "@/components/nav-dock";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiGet, getImpersonatedUser, setImpersonatedUser, mutateKey } from "@/lib/api-client";
 import { PresenceTracker } from "@/components/presence-tracker";
+import { Footer } from "@/components/footer";
 import { toast } from "sonner";
 
 const BASE_NAV_GROUPS = [
@@ -93,8 +94,8 @@ function NavLinks({
     const communityItems = isAdmin
       ? [
           { href: "/shared", label: "Shared Questions", icon: Share2 },
-          { href: "/admin", label: "Admin console", icon: ShieldCheck },
           { href: "/feedback", label: "Feedback", icon: MessageSquarePlus },
+          { href: "/admin", label: "Admin console", icon: ShieldCheck },
         ]
       : COMMUNITY_BASE;
     return [
@@ -107,15 +108,24 @@ function NavLinks({
   }, [isAdmin]);
 
   return (
-    <nav aria-label="Primary navigation" className={cn(showGroupLabels ? "space-y-5" : "space-y-0.5")}>
-      {groups.map((group) => (
-        <div key={group.label}>
-          {!compact && showGroupLabels && (
-            <div className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)]">
-              {group.label}
-            </div>
+    <nav aria-label="Primary navigation" className="flex flex-col gap-2">
+      {groups.map((group, index) => (
+        <React.Fragment key={group.label}>
+          {index > 0 && (
+            <div className="mx-3 h-[1px] shrink-0 bg-[var(--line-soft)]" aria-hidden="true" />
           )}
-          <div className="space-y-0.5">
+          <div className="flex flex-col gap-0.5">
+            {showGroupLabels && (
+              <div
+                className={cn(
+                  "px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--ink-faint)] transition-[opacity,height,margin] duration-200 overflow-hidden whitespace-nowrap",
+                  compact ? "h-0 opacity-0 mb-0" : "h-[14px] opacity-100 mb-1.5"
+                )}
+                aria-hidden={compact}
+              >
+                {group.label}
+              </div>
+            )}
             {group.items.map(({ href, label, icon: Icon }) => {
               const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
               return (
@@ -143,7 +153,7 @@ function NavLinks({
               );
             })}
           </div>
-        </div>
+        </React.Fragment>
       ))}
     </nav>
   );
@@ -177,7 +187,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           apiGet<{ inbox: { id: string; hostName?: string; hostEmail?: string; questionCount?: number }[] }>("/api/duels").catch(() => ({ inbox: [] as { id: string; hostName?: string; hostEmail?: string; questionCount?: number }[] })),
         ]);
         if (!active) return;
-        const seen = new Set<string>(JSON.parse(sessionStorage.getItem(storageKey) || "[]"));
+        const seen = new Set<string>(JSON.parse(localStorage.getItem(storageKey) || "[]"));
         const incoming = [
           ...questions.received.map((share) => ({ ...share, type: "question" as const })),
           ...collections.received.map((share) => ({ ...share, type: "collection" as const })),
@@ -189,9 +199,9 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             action: { label: "View", onClick: () => { window.location.href = "/shared"; } },
           }));
         }
-        sessionStorage.setItem(storageKey, JSON.stringify(incoming.map((share) => share.id)));
+        localStorage.setItem(storageKey, JSON.stringify(incoming.map((share) => share.id)));
 
-        const seenDuels = new Set<string>(JSON.parse(sessionStorage.getItem(duelKey) || "[]"));
+        const seenDuels = new Set<string>(JSON.parse(localStorage.getItem(duelKey) || "[]"));
         const newDuels = (duels.inbox ?? []).filter((d) => !seenDuels.has(d.id));
         if (newDuels.length) {
           newDuels.forEach((d) =>
@@ -206,7 +216,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             }),
           );
         }
-        sessionStorage.setItem(duelKey, JSON.stringify((duels.inbox ?? []).map((d) => d.id)));
+        localStorage.setItem(duelKey, JSON.stringify((duels.inbox ?? []).map((d) => d.id)));
       } catch { /* A notification check should never interrupt the app. */ }
     };
     void checkForShares();
@@ -257,8 +267,8 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         style={desktopExpanded ? { boxShadow: "0 10px 28px rgba(20,24,34,0.16)" } : { boxShadow: "0 0 0 rgba(0,0,0,0)" }}
       >
         <Link href="/" className={cn("flex items-center border-b border-[var(--line)] py-5", desktopExpanded ? "gap-3 px-5" : "justify-center px-2")}>
-          <div className="brand-mark flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px]">
-            <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center">
+            <img src="/favicon.ico" alt="Logo" className="h-[22px] w-[22px]" />
           </div>
           <motion.div
             initial={false}
@@ -388,8 +398,8 @@ export function NavShell({ children }: { children: React.ReactNode }) {
       {/* Keyboard / dock nav modes: only the brand icon remains up top. */}
       {!showSidebar && (
         <div className="keyboard-nav-brand items-center gap-2">
-          <Link href="/" className="brand-mark flex h-9 w-9 items-center justify-center rounded-[6px]" title="SAT Nexus — Study desk">
-            <BookOpenText className="h-[19px] w-[19px] text-white" strokeWidth={2.1} />
+          <Link href="/" className="flex h-9 w-9 items-center justify-center" title="SAT Nexus — Study desk">
+            <img src="/favicon.ico" alt="Logo" className="h-[22px] w-[22px]" />
           </Link>
           {navMode === "keyboard" && (
             <button
@@ -407,8 +417,8 @@ export function NavShell({ children }: { children: React.ReactNode }) {
 
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden shell-header">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <div className="brand-mark flex h-8 w-8 items-center justify-center rounded-[5px]">
-            <BookOpenText className="h-4 w-4 text-white" />
+          <div className="flex h-8 w-8 items-center justify-center">
+            <img src="/favicon.ico" alt="Logo" className="h-5 w-5" />
           </div>
           <span className="font-display text-[18px] font-bold text-[var(--ink)]">SAT Nexus</span>
         </Link>
@@ -505,8 +515,9 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className={cn("shell-main px-4 pb-10 pt-6 sm:px-6 md:px-8 md:py-8", showSidebar && "md:ml-[74px]", !showSidebar && "md:pt-16")}>
-        <div className="mx-auto max-w-[1180px]">{children}</div>
+      <main className={cn("shell-main px-4 pb-10 pt-6 sm:px-6 md:px-8 md:py-8 flex flex-col min-h-[calc(100vh-3.5rem)]", showSidebar && "md:ml-[74px] md:min-h-screen", !showSidebar && "md:pt-16")}>
+        <div className="mx-auto w-full max-w-[1180px] flex-grow">{children}</div>
+        <Footer />
       </main>
 
       {navMode === "dock" && (

@@ -4,6 +4,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { NavShell } from "@/components/nav-shell";
 import { SettingsProvider } from "@/components/settings-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import { CSPostHogProvider, PostHogPageview } from "@/components/posthog-provider";
+import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,7 +13,29 @@ export const metadata: Metadata = {
   description:
     "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
   applicationName: "SAT Nexus",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "SAT Nexus — SAT Question Bank and Practice",
+    description: "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
+    url: "https://satnexus.com",
+    siteName: "SAT Nexus",
+    images: [
+      {
+        url: "https://satnexus.com/sat-graph-3f5a3602.svg",
+        width: 800,
+        height: 600,
+        alt: "SAT Nexus",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SAT Nexus — SAT Question Bank and Practice",
+    description: "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
+    images: ["https://satnexus.com/sat-graph-3f5a3602.svg"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -47,24 +71,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>
-        <SettingsProvider>
-          <AuthProvider>
-            <NavShell>{children}</NavShell>
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                style: {
-                  background: "var(--paper-raised)",
-                  border: "1px solid var(--line)",
-                  color: "var(--ink)",
-                  boxShadow: "0 10px 28px rgba(20,24,34,0.18)",
-                  borderRadius: "7px",
-                  fontFamily: "IBM Plex Sans, ui-sans-serif, system-ui, sans-serif",
-                },
-              }}
-            />
-          </AuthProvider>
-        </SettingsProvider>
+        <CSPostHogProvider>
+          <Suspense fallback={null}>
+            <PostHogPageview />
+          </Suspense>
+          <SettingsProvider>
+            <AuthProvider>
+              <NavShell>{children}</NavShell>
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  style: {
+                    background: "var(--paper-raised)",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink)",
+                    boxShadow: "0 10px 28px rgba(20,24,34,0.18)",
+                    borderRadius: "7px",
+                    fontFamily: "IBM Plex Sans, ui-sans-serif, system-ui, sans-serif",
+                  },
+                }}
+              />
+            </AuthProvider>
+          </SettingsProvider>
+        </CSPostHogProvider>
         <Analytics />
       </body>
     </html>

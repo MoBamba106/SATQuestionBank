@@ -22,15 +22,6 @@ export function resolveSupabaseAnonKey(): string {
   );
 }
 
-/** Service role / secret key — server only, never expose to the browser. */
-export function resolveSupabaseServiceRoleKey(): string {
-  return (
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-    process.env.SUPABASE_SECRET_KEY?.trim() ||
-    ""
-  );
-}
-
 const supabaseUrl = resolveSupabaseUrl();
 const supabaseKey = resolveSupabaseAnonKey();
 

@@ -15,6 +15,10 @@ const TOPICS: { topic: StudyTopic; tone: string }[] = [
   { topic: "Grammar", tone: "soft-tone-lavender" },
   { topic: "Math formulas", tone: "soft-tone-teal" },
   { topic: "Test strategy", tone: "soft-tone-yellow" },
+  { topic: "Math Module 1", tone: "soft-tone-blue" },
+  { topic: "Math Module 2", tone: "soft-tone-blue" },
+  { topic: "Reading & Writing Module 1", tone: "soft-tone-green" },
+  { topic: "Reading & Writing Module 2", tone: "soft-tone-green" },
 ];
 const STORAGE_KEY = "sat-nexus-study-mastered";
 
@@ -34,14 +38,24 @@ export default function StudyLibraryPage() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  const [seed] = React.useState(() => Math.random());
+
   const filtered = React.useMemo(() => {
     const needle = search.trim().toLowerCase();
-    return STUDY_ITEMS.filter((item) =>
+    let res = STUDY_ITEMS.filter((item) =>
       item.topic === topic
       && (difficulty.length === 0 || (item.difficulty != null && difficulty.includes(item.difficulty)))
       && (!needle || `${item.term} ${item.definition} ${item.phonetic ?? ""}`.toLowerCase().includes(needle)),
     );
-  }, [difficulty, search, topic]);
+    if (topic === "Vocabulary") {
+      res = [...res].sort((a, b) => {
+        const hA = Array.from(a.id).reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0);
+        const hB = Array.from(b.id).reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0);
+        return (hA * seed) % 100 - (hB * seed) % 100;
+      });
+    }
+    return res;
+  }, [difficulty, search, topic, seed]);
 
   const saveMastered = (next: string[]) => {
     setMastered(next);

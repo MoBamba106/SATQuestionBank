@@ -142,8 +142,13 @@ export function buildQuestionFilters(p: {
     }
   }
   if (p.search && p.search.trim()) {
-    const s = `%${p.search.trim()}%`;
-    conds.push(sql`(q.question_text ILIKE ${s} OR q.id ILIKE ${s} OR q.skill ILIKE ${s} OR q.subskill ILIKE ${s})`);
+    const cleanSearch = p.search.trim();
+    if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(cleanSearch)) {
+      conds.push(sql`q.id = ${cleanSearch}`);
+    } else {
+      const s = `%${cleanSearch}%`;
+      conds.push(sql`(q.question_text ILIKE ${s} OR q.id ILIKE ${s} OR q.skill ILIKE ${s} OR q.subskill ILIKE ${s})`);
+    }
   }
   if (p.favoritesOnly) {
     const uid = p.userId || GUEST_USER_ID;

@@ -6,14 +6,36 @@ import { getRequestUser } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
+import { z } from "zod";
+import { sanitizeOptionalString, sanitizeString } from "@/lib/validation";
+
+const attemptItemSchema = z.object({
+  questionId: z.string().min(1),
+  isCorrect: z.boolean(),
+  answer: sanitizeOptionalString,
+});
+
+const attemptsBodySchema = z.object({
+  sessionId: z.string().min(1, "sessionId is required"),
+  mode: z.enum(["practice", "exam", "test"]).catch("practice"),
+  attempts: z.array(attemptItemSchema).optional(),
+  questionId: z.string().optional(),
+  isCorrect: z.boolean().optional(),
+  answer: sanitizeOptionalString,
+});
+
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
     const body = await req.json();
-    const sessionId = String(body?.sessionId ?? "");
-    const mode = String(body?.mode ?? "practice");
-    if (!sessionId) return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+    
+    const parsed = attemptsBodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
+    
+    const { sessionId, mode } = parsed.data;
 
     const session = await db.execute(sql`
       SELECT 1 FROM quiz_sessions WHERE id = ${sessionId} AND user_id = ${user.id} LIMIT 1
@@ -21,9 +43,7 @@ export async function POST(req: Request) {
     if (((session as unknown as { rows: unknown[] }).rows ?? []).length === 0)
       return NextResponse.json({ error: "Session not found — start a new quiz" }, { status: 404 });
 
-    const list: { questionId: string; isCorrect: boolean; answer?: string }[] = Array.isArray(body?.attempts)
-      ? body.attempts
-      : [{ questionId: body?.questionId, isCorrect: body?.isCorrect, answer: body?.answer }];
+    const list = parsed.data.attempts ?? [{ questionId: parsed.data.questionId, isCorrect: parsed.data.isCorrect, answer: parsed.data.answer }];
 
     let recorded = 0;
     let duplicates = 0;

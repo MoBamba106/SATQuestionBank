@@ -64,24 +64,6 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
     }
   };
 
-  const submitPasskey = async () => {
-    setBusy(true);
-    try {
-      await auth.signInPasskey(email.trim() || undefined);
-      setSuccess("signin");
-      window.setTimeout(() => {
-        onOpenChange(false);
-        setSuccess(null);
-      }, 1600);
-    } catch (error) {
-      toast.error("Passkey sign-in failed", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const submitForgot = async () => {
     if (!email.trim() || !email.includes("@")) {
       toast.error("Enter the email address for your account.");
@@ -289,19 +271,6 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
               <UserPlus className="h-4 w-4" /> Need an account? Sign up
             </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-soft w-full"
-            disabled={!auth.authEnabled || busy}
-            onClick={() => void submitPasskey()}
-            title="Use Face ID, Touch ID, or Windows Hello"
-          >
-            <Fingerprint className="h-4 w-4" />
-            Sign in with passkey
-          </button>
-          <p className="text-center text-[11px] text-[var(--ink-faint)]">
-            Passkeys use WebAuthn (Face ID / Touch ID / Windows Hello). Enable them in Supabase → Authentication → Providers.
-          </p>
         </div>
       )}
 

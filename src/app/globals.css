@@ -476,6 +476,13 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
 .sat-content td,
 .sat-content th { padding: 8px 14px; text-align: left; border: 1px solid var(--line); }
 .sat-content img { max-width: 100%; height: auto; margin: 0.8em 0; border-radius: 4px; }
+.sat-content img:not(.math-img) {
+  min-width: 240px;
+  min-height: 240px;
+  width: 100%;
+  max-width: 480px;
+  object-fit: contain;
+}
 /*
  * MathML must stay on the browser's math layout path.
  * NEVER set display:inline-block/block/flex on <math> or its children —
@@ -838,8 +845,8 @@ html[data-theme="dark"] {
   --accent: #f2f2f2;
   --accent-dark: #d0d0d0;
   --accent-soft: #303030;
-  --good: #d9d9d9;
-  --bad: #b7b7b7;
+  --good: #3e8863;
+  --bad: #b35661;
   --warn: #c7c7c7;
   --sp-blue-wash: #252525;
   --sp-teal-wash: #242424;

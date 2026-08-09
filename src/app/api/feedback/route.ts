@@ -48,19 +48,31 @@ async function createGithubIssue(entry: {
   }
 }
 
+import { z } from "zod";
+import { sanitizeString, sanitizeOptionalString } from "@/lib/validation";
+
+const feedbackSchema = z.object({
+  category: z.enum(["complaint", "improvement", "bug", "other"]).catch("improvement"),
+  title: sanitizeString.pipe(z.string().min(1, "A short title is required").max(180)),
+  message: sanitizeString.pipe(z.string().min(1, "Please describe your feedback").max(5000)),
+  email: z.string().trim().max(200).optional().nullable(),
+  context: sanitizeOptionalString,
+});
+
 export async function POST(req: Request) {
   try {
     await ensureSeeded();
     const user = await getRequestUser(req);
     const body = await req.json();
-    const category = CATEGORIES.has(String(body?.category)) ? String(body.category) : "improvement";
-    const title = String(body?.title ?? "").trim().slice(0, 180);
-    const message = String(body?.message ?? "").trim().slice(0, 5000);
-    if (!title) return NextResponse.json({ error: "A short title is required" }, { status: 400 });
-    if (!message) return NextResponse.json({ error: "Please describe your feedback" }, { status: 400 });
+    
+    const parsed = feedbackSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
 
-    const email = user.isGuest ? (body?.email ? String(body.email).trim().slice(0, 200) : null) : user.email;
-    const context = body?.context ? String(body.context).trim().slice(0, 1000) : null;
+    const { category, title, message, context } = parsed.data;
+    const email = user.isGuest ? (parsed.data.email ? parsed.data.email : null) : user.email;
+    
     const githubIssueUrl = await createGithubIssue({ category, title, message, email });
 
     const res = await db.execute(sql`

@@ -5,10 +5,8 @@ import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { AdminAuthError, requireAdmin } from "@/lib/auth/server";
 import { GUEST_USER_ID } from "@/lib/auth/types";
-import {
-  resolveSupabaseServiceRoleKey,
-  resolveSupabaseUrl,
-} from "@/lib/supabase";
+import { resolveSupabaseUrl } from "@/lib/supabase";
+import { resolveSupabaseServiceRoleKey } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 

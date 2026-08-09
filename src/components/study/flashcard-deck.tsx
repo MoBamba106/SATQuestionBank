@@ -30,7 +30,7 @@ export type DeckSettings = {
 
 const DEFAULT_DECK_SETTINGS: DeckSettings = {
   inverted: false,
-  shuffle: false,
+  shuffle: true,
   roundSize: 0,
   cardFilter: "all",
   swipeMode: true,
