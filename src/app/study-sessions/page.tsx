@@ -136,19 +136,7 @@ export default function StudySessionsPage() {
         return { label: "Reading Sprint", ids: d.questions.map((q) => q.id) };
       },
     },
-    {
-      id: "review-mistakes",
-      name: "Review Mistakes",
-      desc: "Every question currently sitting in your mistake bank.",
-      duration: "varies",
-      icon: RotateCcw,
-      tone: "bg-[#f7ebdf] text-[#965629] border-[#e5c8ad]",
-      build: async () => {
-        const d = await apiGet<{ questions: SATQuestion[] }>("/api/mistakes");
-        if (d.questions.length === 0) throw new Error("Your mistake bank is empty.");
-        return { label: "Review Mistakes", ids: d.questions.map((q) => q.id) };
-      },
-    },
+
   ];
 
   const start = async (drill: Drill) => {

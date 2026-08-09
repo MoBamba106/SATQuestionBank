@@ -292,7 +292,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
           <div
             data-tour="account"
             className={cn(
-              "mb-2 flex min-h-[58px] overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5 mx-auto",
+              "mb-2 flex min-h-[58px] overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5 mx-auto transition-all duration-[0.25s] ease-[easeInOut]",
               desktopExpanded ? "w-[calc(100%-24px)]" : "w-[58px]"
             )}
             title={accountLabel}
