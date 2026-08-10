@@ -36,6 +36,50 @@ export default function PrivacyPolicyPage() {
         </p>
       </div>
 
+      {/* ── Privacy Nutrition Label ─────────────────────────────────────── */}
+      <div className="mt-6 overflow-hidden rounded-[10px] border-2 border-[var(--ink)] bg-[var(--paper-raised)]">
+        <div className="border-b-2 border-[var(--ink)] px-5 py-3">
+          <h2 className="font-display text-[20px] font-bold text-[var(--ink)]">Privacy at a Glance</h2>
+          <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+            Privacy nutrition label · plain-language summary
+          </p>
+        </div>
+        <dl>
+          <div className="border-b border-[var(--line)] px-5 py-3.5 sm:grid sm:grid-cols-[180px_1fr] sm:gap-4">
+            <dt className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">Data collected</dt>
+            <dd className="mt-1 text-[13.5px] leading-relaxed text-[var(--ink-soft)] sm:mt-0">
+              Email address · account username / display name · quiz history and study analytics (answers, scores,
+              sessions, streaks) · device IP address and technical logs
+            </dd>
+          </div>
+          <div className="border-b border-[var(--line)] px-5 py-3.5 sm:grid sm:grid-cols-[180px_1fr] sm:gap-4">
+            <dt className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">Why we collect it</dt>
+            <dd className="mt-1 text-[13.5px] leading-relaxed text-[var(--ink-soft)] sm:mt-0">
+              App functionality (saving and syncing your study progress) · performance analytics and error monitoring
+              · user authentication and account security
+            </dd>
+          </div>
+          <div className="border-b border-[var(--line)] px-5 py-3.5 sm:grid sm:grid-cols-[180px_1fr] sm:gap-4">
+            <dt className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">Data sharing</dt>
+            <dd className="mt-1 text-[13.5px] leading-relaxed text-[var(--ink-soft)] sm:mt-0">
+              <strong className="text-[var(--ink)]">Your data is never sold to third parties.</strong> It is shared
+              only with the infrastructure providers that run the Service, with other users when you explicitly share
+              something, or when the law requires it.
+            </dd>
+          </div>
+          <div className="px-5 py-3.5 sm:grid sm:grid-cols-[180px_1fr] sm:gap-4">
+            <dt className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">Your controls</dt>
+            <dd className="mt-1 text-[13.5px] leading-relaxed text-[var(--ink-soft)] sm:mt-0">
+              Delete your account and synced data any time from Settings · hide yourself from leaderboards · use the
+              Service as a guest with local-only storage
+            </dd>
+          </div>
+        </dl>
+        <p className="border-t-2 border-[var(--ink)] px-5 py-2.5 text-[11px] text-[var(--ink-faint)]">
+          This summary is provided for convenience — the full policy below controls.
+        </p>
+      </div>
+
       <Section number="1" title="Information We Collect">
         <p>
           <strong className="text-[var(--ink)]">Information you provide directly.</strong> When you create an account
@@ -51,9 +95,10 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           <strong className="text-[var(--ink)]">Technical and analytics data.</strong> We automatically collect
-          limited technical information such as browser type, device characteristics, pages visited, approximate
-          region, and interaction events. We use privacy-conscious analytics tools (such as Vercel Analytics and
-          PostHog) and error-monitoring tools (such as Sentry) to keep the Service fast and reliable.
+          limited technical information such as your device&rsquo;s IP address, browser type, device characteristics,
+          pages visited, approximate region, interaction events, and server logs. We use privacy-conscious analytics
+          tools (such as Vercel Analytics and PostHog) and error-monitoring tools (such as Sentry) to keep the Service
+          fast and reliable.
         </p>
         <p>
           <strong className="text-[var(--ink)]">Presence data.</strong> While you are signed in, the Service records a
@@ -78,7 +123,10 @@ export default function PrivacyPolicyPage() {
           <li>Monitor usage, diagnose technical problems, and protect against abuse, fraud, and security incidents;</li>
           <li>Comply with legal obligations.</li>
         </ul>
-        <p>We do not sell your personal information, and we do not use it for third-party advertising.</p>
+        <p>
+          We do not sell your personal information, and we do not use it for third-party advertising. Your data is
+          never sold to third parties — see the &ldquo;Privacy at a Glance&rdquo; summary above.
+        </p>
       </Section>
 
       <Section number="3" title="Legal Bases for Processing">

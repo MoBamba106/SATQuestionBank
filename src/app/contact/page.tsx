@@ -65,15 +65,25 @@ export default function ContactPage() {
         <div className="rounded-[10px] border border-[var(--line)] bg-[var(--paper-raised)] p-5">
           <div className="flex items-center gap-2.5">
             <FileText className="h-5 w-5 text-[var(--accent)]" />
-            <h2 className="text-[15px] font-bold text-[var(--ink)]">Legal &amp; content inquiries</h2>
+            <h2 className="text-[15px] font-bold text-[var(--ink)]">Legal &amp; copyright inquiries</h2>
           </div>
           <p className="mt-2 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">
-            For legal notices, trademark questions, or concerns about educational content and attribution, contact us
-            with the subject &ldquo;Legal&rdquo; via the feedback form and we will route it appropriately.
+            Copyright takedown notices and counter-notifications must follow our DMCA procedure and go to our
+            Designated Agent at{" "}
+            <a href="mailto:dmca@sat-nexus.com" className="font-semibold text-[var(--accent)] hover:underline">
+              dmca@sat-nexus.com
+            </a>
+            . For other legal notices, trademark questions, or arbitration opt-outs, contact us with the subject
+            &ldquo;Legal&rdquo; via the feedback form.
           </p>
-          <Link href="/terms" className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--accent)] hover:underline">
-            <FileText className="h-4 w-4" /> Read the Terms of Service
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
+            <Link href="/dmca" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--accent)] hover:underline">
+              <FileText className="h-4 w-4" /> DMCA Copyright Policy
+            </Link>
+            <Link href="/terms" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--accent)] hover:underline">
+              <FileText className="h-4 w-4" /> Terms of Service &amp; EULA
+            </Link>
+          </div>
         </div>
       </div>
 

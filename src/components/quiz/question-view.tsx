@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Ban, CheckCircle2, Highlighter, MousePointer2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
+import { AiDisclosure } from "@/components/ai-disclosure";
 import { useSettings } from "@/components/settings-provider";
 import { answersMatch, cn, resolveCorrectAnswer } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
@@ -588,6 +589,7 @@ export function QuestionView({
               )}
             </div>
             <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
+            <AiDisclosure compact className="mt-3 border-t border-[color-mix(in_srgb,var(--good)_25%,var(--line-soft))] pt-2.5" />
           </div>
         )}
       </div>
