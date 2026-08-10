@@ -382,9 +382,20 @@ export function FlashcardDeck({
             </span>
             <span className="flashcard-face flashcard-face-back">
               <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">{backLabel}</span>
-              <span className={cn("mt-3 leading-relaxed text-[var(--ink)]", settings.inverted ? "font-display text-3xl font-bold" : "max-w-xl text-[17px]")}>
-                {settings.inverted ? current.term : current.definition}
-              </span>
+              {!settings.inverted && current.definitions && current.definitions.length > 1 ? (
+                <span className="mt-3 flex max-w-xl flex-col gap-1.5 text-left text-[15.5px] leading-relaxed text-[var(--ink)]">
+                  {current.definitions.map((definition, index) => (
+                    <span key={index} className="flex gap-2">
+                      <span className="shrink-0 font-mono text-[12px] font-bold text-[var(--ink-faint)]">{index + 1}.</span>
+                      <span>{definition}</span>
+                    </span>
+                  ))}
+                </span>
+              ) : (
+                <span className={cn("mt-3 leading-relaxed text-[var(--ink)]", settings.inverted ? "font-display text-3xl font-bold" : "max-w-xl text-[17px]")}>
+                  {settings.inverted ? current.term : current.definition}
+                </span>
+              )}
               {current.example && !settings.inverted && (
                 <span className="mt-3 max-w-lg text-[12.5px] italic text-[var(--ink-faint)]">{current.example}</span>
               )}

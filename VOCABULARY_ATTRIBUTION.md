@@ -9,4 +9,6 @@ The checked-in `src/data/vocabulary.json` study deck was generated from these op
 
 The generated deck contains 600 entries. Difficulty labels are relative study levels, not official College Board classifications.
 
+Definitions were subsequently revised to align with the corresponding senses in the Merriam-Webster dictionary (concise paraphrases of the primary senses — up to three distinct senses per word are stored in the `definitions` array, with `definition` always holding the first sense). See `scripts/update-vocab-definitions.py` and the `scripts/mw_definitions_part*.py` data files to regenerate that alignment.
+
 To regenerate the deck, provide the source repositories locally and run `scripts/build-vocabulary.py` in a Python environment containing `pyreadr`, `pyyaml`, and `wordfreq`.

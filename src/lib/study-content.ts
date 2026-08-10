@@ -7,13 +7,29 @@ export type StudyItem = {
   id: string;
   topic: StudyTopic;
   term: string;
+  /** Primary definition (first Merriam-Webster-aligned sense). */
   definition: string;
+  /**
+   * All distinct senses for this term (2–3 where applicable), aligned with
+   * Merriam-Webster. When present, `definition` is always `definitions[0]`.
+   */
+  definitions?: string[];
   example?: string;
   phonetic?: string;
   difficulty?: VocabularyDifficulty;
 };
 
-const VOCABULARY_ITEMS: StudyItem[] = vocabulary.map((item) => ({
+type VocabularyEntry = {
+  id: string;
+  term: string;
+  phonetic?: string;
+  difficulty?: string;
+  definition: string;
+  definitions?: string[];
+  example?: string;
+};
+
+const VOCABULARY_ITEMS: StudyItem[] = (vocabulary as VocabularyEntry[]).map((item) => ({
   ...item,
   topic: "Vocabulary" as const,
   difficulty: item.difficulty as VocabularyDifficulty,

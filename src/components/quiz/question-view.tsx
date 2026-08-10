@@ -3,11 +3,51 @@
 import * as React from "react";
 import { Ban, CheckCircle2, Highlighter, MousePointer2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
+import { AiDisclosure } from "@/components/ai-disclosure";
 import { useSettings } from "@/components/settings-provider";
 import { answersMatch, cn, resolveCorrectAnswer } from "@/lib/utils";
 import type { SATQuestion } from "@/lib/types";
 
 type HighlightColor = "yellow" | "red" | "blue";
+
+/**
+ * Name of the CSS Custom Highlight used to keep the user's selection visible
+ * after we clear the native selection. Clearing the native selection is what
+ * suppresses built-in browser popups (Opera GX's copy/search overlay,
+ * Chrome/Edge touch bubbles, …) — the browser has nothing selected anymore,
+ * while our ::highlight() rule keeps the text visually selected.
+ */
+const PENDING_HIGHLIGHT_NAME = "sat-pending-selection";
+
+type HighlightRegistryLike = { set: (name: string, h: unknown) => void; delete: (name: string) => void };
+
+function getHighlightRegistry(): HighlightRegistryLike | null {
+  if (typeof window === "undefined") return null;
+  const css = window.CSS as unknown as { highlights?: HighlightRegistryLike };
+  const HighlightCtor = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
+  if (!css?.highlights || !HighlightCtor) return null;
+  return css.highlights;
+}
+
+function setPendingSelectionHighlight(range: Range): boolean {
+  const registry = getHighlightRegistry();
+  const HighlightCtor = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
+  if (!registry || !HighlightCtor) return false;
+  try {
+    registry.set(PENDING_HIGHLIGHT_NAME, new HighlightCtor(range.cloneRange()));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearPendingSelectionHighlight() {
+  try {
+    getHighlightRegistry()?.delete(PENDING_HIGHLIGHT_NAME);
+  } catch {
+    /* no-op */
+  }
+}
 
 /** Pretty-print accepted keys like "0|3" → "0 or 3". */
 function formatAcceptedAnswer(answer: string): string {
@@ -185,18 +225,23 @@ export function QuestionView({
     x: number;
     y: number;
     visible: boolean;
-  }>({ x: 0, y: 0, visible: false });
+    place: "above" | "below";
+  }>({ x: 0, y: 0, visible: false, place: "above" });
   const floatingRef = React.useRef<HTMLDivElement>(null);
+  /** Selection kept alive after the native selection is cleared (popup override). */
+  const pendingRangeRef = React.useRef<Range | null>(null);
 
   // Reset eliminations when the question changes.
   if (prevQuestionId !== question.id) {
     setPrevQuestionId(question.id);
     setEliminated({});
     setHighlightColor(null);
-    setFloatingMenu({ x: 0, y: 0, visible: false });
+    setFloatingMenu({ x: 0, y: 0, visible: false, place: "above" });
   }
 
   const hideFloating = React.useCallback(() => {
+    pendingRangeRef.current = null;
+    clearPendingSelectionHighlight();
     setFloatingMenu((m) => (m.visible ? { ...m, visible: false } : m));
   }, []);
 
@@ -231,7 +276,9 @@ export function QuestionView({
   const applyColorToCurrentSelection = React.useCallback(
     (color: HighlightColor) => {
       const root = highlightRootRef.current;
-      const range = getValidSelectionRange();
+      // The live selection may already be gone (we clear it to suppress the
+      // browser's own selection popup) — fall back to the preserved range.
+      const range = getValidSelectionRange() ?? pendingRangeRef.current;
       if (!root || !range) return;
       applyHighlightToRange(root, range, color);
       window.getSelection()?.removeAllRanges();
@@ -246,7 +293,7 @@ export function QuestionView({
     applyColorToCurrentSelection(highlightColor);
   };
 
-  /** Position the floating color tooltip centered above the live selection. */
+  /** Position the floating color tooltip directly above/below the live selection. */
   const showFloatingForSelection = React.useCallback(() => {
     if (highlightColor) {
       hideFloating();
@@ -266,18 +313,29 @@ export function QuestionView({
       return;
     }
     const pad = 10;
-    const menuW = 220;
-    const menuH = 48;
+    const menuW = floatingRef.current?.offsetWidth || 220;
+    const menuH = floatingRef.current?.offsetHeight || 44;
+    // Anchor on the horizontal center of the first selected line so the menu
+    // hugs the selection instead of drifting toward the right edge.
     const centerX = rect.left + rect.width / 2;
     const x = Math.min(
       Math.max(pad + menuW / 2, centerX),
       window.innerWidth - pad - menuW / 2,
     );
-    // Prefer above the selection; if clipped, flip below.
-    const above = rect.top - 12;
-    const y = above - menuH >= pad ? above : Math.min(window.innerHeight - pad, rect.bottom + 12 + menuH);
-    const placeAbove = above - menuH >= pad;
-    setFloatingMenu({ x, y: placeAbove ? above : rect.bottom + 12, visible: true });
+    // Prefer directly above the selection; if clipped, flip directly below.
+    const aboveY = rect.top - 8;
+    const placeAbove = aboveY - menuH >= pad;
+    const y = placeAbove ? aboveY : Math.min(window.innerHeight - pad, rect.bottom + 8);
+
+    // Preserve the range, then clear the native selection so the browser's
+    // built-in selection popup (Opera GX copy/search overlay, etc.) never
+    // appears. A CSS custom highlight keeps the text visually selected.
+    pendingRangeRef.current = range.cloneRange();
+    if (setPendingSelectionHighlight(range)) {
+      window.getSelection()?.removeAllRanges();
+    }
+
+    setFloatingMenu({ x, y, visible: true, place: placeAbove ? "above" : "below" });
   }, [getValidSelectionRange, hideFloating, highlightColor]);
 
   // Suppress browser context menu + Chrome/Edge "Search / Copy / Translate"
@@ -314,6 +372,11 @@ export function QuestionView({
     document.addEventListener("contextmenu", block, true);
     return () => document.removeEventListener("contextmenu", block, true);
   }, [floatingMenu.visible]);
+
+  // Never leave a stale custom highlight behind (question change / unmount).
+  React.useEffect(() => {
+    return () => clearPendingSelectionHighlight();
+  }, [question.id]);
 
   // Hide floating menu on outside click / scroll / escape.
   React.useEffect(() => {
@@ -526,6 +589,7 @@ export function QuestionView({
               )}
             </div>
             <SafeHtml html={question.explanation} className="sat-content text-[14px]" />
+            <AiDisclosure compact className="mt-3 border-t border-[color-mix(in_srgb,var(--good)_25%,var(--line-soft))] pt-2.5" />
           </div>
         )}
       </div>
@@ -541,8 +605,9 @@ export function QuestionView({
             position: "fixed",
             left: floatingMenu.x,
             top: floatingMenu.y,
-            // y is the bottom edge of the menu when placed above the selection
-            transform: "translate(-50%, -100%)",
+            // Above the selection: y is the menu's bottom edge.
+            // Below the selection: y is the menu's top edge.
+            transform: floatingMenu.place === "above" ? "translate(-50%, -100%)" : "translate(-50%, 0)",
             zIndex: 9990,
             pointerEvents: "auto",
           }}

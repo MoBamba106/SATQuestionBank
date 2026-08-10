@@ -388,6 +388,16 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   background: color-mix(in srgb, var(--hl-yellow) 55%, transparent);
   color: inherit;
 }
+/*
+ * Selection kept visible through the CSS Custom Highlight API while the
+ * 3-color menu is open. The native selection is cleared at that moment so
+ * built-in browser selection popups (Opera GX copy/search overlay, Edge
+ * mini-menus, …) never appear over question content.
+ */
+::highlight(sat-pending-selection) {
+  background-color: color-mix(in srgb, var(--hl-yellow) 55%, transparent);
+  color: inherit;
+}
 .highlight-swatch {
   min-height: 28px;
   padding: 5px 10px;
@@ -476,12 +486,17 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
 .sat-content td,
 .sat-content th { padding: 8px 14px; text-align: left; border: 1px solid var(--line); }
 .sat-content img { max-width: 100%; height: auto; margin: 0.8em 0; border-radius: 4px; }
+/*
+ * Figures / graphs: scale to fit their container instead of forcing a fixed
+ * minimum footprint. Hard min-width/min-height made tall graphs overflow the
+ * scrolling passage/question boxes and spawned container scrollbars.
+ */
 .sat-content img:not(.math-img) {
-  min-width: 240px;
-  min-height: 240px;
-  width: 100%;
-  max-width: 480px;
+  width: min(100%, 480px);
+  height: auto;
+  max-height: min(48vh, 420px);
   object-fit: contain;
+  object-position: left center;
 }
 /*
  * MathML must stay on the browser's math layout path.
@@ -542,6 +557,20 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   background: transparent !important;
   box-shadow: none !important;
   line-height: normal !important;
+}
+
+/*
+ * Negative fractions (e.g. −5/2 on Q 18e35375): without breathing room the
+ * minus sign optically merges with the fraction's division bar. Give every
+ * <mfrac> a hair of inline padding, and any operator that directly precedes
+ * a fraction a touch of trailing space. Applies globally to Math rendering.
+ */
+.sat-content math mfrac {
+  padding-inline: 0.08em !important;
+  padding-block: 0.05em !important;
+}
+.sat-content math mo:has(+ mfrac) {
+  padding-right: 0.12em !important;
 }
 
 /*
@@ -1317,20 +1346,37 @@ html[data-focus-mode="true"] body {
   border-radius: 2px;
 }
 
-/* ── Keyboard-only navigation mode: hide sidebar, keep the brand mark ────── */
-html[data-nav-mode="keyboard"] .shell-aside { display: none !important; }
-html[data-nav-mode="keyboard"] .shell-main { margin-left: 0 !important; }
-html[data-nav-mode="dock"] .shell-aside { display: none !important; }
-html[data-nav-mode="dock"] .shell-main { margin-left: 0 !important; padding-bottom: 110px; }
-.keyboard-nav-brand {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 60;
-  display: none;
+/* ── Sidebar hover "dock" ripple: hovered item shifts, neighbors shift less ── */
+.sidebar-item {
+  transition:
+    transform 200ms cubic-bezier(0.33, 1, 0.68, 1),
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+  will-change: transform;
 }
-html[data-nav-mode="keyboard"] .keyboard-nav-brand,
-html[data-nav-mode="dock"] .keyboard-nav-brand { display: flex; }
+.shell-aside .sidebar-item:hover {
+  transform: translateX(5px);
+}
+/* Item directly above / below the hovered one. */
+.shell-aside .sidebar-item:has(+ .sidebar-item:hover),
+.shell-aside .sidebar-item:hover + .sidebar-item {
+  transform: translateX(2.5px);
+}
+/* Two items away from the hovered one. */
+.shell-aside .sidebar-item:has(+ .sidebar-item + .sidebar-item:hover),
+.shell-aside .sidebar-item:hover + .sidebar-item + .sidebar-item {
+  transform: translateX(1px);
+}
+html[data-reduce-motion="true"] .sidebar-item,
+html[data-reduce-motion="true"] .shell-aside .sidebar-item:hover,
+html[data-reduce-motion="true"] .shell-aside .sidebar-item:has(+ .sidebar-item:hover),
+html[data-reduce-motion="true"] .shell-aside .sidebar-item:hover + .sidebar-item,
+html[data-reduce-motion="true"] .shell-aside .sidebar-item:has(+ .sidebar-item + .sidebar-item:hover),
+html[data-reduce-motion="true"] .shell-aside .sidebar-item:hover + .sidebar-item + .sidebar-item {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  transform: none;
+}
 
 /* ── Intro tutorial overlay ──────────────────────────────────────────────── */
 .tutorial-overlay {

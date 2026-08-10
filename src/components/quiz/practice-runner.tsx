@@ -258,7 +258,9 @@ export function PracticeRunner({
 
   return (
     <>
-    <div className="grid gap-5 lg:grid-cols-[1fr_240px]">
+    {/* Bottom padding keeps the question card and the final "Finish Quiz now"
+        button clear of the page footer. */}
+    <div className="grid gap-5 pb-10 md:pb-14 lg:grid-cols-[1fr_240px]">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex flex-wrap items-center gap-3">
@@ -417,7 +419,7 @@ export function PracticeRunner({
         </GlassCard>
 
         {idx < pool.length - 1 && (
-          <div className="flex justify-end">
+          <div className="mb-2 flex justify-end">
             <button className="btn btn-good" onClick={finish} disabled={finishing}>
               {finishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListChecks className="h-4 w-4" />}
               Finish Quiz now
