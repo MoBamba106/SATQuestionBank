@@ -6,7 +6,6 @@ export type AppTheme = "light" | "dark" | "obsidian" | "highlighter" | "liquid-g
 export type FontScale = "small" | "default" | "large";
 export type QuizModeSetting = "practice" | "exam";
 export type PassageLayout = "scroll" | "expand";
-export type NavMode = "default" | "keyboard" | "dock";
 
 export type AppSettings = {
   theme: AppTheme;
@@ -15,7 +14,6 @@ export type AppSettings = {
   compactMode: boolean;
   showTimer: boolean;
   soundEffects: boolean;
-  showDock: boolean;
   defaultQuizSize: number;
   defaultQuizMode: QuizModeSetting;
   /** When true, reading passages grow to full height instead of a fixed scroll box. */
@@ -26,8 +24,6 @@ export type AppSettings = {
   showQuestionMeta: boolean;
   /** Questions per page in the question bank. */
   bankPageSize: number;
-  /** Site navigation style: classic sidebar, keyboard-only, or floating dock. */
-  navMode: NavMode;
   /** Math Canvas: auto-correct rough pen scribbles into crisp shapes/glyphs. */
   canvasSmartShapes: boolean;
 };
@@ -40,14 +36,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   compactMode: false,
   showTimer: true,
   soundEffects: true,
-  showDock: true,
   defaultQuizSize: 10,
   defaultQuizMode: "practice",
   expandPassages: false,
   focusModeDefault: false,
   showQuestionMeta: true,
   bankPageSize: 48,
-  navMode: "default",
   canvasSmartShapes: true,
 };
 
@@ -70,7 +64,6 @@ function applySettings(settings: AppSettings) {
   root.dataset.density = settings.compactMode ? "compact" : "comfortable";
   root.dataset.reduceMotion = settings.reducedMotion ? "true" : "false";
   root.dataset.expandPassages = settings.expandPassages ? "true" : "false";
-  root.dataset.navMode = settings.navMode;
   root.style.colorScheme = ["dark", "obsidian"].includes(settings.theme) ? "dark" : "light";
 }
 
@@ -93,7 +86,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           }
         }
         if (raw) {
-          const saved = JSON.parse(raw) as Partial<AppSettings>;
+          const saved = JSON.parse(raw) as Partial<AppSettings> & { navMode?: string; showDock?: boolean };
+          // The dock / keyboard navigation styles were removed — the sidebar is
+          // the only navigation now, so retired keys are dropped on load.
+          delete saved.navMode;
+          delete saved.showDock;
           setSettings({
             ...DEFAULT_SETTINGS,
             ...saved,

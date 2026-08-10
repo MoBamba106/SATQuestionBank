@@ -87,7 +87,7 @@ export async function GET(req: Request) {
 
     const activity = rows<{ date: string; attempts: number; correct: number }>(
       await db.execute(sql`
-        SELECT to_char(a.created_at AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date, COUNT(*)::int AS attempts,
+        SELECT to_char((a.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date, COUNT(*)::int AS attempts,
                SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END)::int AS correct
         FROM attempts a
         INNER JOIN quiz_sessions qs ON qs.id = a.session_id AND qs.user_id = ${uid}
@@ -98,7 +98,7 @@ export async function GET(req: Request) {
 
     const days = rows<{ d: string }>(
       await db.execute(sql`
-        SELECT DISTINCT to_char(a.created_at AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS d
+        SELECT DISTINCT to_char((a.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS d
         FROM attempts a
         INNER JOIN quiz_sessions qs ON qs.id = a.session_id AND qs.user_id = ${uid}
         ORDER BY d DESC

@@ -34,10 +34,8 @@ import { FloatingStudyTimer } from "@/components/floating-study-timer";
 import { CommandPalette, useCommandPaletteHotkey } from "@/components/command-palette";
 import { AuthDialog } from "@/components/auth-dialog";
 import { useAuth } from "@/components/auth-provider";
-import { useSettings } from "@/components/settings-provider";
 import { AccountGateProvider } from "@/components/account-gate";
 import { IntroTutorial } from "@/components/intro-tutorial";
-import { NavDock } from "@/components/nav-dock";
 import { PaperDialog } from "@/components/ui/paper-dialog";
 import { apiGet, getImpersonatedUser, setImpersonatedUser, mutateKey } from "@/lib/api-client";
 import { PresenceTracker } from "@/components/presence-tracker";
@@ -137,7 +135,7 @@ function NavLinks({
                   title={label}
                   aria-label={compact ? label : undefined}
                   className={cn(
-                    "relative flex min-h-10 items-center overflow-hidden whitespace-nowrap border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors",
+                    "sidebar-item relative flex min-h-10 items-center overflow-hidden whitespace-nowrap border-l-[3px] py-2 text-[13.5px] font-semibold transition-colors",
                     active
                       ? "nav-link-active"
                       : "border-transparent text-[var(--ink-soft)] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]",
@@ -162,8 +160,6 @@ function NavLinks({
 
 export function NavShell({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
-  const pathname = usePathname();
-  const { settings } = useSettings();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [desktopExpanded, setDesktopExpanded] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
@@ -244,9 +240,6 @@ export function NavShell({ children }: { children: React.ReactNode }) {
     ? "Guest"
     : auth.user.displayName || auth.user.email || "Account";
 
-  const navMode = settings.navMode;
-  const showSidebar = navMode === "default";
-
   const confirmSignOut = () => setSignOutConfirm(true);
   const doSignOut = () => {
     setSignOutConfirm(false);
@@ -256,7 +249,6 @@ export function NavShell({ children }: { children: React.ReactNode }) {
   return (
     <AccountGateProvider>
     <div className="min-h-screen" data-shell>
-      {showSidebar && (
       <motion.aside
         data-tour="sidebar"
         initial={false}
@@ -291,10 +283,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         <div className="mt-auto border-t border-[var(--line)] py-3">
           <div
             data-tour="account"
-            className={cn(
-              "mb-2 flex min-h-[58px] overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5 mx-auto transition-all duration-[0.25s] ease-[easeInOut]",
-              desktopExpanded ? "w-[calc(100%-24px)]" : "w-[58px]"
-            )}
+            className="sidebar-item mx-2 mb-2 flex min-h-[58px] w-[calc(100%-16px)] overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--line)] bg-[var(--paper-raised)] py-2.5"
             title={accountLabel}
           >
             <div className="flex w-[58px] shrink-0 items-center justify-center">
@@ -311,8 +300,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setAuthOpen(true)}
-              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
-              style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
+              className="sidebar-item mx-2 mb-1 flex min-h-10 w-[calc(100%-16px)] items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
               title="Sign in"
             >
               <div className="flex w-[58px] shrink-0 items-center justify-center">
@@ -326,8 +314,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={confirmSignOut}
-              className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
-              style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
+              className="sidebar-item mx-2 mb-1 flex min-h-10 w-[calc(100%-16px)] items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
               title="Sign out"
             >
               <div className="flex w-[58px] shrink-0 items-center justify-center">
@@ -342,8 +329,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="palette"
             onClick={() => setPaletteOpen(true)}
-            className="mb-1 mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
-            style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
+            className="sidebar-item mx-2 mb-1 flex min-h-10 w-[calc(100%-16px)] items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
             title="Go to"
           >
             <div className="flex w-[58px] shrink-0 items-center justify-center">
@@ -365,8 +351,7 @@ export function NavShell({ children }: { children: React.ReactNode }) {
             type="button"
             data-tour="settings"
             onClick={() => setSettingsOpen(true)}
-            className="mx-auto flex min-h-10 items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-all duration-[0.25s] ease-[easeInOut] hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
-            style={{ width: desktopExpanded ? 'calc(100% - 24px)' : '58px' }}
+            className="sidebar-item mx-2 flex min-h-10 w-[calc(100%-16px)] items-center overflow-hidden whitespace-nowrap rounded-[6px] py-2 text-[13.5px] font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)]"
             title="Settings"
           >
             <div className="flex w-[58px] shrink-0 items-center justify-center">
@@ -379,27 +364,6 @@ export function NavShell({ children }: { children: React.ReactNode }) {
 
         </div>
       </motion.aside>
-      )}
-
-      {/* Keyboard / dock nav modes: only the brand icon remains up top. */}
-      {!showSidebar && (
-        <div className="keyboard-nav-brand items-center gap-2">
-          <Link href="/" className="flex h-9 w-9 items-center justify-center" title="SAT Nexus — Study desk">
-            <img src="/favicon.ico" alt="Logo" className="h-[22px] w-[22px]" />
-          </Link>
-          {navMode === "keyboard" && (
-            <button
-              type="button"
-              onClick={() => setPaletteOpen(true)}
-              className="btn btn-soft !min-h-9 !px-3 !py-1.5 !text-[12px]"
-              title="Navigate (Ctrl+K or /)"
-            >
-              <Search className="h-3.5 w-3.5" />
-              <kbd className="rounded border border-[var(--line)] bg-[var(--paper-raised)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--ink-faint)]">Ctrl K</kbd>
-            </button>
-          )}
-        </div>
-      )}
 
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--line)] bg-[var(--paper-soft)] px-4 md:hidden shell-header">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
@@ -501,14 +465,10 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className={cn("shell-main px-4 pb-10 pt-6 sm:px-6 md:px-8 md:py-8 flex flex-col min-h-[calc(100vh-3.5rem)]", showSidebar && "md:ml-[74px] md:min-h-screen", !showSidebar && "md:pt-16")}>
+      <main className="shell-main px-4 pb-10 pt-6 sm:px-6 md:px-8 md:py-8 flex flex-col min-h-[calc(100vh-3.5rem)] md:ml-[74px] md:min-h-screen">
         <div className="mx-auto w-full max-w-[1180px] flex-grow">{children}</div>
         <Footer />
       </main>
-
-      {navMode === "dock" && (
-        <NavDock onOpenSettings={() => setSettingsOpen(true)} onOpenPalette={() => setPaletteOpen(true)} />
-      )}
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />

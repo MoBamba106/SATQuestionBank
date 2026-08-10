@@ -16,7 +16,14 @@ export async function POST(req: Request) {
     await ensureSeeded();
     const user = await getRequestUser(req);
     if (user.isGuest || isLocalGuestId(user.id)) {
-      return NextResponse.json({ ok: true, guest: true });
+      // A Bearer token was sent but could not be verified (expired/invalid).
+      // Surface that instead of silently dropping the heartbeat — silent
+      // drops are what left "last online" stuck on "Never".
+      const hadToken = Boolean(req.headers.get("authorization"));
+      if (hadToken) {
+        return NextResponse.json({ ok: false, error: "Invalid or expired session token" }, { status: 401 });
+      }
+      return NextResponse.json({ ok: true, guest: true, recorded: false });
     }
     await db.execute(sql`
       INSERT INTO user_presence (user_id, last_seen, updated_at)
@@ -25,7 +32,7 @@ export async function POST(req: Request) {
         last_seen = now(),
         updated_at = now()
     `);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, recorded: true });
   } catch (e) {
     console.error("[api/presence] POST failed:", e);
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 500 });

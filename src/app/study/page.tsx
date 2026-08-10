@@ -41,7 +41,7 @@ export default function StudyLibraryPage() {
     let res = STUDY_ITEMS.filter((item) =>
       item.topic === topic
       && (difficulty.length === 0 || (item.difficulty != null && difficulty.includes(item.difficulty)))
-      && (!needle || `${item.term} ${item.definition} ${item.phonetic ?? ""}`.toLowerCase().includes(needle)),
+      && (!needle || `${item.term} ${(item.definitions ?? [item.definition]).join(" ")} ${item.phonetic ?? ""}`.toLowerCase().includes(needle)),
     );
     if (topic === "Vocabulary") {
       res = [...res].sort((a, b) => {
@@ -139,7 +139,18 @@ export default function StudyLibraryPage() {
                   </button>
                 </div>
                 {item.difficulty && <span className={cn("badge mt-3 w-fit", difficultyColor(item.difficulty))}>{item.difficulty}</span>}
-                <p className="mt-2 grow text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.definition}</p>
+                {item.definitions && item.definitions.length > 1 ? (
+                  <ol className="mt-2 grow list-none space-y-1.5">
+                    {item.definitions.map((definition, index) => (
+                      <li key={index} className="flex gap-2 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">
+                        <span className="shrink-0 font-mono text-[11.5px] font-bold text-[var(--ink-faint)]">{index + 1}.</span>
+                        <span>{definition}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="mt-2 grow text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.definition}</p>
+                )}
                 {item.example && <p className="mt-3 border-t border-[var(--line-soft)] pt-3 text-[12px] italic text-[var(--ink-faint)]">{item.example}</p>}
               </GlassCard>
             </MagicGlow>
@@ -149,7 +160,7 @@ export default function StudyLibraryPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-[var(--ink-faint)]">
         <span className="inline-flex items-center gap-2"><Shuffle className="h-3.5 w-3.5" /> {mastered.length} study notes marked mastered on this device.</span>
-        {topic === "Vocabulary" && <span>600 academic words · difficulty is relative frequency · see VOCABULARY_ATTRIBUTION.md</span>}
+        {topic === "Vocabulary" && <span>600 academic words · definitions aligned with Merriam-Webster · difficulty is relative frequency · see VOCABULARY_ATTRIBUTION.md</span>}
       </div>
     </div>
   );

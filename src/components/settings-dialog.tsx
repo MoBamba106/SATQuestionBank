@@ -5,7 +5,6 @@ import {
   Accessibility,
   Check,
   Clock3,
-  Compass,
   Database,
   Eye,
   KeyRound,
@@ -34,7 +33,6 @@ import { apiDelete, apiPatch, useApi, mutateKey } from "@/lib/api-client";
 import {
   type AppTheme,
   type FontScale,
-  type NavMode,
   type QuizModeSetting,
   useSettings,
 } from "@/components/settings-provider";
@@ -269,37 +267,6 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.expandPassages} onChange={(expandPassages) => updateSettings({ expandPassages })} label="Expand reading passages" description="Show the full passage without an inner scroll box. Turn off to keep a compact scroll window." icon={Maximize2} />
             <Toggle checked={settings.focusModeDefault} onChange={(focusModeDefault) => updateSettings({ focusModeDefault })} label="Focus mode for practice tests" description="Start Bluebook tests fullscreen-style: hide the sidebar and chrome. Leave test with the red exit button." icon={Focus} />
             <Toggle checked={settings.showQuestionMeta} onChange={(showQuestionMeta) => updateSettings({ showQuestionMeta })} label="Show question category & difficulty" description="Display the section, skill, and difficulty badges above questions in quizzes and practice tests." icon={Tags} />
-          </div>
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-center gap-2">
-            <Compass className="h-4 w-4 text-[var(--sp-teal,var(--accent))]" />
-            <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Navigation style</h2>
-          </div>
-          <div className="grid gap-2.5 sm:grid-cols-3">
-            {([
-              { id: "default", name: "Default", description: "Classic left sidebar with every page." },
-              { id: "keyboard", name: "Keyboard", description: "No sidebar — navigate with Ctrl+K or /. Just the book icon stays top-left." },
-              { id: "dock", name: "Dock", description: "A floating macOS-style dock replaces the sidebar." },
-            ] as { id: NavMode; name: string; description: string }[]).map((mode) => {
-              const active = settings.navMode === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => updateSettings({ navMode: mode.id })}
-                  className={cn(
-                    "relative rounded-[8px] border p-3 text-left transition-colors",
-                    active ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--line)] bg-[var(--paper-raised)] hover:bg-[var(--paper-soft)]",
-                  )}
-                >
-                  {active && <Check className="absolute right-2.5 top-2.5 h-4 w-4 text-[var(--accent)]" strokeWidth={3} />}
-                  <span className="text-[13.5px] font-bold text-[var(--ink)]">{mode.name}</span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-[var(--ink-faint)]">{mode.description}</span>
-                </button>
-              );
-            })}
           </div>
         </section>
 

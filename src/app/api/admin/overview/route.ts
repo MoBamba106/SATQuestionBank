@@ -60,7 +60,7 @@ export async function GET(req: Request) {
 
     const activity = rows<{ date: string; attempts: number; correct: number }>(
       await db.execute(sql`
-        SELECT to_char(created_at AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date,
+        SELECT to_char((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date,
                COUNT(*)::int AS attempts,
                COALESCE(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END), 0)::int AS correct
         FROM attempts

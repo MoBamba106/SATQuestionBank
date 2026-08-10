@@ -8,9 +8,9 @@ export function Footer() {
           &copy; {new Date().getFullYear()} SAT Nexus. All rights reserved.
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-4 text-[12.5px] font-medium text-[var(--ink-soft)]">
-          <Link href="#" className="hover:text-[var(--accent)] transition-colors">Privacy Policy</Link>
-          <Link href="#" className="hover:text-[var(--accent)] transition-colors">Terms of Service</Link>
-          <Link href="#" className="hover:text-[var(--accent)] transition-colors">Contact</Link>
+          <Link href="/privacy" className="hover:text-[var(--accent)] transition-colors">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-[var(--accent)] transition-colors">Terms of Service</Link>
+          <Link href="/contact" className="hover:text-[var(--accent)] transition-colors">Contact</Link>
         </nav>
       </div>
     </footer>
