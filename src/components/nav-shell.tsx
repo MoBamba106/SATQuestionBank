@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Home,
   LayoutDashboard,
   PenSquare,
   Library,
@@ -46,7 +47,8 @@ const BASE_NAV_GROUPS = [
   {
     label: "Study",
     items: [
-      { href: "/", label: "Study desk", icon: LayoutDashboard },
+      { href: "/", label: "Home", icon: Home },
+      { href: "/desk", label: "Study desk", icon: LayoutDashboard },
       { href: "/study", label: "Study library", icon: BookMarked },
       { href: "/quiz", label: "Practice quiz", icon: PenSquare },
       { href: "/duel", label: "Quiz duels", icon: Swords },

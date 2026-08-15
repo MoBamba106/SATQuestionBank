@@ -1,9 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, X } from "lucide-react";
 
+/**
+ * Marks that the tour has been completed. The tour no longer auto-opens on a
+ * first visit, so this is only used to keep the "Replay the intro tutorial"
+ * action in Settings honest (it clears the flag before re-opening).
+ */
 const STORAGE_KEY = "sat-nexus-tutorial-done-v1";
 
 type Step = {
@@ -42,7 +46,7 @@ const STEPS: Step[] = [
   {
     selector: "[data-tour='settings']",
     title: "Make it yours",
-    body: "Themes, text size, quiz defaults, navigation style, and more live in Settings.",
+    body: "Themes, text size, passage layout, focus mode, and the math canvas options all live in Settings.",
     placement: "right",
   },
   {
@@ -65,32 +69,29 @@ export function resetTutorial() {
 }
 
 export function IntroTutorial({ forceOpen, onClose }: { forceOpen?: boolean; onClose?: () => void }) {
-  const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState(0);
   const [rect, setRect] = React.useState<DOMRect | null>(null);
 
-  // Offer the tutorial on first visit to the home page.
+  /**
+   * The tour is **opt-in only**.
+   *
+   * It used to auto-open on a first visit to "/", which interrupted people
+   * before they had seen the product. It now opens solely when something asks
+   * for it — Settings → "Replay the intro tutorial" dispatches
+   * `sat-start-tutorial`, which sets `forceOpen`. The tour itself is unchanged.
+   */
   React.useEffect(() => {
-    // Suppress tutorial on mobile viewports
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      return;
-    }
-    if (forceOpen) {
-      const timer = window.setTimeout(() => {
-        setStep(0);
-        setOpen(true);
-      }, 0);
-      return () => window.clearTimeout(timer);
-    }
-    if (pathname !== "/") return;
+    if (!forceOpen) return;
+    // The spotlight positions against desktop chrome (sidebar, palette), so
+    // keep it off narrow viewports.
+    if (typeof window !== "undefined" && window.innerWidth < 768) return;
     const timer = window.setTimeout(() => {
-      try {
-        if (!window.localStorage.getItem(STORAGE_KEY)) setOpen(true);
-      } catch { /* ignore */ }
-    }, 800);
+      setStep(0);
+      setOpen(true);
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [forceOpen, pathname]);
+  }, [forceOpen]);
 
   const current = STEPS[step];
 

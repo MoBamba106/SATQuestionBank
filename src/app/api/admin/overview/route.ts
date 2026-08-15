@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import { requireAdmin, AdminAuthError } from "@/lib/auth/server";
 import { GUEST_USER_ID } from "@/lib/auth/types";
+import { lastActiveExpr } from "@/lib/presence";
+import { detroitDay, utcNow } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,16 @@ export async function GET(req: Request) {
     await ensureSeeded();
     await requireAdmin(req);
 
+    /**
+     * "Last active" is the newest of the presence heartbeat and every kind of
+     * real activity the account has produced (see `lastActiveExpr`). Relying
+     * on the heartbeat alone reported long-time users as "Never active"
+     * whenever their token had expired or they predated the presence table.
+     *
+     * Every timestamp leaves this route as UTC (`AT TIME ZONE 'UTC'` turns the
+     * stored UTC wall clock into a real instant); the admin UI renders it in
+     * America/Detroit.
+     */
     const users = rows<Record<string, unknown>>(
       await db.execute(sql`
         SELECT u.id, u.email, u.display_name AS "displayName",
@@ -25,16 +37,20 @@ export async function GET(req: Request) {
                COUNT(a.id)::int AS attempts,
                COALESCE(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END), 0)::int AS correct,
                COUNT(DISTINCT qs.id) FILTER (WHERE qs.finished_at IS NOT NULL)::int AS sessions,
-               (MAX(a.created_at) AT TIME ZONE 'UTC') AS "lastActive",
+               (MAX(a.created_at) AT TIME ZONE 'UTC') AS "lastAttemptAt",
+               ((${lastActiveExpr}) AT TIME ZONE 'UTC') AS "lastActive",
                (up.last_seen AT TIME ZONE 'UTC') AS "lastSeen",
-               CASE WHEN up.last_seen >= now() - interval '2 minutes' THEN true ELSE false END AS "isOnline"
+               CASE
+                 WHEN (${lastActiveExpr}) >= ${utcNow} - interval '2 minutes'
+                 THEN true ELSE false
+               END AS "isOnline"
         FROM users u
         LEFT JOIN quiz_sessions qs ON qs.user_id = u.id
         LEFT JOIN attempts a ON a.session_id = qs.id
         LEFT JOIN user_presence up ON up.user_id = u.id
         WHERE u.id <> ${GUEST_USER_ID} AND u.id NOT LIKE 'guest_%'
         GROUP BY u.id, up.last_seen
-        ORDER BY up.last_seen DESC NULLS LAST, MAX(a.created_at) DESC NULLS LAST, u.created_at DESC
+        ORDER BY (${lastActiveExpr}) DESC NULLS LAST, u.created_at DESC
         LIMIT 500
       `),
     );
@@ -60,11 +76,11 @@ export async function GET(req: Request) {
 
     const activity = rows<{ date: string; attempts: number; correct: number }>(
       await db.execute(sql`
-        SELECT to_char((created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date,
+        SELECT ${detroitDay(sql`created_at`)} AS date,
                COUNT(*)::int AS attempts,
                COALESCE(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END), 0)::int AS correct
         FROM attempts
-        WHERE created_at >= now() - interval '30 days'
+        WHERE created_at >= ${utcNow} - interval '30 days'
         GROUP BY 1 ORDER BY 1
       `),
     );

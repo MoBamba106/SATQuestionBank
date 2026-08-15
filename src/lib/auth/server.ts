@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/types";
 import { resolveSupabaseAnonKey, resolveSupabaseUrl } from "@/lib/supabase";
 import { resolveSupabaseServiceRoleKey } from "@/lib/supabase-server";
+import { touchPresence } from "@/lib/presence";
 
 const AUTH_COOKIE = "sat_nexus_access_token";
 const GUEST_COOKIE = "sat_nexus_guest_id";
@@ -128,6 +129,11 @@ export async function getRequestUser(req?: Request): Promise<RequestUser> {
     }
     verified.isAdmin = isAdminEmail(verified.email);
     await ensureUserRow(verified);
+    // Any authenticated API request is real activity. Throttled to at most one
+    // write per user per minute, so this does not add DB load per request.
+    // This is what keeps admin "last active" accurate even when the 30s
+    // client heartbeat never lands (expired token, short visit, closed tab).
+    void touchPresence(verified.id);
 
     // Admin impersonation: act as another user for API reads/writes.
     if (verified.isAdmin) {

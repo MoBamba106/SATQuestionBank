@@ -1,73 +1,142 @@
 "use client";
-import { formatDetroitDate } from "@/lib/utils";
 
 import * as React from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
-  BookOpenCheck,
-  CalendarClock,
-  Flame,
+  BookMarked,
+  Calculator,
+  Filter,
+  Highlighter,
+  Layers,
   Library,
+  LayoutDashboard,
   MonitorSmartphone,
+  PencilRuler,
   PenSquare,
   RotateCcw,
+  Sparkles,
+  Swords,
   Target,
-  TrendingUp,
-  TimerReset,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
 import { GlassCard } from "@/components/ui/glass-card";
-import { useApi } from "@/lib/api-client";
-import type { PracticeTestInfo, StatsPayload } from "@/lib/types";
-import { openStudyTimer } from "@/lib/study-timer";
+import { MagicGlow } from "@/components/magic-glow";
+import { useAuth } from "@/components/auth-provider";
+import { useAccountGate } from "@/components/account-gate";
+import catalog from "@/data/catalog-stats.json";
 
-export default function DashboardPage() {
-  const { data: stats, loading, error } = useApi<StatsPayload>("/api/stats", "stats");
-  const { data: tests } = useApi<{ tests: PracticeTestInfo[] }>("/api/practice-tests", "tests");
+/**
+ * Product landing page (root route).
+ *
+ * The root used to render the Study Desk, which meant a first-time visitor's
+ * first impression was an analytics dashboard full of zeros. The Study Desk
+ * still exists untouched at `/desk`; this page explains the product and routes
+ * people into it. Signed-in users get a prominent "Open your study desk" CTA.
+ *
+ * Every number shown here is a real catalog count generated from the shipped
+ * data by `scripts/build-catalog-stats.py` — no invented usage statistics.
+ */
 
-  const metrics = [
-    {
-      label: "Practiced",
-      value: stats?.uniqueQuestions ?? 0,
-      detail: `${stats?.totalAttempts ?? 0} graded answers`,
-      icon: Target,
-      color: "text-[var(--accent)]",
-    },
-    {
-      label: "Accuracy",
-      value: `${stats?.accuracy ?? 0}%`,
-      detail: `${stats?.totalCorrect ?? 0} correct`,
-      icon: TrendingUp,
-      color: "text-[var(--good)]",
-    },
-    {
-      label: "Open mistakes",
-      value: stats?.mistakesCount ?? 0,
-      detail: "ready to review",
-      icon: RotateCcw,
-      color: "text-[var(--bad)]",
-    },
-    {
-      label: "Study streak",
-      value: stats?.streak.current ?? 0,
-      detail: `best: ${stats?.streak.longest ?? 0} days`,
-      icon: Flame,
-      color: "text-[var(--warn)]",
-    },
-  ];
+const numberFormat = new Intl.NumberFormat("en-US");
+
+const FEATURES: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  body: string;
+}[] = [
+  {
+    icon: Library,
+    title: "Official SAT question bank",
+    body: `Browse all ${numberFormat.format(catalog.totalQuestions)} questions from the College Board question bank, with the original passages, answer choices, and rationales.`,
+  },
+  {
+    icon: Filter,
+    title: "Filter down to the exact skill",
+    body: `Narrow by section, domain, skill, and difficulty — ${catalog.skillCount} SAT domains across Math and Reading & Writing — then practise only what you're working on.`,
+  },
+  {
+    icon: PenSquare,
+    title: "Build a quiz in seconds",
+    body: "Choose practice mode for instant feedback and explanations, or exam mode to hold the answers until the end. Flag, eliminate choices, and take per-question notes.",
+  },
+  {
+    icon: MonitorSmartphone,
+    title: "Full-length adaptive practice tests",
+    body: `${catalog.practiceTests} timed tests that follow the digital SAT's two-module adaptive format, with section timers, a review page, and a scaled score.`,
+  },
+  {
+    icon: BookMarked,
+    title: "SAT vocabulary that actually appears",
+    body: `${numberFormat.format(catalog.vocabularyTerms)} words pulled straight from the College Board's Words-in-Context questions — plus grammar rules, math formulas, flashcards, and games.`,
+  },
+  {
+    icon: Calculator,
+    title: "Desmos, built in",
+    body: "The same graphing calculator you get on test day, in a floating window you can move, resize, and open only when you want it.",
+  },
+  {
+    icon: PencilRuler,
+    title: "Digital scratch canvas",
+    body: "Sketch algebra and geometry with a pen, shape presets, and keyboard-driven labels. Optional smart-shape recognition cleans up rough strokes.",
+  },
+  {
+    icon: Highlighter,
+    title: "Highlight as you read",
+    body: "Three highlighter colours for marking up passages, exactly like annotating on paper — with a colour picker that appears right next to your selection.",
+  },
+  {
+    icon: RotateCcw,
+    title: "A mistake bank that remembers",
+    body: "Every question you miss is collected automatically so you can come back and retry it until it sticks.",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics that show the gaps",
+    body: "Accuracy by domain, skill, and difficulty, a daily activity chart, and study streaks — so you know what to work on next.",
+  },
+  {
+    icon: Layers,
+    title: "Collections and sharing",
+    body: "Group questions into custom collections, favourite the tricky ones, and share a question, collection, or whole quiz with a friend.",
+  },
+  {
+    icon: Swords,
+    title: "Quiz duels",
+    body: "Challenge another student to a head-to-head round on the domain and difficulty of your choice.",
+  },
+];
+
+const WORKFLOW: { step: string; title: string; body: string }[] = [
+  {
+    step: "01",
+    title: "Find your weak spots",
+    body: "Start with a mixed quiz or a full practice test. Your results break down by domain, skill, and difficulty so the gaps are obvious.",
+  },
+  {
+    step: "02",
+    title: "Drill the specific skill",
+    body: "Filter the bank to that one skill — linear equations, transitions, command of evidence — and work a focused set with explanations on.",
+  },
+  {
+    step: "03",
+    title: "Clear your mistake bank",
+    body: "Missed questions collect automatically. Retry them until they're gone, and keep notes on what tripped you up.",
+  },
+  {
+    step: "04",
+    title: "Rehearse test day",
+    body: "Run a timed, adaptive full-length test with Desmos and the scratch canvas, in the same two-module format as the real thing.",
+  },
+];
+
+export default function HomePage() {
+  const auth = useAuth();
+  const gate = useAccountGate();
+  const signedIn = auth.ready && !auth.user.isGuest;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-10 pb-4">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -76,165 +145,167 @@ export default function DashboardPage() {
             "@type": "WebApplication",
             name: "SAT Nexus",
             url: "https://satnexus.com",
-            description: "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
+            description:
+              "Practice official SAT questions in the browser. Build quizzes, review mistakes, track progress, and sync with your account.",
             applicationCategory: "EducationalApplication",
             operatingSystem: "Any",
-            offers: {
-              "@type": "Offer",
-              price: "0",
-              priceCurrency: "USD",
-            },
+            offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
           }),
         }}
       />
-      <section className="glass border-l-[4px] border-l-[var(--accent)] p-6 sm:p-8">
-        <p className="text-[10.5px] font-bold uppercase tracking-[0.17em] text-[var(--accent)]">
-          SAT study workspace
+
+      {/* ---------------------------------------------------------------- Hero */}
+      <section className="glass border-l-[4px] border-l-[var(--accent)] p-6 sm:p-10">
+        <p className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.17em] text-[var(--accent)]">
+          <Sparkles className="h-3.5 w-3.5" /> Free SAT practice, in your browser
         </p>
-        <div className="mt-2 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <h1 className="font-display text-[clamp(2rem,5vw,3rem)] font-bold leading-none text-[var(--ink)]">
-              Study desk
-            </h1>
-            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-[var(--ink-soft)]">
-              Build a focused quiz, work through the official question bank, or return to the
-              questions that need another attempt.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2.5">
-            <Link href="/quiz" className="btn btn-primary">
-              <PenSquare className="h-4 w-4" /> Start a quiz
+        <h1 className="font-display mt-3 max-w-4xl text-[clamp(2.1rem,5.5vw,3.4rem)] font-bold leading-[1.05] text-[var(--ink)]">
+          A smarter way to practise for the SAT.
+        </h1>
+        <p className="mt-4 max-w-2xl text-[16px] leading-7 text-[var(--ink-soft)]">
+          SAT Nexus puts the entire official College Board question bank —{" "}
+          <strong className="font-semibold text-[var(--ink)]">
+            {numberFormat.format(catalog.totalQuestions)} real SAT questions
+          </strong>{" "}
+          — behind filters, quizzes, and full-length adaptive practice tests. Work the exact skill you&rsquo;re stuck
+          on, see every explanation, and track what&rsquo;s actually improving.
+        </p>
+
+        <div className="mt-7 flex flex-wrap gap-2.5">
+          {signedIn ? (
+            <Link href="/desk" className="btn btn-primary !py-3 !text-[15px]">
+              <LayoutDashboard className="h-4 w-4" /> Open your study desk
             </Link>
-            <Link href="/bank" className="btn btn-soft">
-              <Library className="h-4 w-4" /> Question bank
-            </Link>
-            <button type="button" className="btn btn-soft" onClick={openStudyTimer}>
-              <TimerReset className="h-4 w-4" /> Study timer
+          ) : (
+            <button type="button" className="btn btn-primary !py-3 !text-[15px]" onClick={() => gate.requireAccount("your study desk")}>
+              <Target className="h-4 w-4" /> Get started free
             </button>
-          </div>
+          )}
+          <Link href="/quiz" className="btn btn-soft !py-3 !text-[15px]">
+            <PenSquare className="h-4 w-4" /> Start practising
+          </Link>
+          <Link href="/bank" className="btn btn-soft !py-3 !text-[15px]">
+            <Library className="h-4 w-4" /> Explore the question bank
+          </Link>
+        </div>
+
+        <p className="mt-4 text-[12.5px] text-[var(--ink-faint)]">
+          No sign-up needed to browse and practise. Create an account to sync progress, analytics, and collections
+          across devices.
+        </p>
+      </section>
+
+      {/* ------------------------------------------------------ Catalog counts */}
+      <section aria-label="What's in the question bank">
+        <GlassCard hover={false} className="grid grid-cols-2 divide-x divide-y divide-[var(--line-soft)] lg:grid-cols-4 lg:divide-y-0">
+          {[
+            { label: "Official questions", value: numberFormat.format(catalog.totalQuestions) },
+            { label: "Math questions", value: numberFormat.format(catalog.mathQuestions) },
+            { label: "Reading & Writing", value: numberFormat.format(catalog.readingWritingQuestions) },
+            { label: "Full-length tests", value: String(catalog.practiceTests) },
+          ].map((item) => (
+            <div key={item.label} className="p-4 text-center sm:p-5">
+              <div className="font-display text-[26px] font-bold leading-none text-[var(--ink)] sm:text-[30px]">
+                {item.value}
+              </div>
+              <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--ink-faint)]">
+                {item.label}
+              </div>
+            </div>
+          ))}
+        </GlassCard>
+        <p className="mt-2 text-center text-[11.5px] text-[var(--ink-faint)]">
+          Counts reflect the question bank shipped with the app — not usage claims.
+        </p>
+      </section>
+
+      {/* ------------------------------------------------------------ Features */}
+      <section>
+        <div className="mb-5 max-w-2xl">
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--sp-lavender,var(--accent))]">
+            Everything in one place
+          </p>
+          <h2 className="font-display text-[clamp(1.5rem,3.4vw,2.1rem)] font-bold text-[var(--ink)]">
+            What you can do here
+          </h2>
+          <p className="mt-1.5 text-[14.5px] leading-6 text-[var(--ink-soft)]">
+            Every tool below is built in — no extensions, no separate tabs, nothing to install.
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {FEATURES.map((feature) => (
+            <MagicGlow key={feature.title}>
+              <GlassCard hover={false} className="flex h-full flex-col p-5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-[var(--accent-soft)]">
+                  <feature.icon className="h-[18px] w-[18px] text-[var(--accent)]" />
+                </div>
+                <h3 className="font-display mt-3 text-[16.5px] font-bold text-[var(--ink)]">{feature.title}</h3>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{feature.body}</p>
+              </GlassCard>
+            </MagicGlow>
+          ))}
         </div>
       </section>
 
-      {error && (
-        <div className="rounded-[6px] border border-[#e9c6cc] bg-[#fff7f7] px-4 py-3 text-[13px] font-semibold text-[var(--bad)]">
-          Progress data could not be loaded: {error}
+      {/* ------------------------------------------------------------ Workflow */}
+      <section>
+        <div className="mb-5 max-w-2xl">
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[var(--sp-teal,var(--accent))]">
+            How students use it
+          </p>
+          <h2 className="font-display text-[clamp(1.5rem,3.4vw,2.1rem)] font-bold text-[var(--ink)]">
+            A study loop that actually closes
+          </h2>
+          <p className="mt-1.5 text-[14.5px] leading-6 text-[var(--ink-soft)]">
+            Practising more questions only helps if you know which ones to practise. SAT Nexus is built around finding
+            the gap, drilling it, and proving it&rsquo;s fixed.
+          </p>
         </div>
-      )}
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {WORKFLOW.map((item) => (
+            <GlassCard key={item.step} hover={false} className="flex h-full flex-col p-5">
+              <span className="font-mono text-[12px] font-bold text-[var(--accent)]">{item.step}</span>
+              <h3 className="font-display mt-1.5 text-[16px] font-bold text-[var(--ink)]">{item.title}</h3>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-[var(--ink-soft)]">{item.body}</p>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
 
-      <GlassCard hover={false} className="grid grid-cols-2 divide-x divide-y divide-[#e6e1d7] lg:grid-cols-4 lg:divide-y-0">
-        {metrics.map((metric) => (
-          <div key={metric.label} className="p-4 sm:p-5">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink-faint)]">
-              <metric.icon className={`h-4 w-4 ${metric.color}`} />
-              {metric.label}
-            </div>
-            <div className="font-display mt-2 text-[28px] font-bold leading-none text-[var(--ink)]">
-              {loading ? "…" : metric.value}
-            </div>
-            <div className="mt-1 text-[11.5px] text-[var(--ink-faint)]">{metric.detail}</div>
-          </div>
-        ))}
-      </GlassCard>
-
-      <div className="grid gap-5 lg:grid-cols-5">
-        <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-3">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Activity</p>
-              <h2 className="font-display text-xl font-bold text-[var(--ink)]">Last 14 days</h2>
-            </div>
-            <Link href="/analytics" className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[var(--accent)] hover:underline">
-              View analytics <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          {stats && stats.activity.length > 0 ? (
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.activity} margin={{ left: -24, right: 4, top: 4 }}>
-                  <CartesianGrid stroke="#e6e1d7" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#7b8085" }} tickFormatter={(date: string) => date.slice(5)} />
-                  <YAxis tick={{ fontSize: 10.5, fill: "#7b8085" }} allowDecimals={false} />
-                  <Tooltip contentStyle={{ background: "#fffdfa", border: "1px solid #d4cfc3", borderRadius: 6, fontSize: 13 }} />
-                  <Bar dataKey="attempts" fill="var(--accent)" maxBarSize={24} name="Checked" />
-                  <Bar dataKey="correct" fill="var(--good)" maxBarSize={24} name="Correct" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="flex h-[220px] flex-col items-center justify-center border border-dashed border-[var(--line)] bg-[var(--paper-soft)] text-center">
-              <BookOpenCheck className="mb-2 h-7 w-7 text-[#a9a398]" />
-              <p className="text-[13.5px] font-semibold text-[var(--ink-soft)]">No activity recorded yet</p>
-              <p className="mt-0.5 text-[12px] text-[var(--ink-faint)]">Your graded quiz answers will appear here.</p>
-            </div>
-          )}
-        </GlassCard>
-
-        <GlassCard hover={false} className="p-5 sm:p-6 lg:col-span-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink-faint)]">Quick start</p>
-          <h2 className="font-display text-xl font-bold text-[var(--ink)]">Choose a session</h2>
-          <div className="mt-4 divide-y divide-[#e6e1d7] border-y border-[var(--line-soft)]">
-            {[
-              { href: "/study-sessions", label: "Quick 10", detail: "10 random questions", icon: CalendarClock },
-              { href: "/mistakes", label: "Mistake review", detail: `${stats?.mistakesCount ?? 0} open`, icon: RotateCcw },
-              { href: "/bluebook", label: "Timed practice test", detail: "full digital SAT format", icon: MonitorSmartphone },
-            ].map((item) => (
-              <Link key={item.label} href={item.href} className="flex items-center gap-3 py-3.5 text-[var(--ink)] hover:text-[var(--accent)]">
-                <item.icon className="h-4 w-4 shrink-0 text-[var(--ink-faint)]" />
-                <div className="min-w-0 grow">
-                  <div className="text-[13.5px] font-semibold">{item.label}</div>
-                  <div className="text-[11.5px] text-[var(--ink-faint)]">{item.detail}</div>
-                </div>
-                <ArrowRight className="h-3.5 w-3.5" />
+      {/* ---------------------------------------------------------- Final CTA */}
+      <section className="glass flex flex-col items-start gap-5 p-6 sm:p-9 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-2xl">
+          <h2 className="font-display text-[clamp(1.4rem,3.2vw,2rem)] font-bold text-[var(--ink)]">
+            {signedIn ? "Pick up where you left off." : "Start with one quiz."}
+          </h2>
+          <p className="mt-2 text-[14.5px] leading-6 text-[var(--ink-soft)]">
+            {signedIn
+              ? "Your study desk has your streak, recent sessions, open mistakes, and what to work on next."
+              : "Twelve questions is enough to see where you stand. Everything is free, and your progress syncs the moment you make an account."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2.5">
+          {signedIn ? (
+            <>
+              <Link href="/desk" className="btn btn-primary !py-3 !text-[15px]">
+                <LayoutDashboard className="h-4 w-4" /> Study desk
               </Link>
-            ))}
-          </div>
-        </GlassCard>
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        <GlassCard hover={false} className="p-5 sm:p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-[var(--ink)]">Recent sessions</h2>
-            <BarChart3 className="h-4 w-4 text-[var(--ink-faint)]" />
-          </div>
-          {stats && stats.recentSessions.length > 0 ? (
-            <ul className="divide-y divide-[#e6e1d7] border-t border-[var(--line-soft)]">
-              {stats.recentSessions.slice(0, 5).map((session) => (
-                <li key={session.id} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 grow">
-                    <div className="truncate text-[13px] font-semibold text-[var(--ink)]">{session.label ?? session.mode}</div>
-                    <div className="text-[11px] text-[var(--ink-faint)]">
-                      {session.finishedAt ? formatDetroitDate(session.finishedAt) : "In progress"} · {session.answeredCount ?? 0}/{session.totalQuestions} answered
-                    </div>
-                  </div>
-                  <span className="font-mono text-[13px] font-semibold text-[var(--accent)]">
-                    {session.totalScore ?? `${session.totalQuestions ? Math.round(((session.correctCount ?? 0) / session.totalQuestions) * 100) : 0}%`}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="border border-dashed border-[var(--line)] bg-[var(--paper-soft)] px-4 py-5 text-[13px] text-[var(--ink-faint)]">
-              Completed quizzes will be listed here with their scores.
-            </p>
-          )}
-        </GlassCard>
-
-        <GlassCard hover={false} className="p-5 sm:p-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-[var(--ink)]">Practice tests</h2>
-            <Link href="/bluebook" className="text-[12.5px] font-semibold text-[var(--accent)] hover:underline">See all</Link>
-          </div>
-          <div className="grid grid-cols-3 border-l border-t border-[var(--line-soft)] sm:grid-cols-5">
-            {(tests?.tests ?? []).slice(0, 10).map((test) => (
-              <Link key={test.id} href="/bluebook" className="border-b border-r border-[var(--line-soft)] bg-[var(--paper-soft)] px-2 py-3 text-center hover:bg-[var(--accent-soft)]">
-                <span className="font-display block text-xl font-bold text-[var(--accent)]">{test.testNumber}</span>
-                <span className="text-[9.5px] font-semibold uppercase tracking-wide text-[var(--ink-faint)]">{test.totalQuestions} Q</span>
+              <Link href="/analytics" className="btn btn-soft !py-3 !text-[15px]">
+                <BarChart3 className="h-4 w-4" /> Your analytics
               </Link>
-            ))}
-          </div>
-        </GlassCard>
-      </div>
+            </>
+          ) : (
+            <>
+              <Link href="/quiz" className="btn btn-primary !py-3 !text-[15px]">
+                <PenSquare className="h-4 w-4" /> Start a quiz <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/study" className="btn btn-soft !py-3 !text-[15px]">
+                <BookMarked className="h-4 w-4" /> Study library
+              </Link>
+            </>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

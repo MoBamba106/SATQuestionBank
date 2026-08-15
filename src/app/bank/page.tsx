@@ -21,7 +21,7 @@ import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { BulkAddToCollectionDialog } from "@/components/bulk-add-to-collection";
 import { MagicGlow } from "@/components/magic-glow";
 import { useApi } from "@/lib/api-client";
-import { useSettings } from "@/components/settings-provider";
+import { DEFAULT_BANK_PAGE_SIZE } from "@/components/settings-provider";
 import { launchPoolQuiz } from "@/lib/quiz-session";
 import { skillsForDomain, subskillsFor, DIFFICULTIES } from "@/lib/sat-categories";
 import { skillTone } from "@/lib/utils";
@@ -29,8 +29,7 @@ import type { QuestionSummary } from "@/lib/types";
 
 export default function BankPage() {
   const router = useRouter();
-  const { settings } = useSettings();
-  const PAGE_SIZE = settings.bankPageSize || 48;
+  const PAGE_SIZE = DEFAULT_BANK_PAGE_SIZE;
   const [domain, setDomain] = React.useState("All");
   const [skill, setSkill] = React.useState("All");
   const [subskill, setSubskill] = React.useState("All");

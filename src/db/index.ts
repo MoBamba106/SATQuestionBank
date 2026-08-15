@@ -471,6 +471,19 @@ function buildPoolOptions(
     allowExitOnIdle: true,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
+    /**
+     * Pin every connection to UTC.
+     *
+     * The schema stores `timestamp without time zone`, so whatever wall clock
+     * `now()` produces is what gets persisted. If a pooler or host defaulted
+     * to a non-UTC zone, identical rows would be written in different zones
+     * and later be misread as UTC — which is exactly how analytics ended up
+     * showing a calendar day that had not started yet in Detroit.
+     *
+     * Storage is UTC; America/Detroit is applied only at presentation /
+     * grouping time (`AT TIME ZONE 'America/Detroit'`, `formatDetroit*`).
+     */
+    options: "-c timezone=UTC",
     ssl:
       process.env.DATABASE_SSL === "false"
         ? undefined

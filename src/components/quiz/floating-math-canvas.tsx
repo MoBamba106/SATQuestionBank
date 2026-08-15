@@ -408,6 +408,8 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   const [redo, setRedo] = React.useState<DrawItem[]>([]);
   const [draft, setDraft] = React.useState<DrawItem | null>(null);
   const [selected, setSelected] = React.useState<string | null>(null);
+  /** Digits typed so far while Alt is held (committed on Alt release). */
+  const [pendingNumber, setPendingNumber] = React.useState("");
   const windowDrag = React.useRef<{ id: number; x: number; y: number } | null>(null);
   const drawDrag = React.useRef<{ id: number; start: Point; original?: DrawItem } | null>(null);
   const svgRef = React.useRef<SVGSVGElement | null>(null);
@@ -433,19 +435,71 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
     setRedo([]);
   }, [color]);
 
-  // Alt + letter OR Alt + digit inserts a quick label/number onto the canvas.
+  /**
+   * Alt + letter/digit inserts a quick label onto the canvas.
+   *
+   * Digits are **buffered until Alt is released**, so holding Alt and typing
+   * `2` then `5` produces a single "25" text object rather than two separate
+   * "2" and "5" objects the user then has to drag together. `Alt+1,2,5` →
+   * "125". Letters are still committed immediately (one glyph is the whole
+   * point of a label like "A" or "θ"), and a letter pressed mid-number flushes
+   * the pending digits first so nothing is silently dropped.
+   */
+  const pendingDigits = React.useRef("");
+
+  const flushPendingDigits = React.useCallback(() => {
+    const digits = pendingDigits.current;
+    pendingDigits.current = "";
+    if (!digits) return;
+    setPendingNumber("");
+    addText(digits);
+    setTool("select");
+  }, [addText]);
+
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      pendingDigits.current = "";
+      // Deferred so clearing the indicator can't cascade renders in the effect.
+      const clear = window.setTimeout(() => setPendingNumber(""), 0);
+      return () => window.clearTimeout(clear);
+    }
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (!event.altKey || event.ctrlKey || event.metaKey) return;
       if (!/^[a-z0-9]$/i.test(event.key)) return;
       event.preventDefault();
+      if (event.repeat) return;
+
+      if (/^[0-9]$/.test(event.key)) {
+        // Cap the buffer so a stuck key can't build an absurd string.
+        if (pendingDigits.current.length >= 6) return;
+        pendingDigits.current += event.key;
+        setPendingNumber(pendingDigits.current);
+        return;
+      }
+
+      flushPendingDigits();
       addText(event.key);
       setTool("select");
     };
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      // Releasing Alt commits whatever number was typed while it was held.
+      if (event.key === "Alt" || !event.altKey) flushPendingDigits();
+    };
+
+    // Alt+Tab / focus loss must not strand a half-typed number.
+    const onBlur = () => flushPendingDigits();
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [addText, open]);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [addText, flushPendingDigits, open]);
 
   if (!open) return null;
 
@@ -458,6 +512,15 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
     const point = pointFromEvent(event);
     const element = (event.target as Element).closest<SVGElement>("[data-draw-id]");
     const itemId = element?.dataset.drawId;
+    // Dragging the pen across SVG <text> objects otherwise starts a native
+    // browser text selection, which leaves stray highlighted glyphs behind and
+    // can hijack the drag. Suppressing the default here (canvas only — see the
+    // `select-none` class on the surface) keeps drawing clean without touching
+    // text selection anywhere else in the app.
+    event.preventDefault();
+    // A live selection from before the drag would still render; clear it.
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) selection.removeAllRanges();
     event.currentTarget.setPointerCapture(event.pointerId);
 
     if (tool === "eraser") {
@@ -532,6 +595,9 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
           fontSize={item.size}
           fontFamily="IBM Plex Sans, sans-serif"
           fontWeight="600"
+          // Belt-and-braces with the surface's `select-none`: pen strokes that
+          // pass over a label must never start a text selection.
+          style={{ userSelect: "none", WebkitUserSelect: "none" }}
         >
           {item.text}
         </text>
@@ -641,7 +707,19 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
       >
         <GripHorizontal className="h-4 w-4 text-[var(--ink-faint)]" />
         <span className="grow text-[13px] font-bold text-[var(--ink)]">Math Canvas</span>
-        <span className="hidden text-[10.5px] text-[var(--ink-faint)] sm:inline">Alt + letter/digit adds a label</span>
+        {pendingNumber ? (
+          <span
+            aria-live="polite"
+            className="rounded-[5px] border border-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 font-mono text-[12px] font-bold text-[var(--accent)]"
+          >
+            {pendingNumber}
+            <span className="ml-1 font-sans text-[10px] font-semibold opacity-70">release Alt</span>
+          </span>
+        ) : (
+          <span className="hidden text-[10.5px] text-[var(--ink-faint)] sm:inline">
+            Alt + letter/digit adds a label
+          </span>
+        )}
         <button
           type="button"
           className="rounded-[5px] p-1.5 text-[var(--ink-faint)] hover:bg-[var(--paper-deep)]"
@@ -789,9 +867,13 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
               ref={svgRef}
               viewBox="0 0 720 480"
               className={cn(
-                "h-full w-full touch-none rounded-[6px] border",
+                // `select-none` is scoped to this SVG so pen/move drags never
+                // highlight the canvas's own text objects. Text selection
+                // everywhere else in the app is untouched.
+                "h-full w-full touch-none select-none rounded-[6px] border",
                 tool === "select" ? "cursor-move" : "cursor-crosshair",
               )}
+              onDragStart={(event) => event.preventDefault()}
               style={{
                 backgroundColor: surfaceBg,
                 borderColor: borderCol,
@@ -808,7 +890,10 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
             </svg>
           </div>
           <div className="flex items-center justify-between border-t border-[var(--line)] bg-[var(--paper-soft)] px-3 py-2 text-[10.5px] text-[var(--ink-faint)]">
-            <span>Pen for algebra work · presets for geometry · Alt+0–9 insert numbers · Move tool repositions objects</span>
+            <span>
+              Pen for algebra work · presets for geometry · hold Alt and type digits (e.g. 1-2-5) then release for
+              one &ldquo;125&rdquo; label · Move tool repositions objects
+            </span>
             <span>{items.length} objects</span>
           </div>
         </>

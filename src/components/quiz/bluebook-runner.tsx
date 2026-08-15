@@ -23,6 +23,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { FloatingDesmos } from "@/components/quiz/floating-desmos";
 import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
+import { useMathTools } from "@/components/quiz/use-math-tools";
 import { ShareQuestionDialog } from "@/components/share-question-dialog";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 import { SkillBands } from "@/components/quiz/skill-bands";
@@ -116,9 +117,6 @@ export function BluebookRunner({
   const [flags, setFlags] = React.useState<Record<string, boolean>>(resume?.flags ?? {});
   const [secondsLeft, setSecondsLeft] = React.useState(resume?.secondsLeft ?? Math.round(test.rwMinutes / 2) * 60);
   const [confirmEnd, setConfirmEnd] = React.useState(false);
-  const [desmosOpen, setDesmosOpen] = React.useState(false);
-  const [desmosRestoreRequest, setDesmosRestoreRequest] = React.useState(0);
-  const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [feedbackOpen, setFeedbackOpen] = React.useState(false);
   const [finishing, setFinishing] = React.useState(false);
@@ -132,6 +130,11 @@ export function BluebookRunner({
     [test, stage, rwRoute, mathRoute],
   );
   const current = mod.questions[qIdx];
+  // Math-only floating tools. Closes itself when the student leaves Math so a
+  // previously-open calculator never re-opens on its own.
+  const mathTools = useMathTools(current?.domain);
+  const showMeta = settings.showQuestionMeta;
+  const [highlighterSlot, setHighlighterSlot] = React.useState<HTMLDivElement | null>(null);
   const chosen = current ? answers[current.id] : undefined;
   const isLastModule = stage === 3;
   const lowTime = secondsLeft <= 300;
@@ -447,10 +450,10 @@ export function BluebookRunner({
         </button>
         {current.domain === "Math" && (
           <>
-            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => { setDesmosOpen(true); setDesmosRestoreRequest((n) => n + 1); }}>
+            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={mathTools.openDesmos}>
               <Calculator className="h-3.5 w-3.5" /> Desmos
             </button>
-            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setCanvasOpen(true)}>
+            <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={mathTools.openCanvas}>
               <PencilRuler className="h-3.5 w-3.5" /> Canvas
             </button>
           </>
@@ -484,14 +487,17 @@ export function BluebookRunner({
   const questionCard = (
     <GlassCard hover={false} className={cn("p-5 sm:p-7", focusMode && "border-0 shadow-none")}>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {settings.showQuestionMeta && (
+        {showMeta && (
           <>
             <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
             <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
             <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
           </>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+          {/* With the badges hidden there is room to fold the highlighter into
+              this control group rather than giving it a separate bar. */}
+          {!showMeta && <div ref={setHighlighterSlot} className="flex items-center" />}
           <button
             onClick={() => setFlags((flagsById) => ({ ...flagsById, [current.id]: !flagsById[current.id] }))}
             title={flags[current.id] ? "Unflag" : "Flag for review"}
@@ -510,6 +516,7 @@ export function BluebookRunner({
         graded={false}
         lockSelection={false}
         showExplanation={false}
+        highlighterSlot={showMeta ? null : highlighterSlot}
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-2.5 border-t border-[var(--line-soft)] pt-5">
@@ -612,8 +619,8 @@ export function BluebookRunner({
           skill: current?.skill,
         }}
       />
-      <FloatingDesmos open={desmosOpen && current.domain === "Math"} restoreRequest={desmosRestoreRequest} onClose={() => setDesmosOpen(false)} />
-      <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
+      <FloatingDesmos open={mathTools.desmosOpen} restoreRequest={mathTools.desmosRestoreRequest} onClose={mathTools.closeDesmos} />
+      <FloatingMathCanvas open={mathTools.canvasOpen} onClose={mathTools.closeCanvas} />
 
       <PaperDialog
         open={confirmEnd}

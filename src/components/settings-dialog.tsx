@@ -5,7 +5,6 @@ import {
   Accessibility,
   Check,
   Clock3,
-  Database,
   Eye,
   KeyRound,
   Mail,
@@ -33,7 +32,6 @@ import { apiDelete, apiPatch, useApi, mutateKey } from "@/lib/api-client";
 import {
   type AppTheme,
   type FontScale,
-  type QuizModeSetting,
   useSettings,
 } from "@/components/settings-provider";
 import { useAuth } from "@/components/auth-provider";
@@ -195,7 +193,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
           <Cog className="h-5 w-5 text-[var(--accent)]" /> Settings
         </span>
       }
-      description="Appearance, accessibility, practice defaults, and account controls."
+      description="Appearance, accessibility, study tools, and account controls."
     >
       <div className="mt-5 max-h-[70vh] overflow-y-auto pr-1 scrollbar-thin">
         <div className="sticky top-0 z-10 mb-5 flex gap-2 bg-[var(--paper)]/95 pb-3 backdrop-blur">
@@ -267,45 +265,6 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             <Toggle checked={settings.expandPassages} onChange={(expandPassages) => updateSettings({ expandPassages })} label="Expand reading passages" description="Show the full passage without an inner scroll box. Turn off to keep a compact scroll window." icon={Maximize2} />
             <Toggle checked={settings.focusModeDefault} onChange={(focusModeDefault) => updateSettings({ focusModeDefault })} label="Focus mode for practice tests" description="Start Bluebook tests fullscreen-style: hide the sidebar and chrome. Leave test with the red exit button." icon={Focus} />
             <Toggle checked={settings.showQuestionMeta} onChange={(showQuestionMeta) => updateSettings({ showQuestionMeta })} label="Show question category & difficulty" description="Display the section, skill, and difficulty badges above questions in quizzes and practice tests." icon={Tags} />
-          </div>
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-center gap-2">
-            <Database className="h-4 w-4 text-[var(--sp-blue)]" />
-            <h2 className="text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Practice defaults</h2>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-[11.5px] font-bold text-[var(--ink-soft)]">Default quiz length</label>
-              <PaperSelect
-                tone="blue"
-                value={String(settings.defaultQuizSize)}
-                onValueChange={(value) => updateSettings({ defaultQuizSize: Number(value) })}
-                options={[5, 10, 15, 20, 30, 40].map((value) => ({ value: String(value), label: `${value} questions`, tone: "blue" }))}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11.5px] font-bold text-[var(--ink-soft)]">Default quiz mode</label>
-              <PaperSelect
-                tone="green"
-                value={settings.defaultQuizMode}
-                onValueChange={(value) => updateSettings({ defaultQuizMode: value as QuizModeSetting })}
-                options={[
-                  { value: "practice", label: "Practice with feedback", tone: "green" },
-                  { value: "exam", label: "Exam without feedback", tone: "rose" },
-                ]}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11.5px] font-bold text-[var(--ink-soft)]">Question bank page size</label>
-              <PaperSelect
-                tone="lavender"
-                value={String(settings.bankPageSize)}
-                onValueChange={(value) => updateSettings({ bankPageSize: Number(value) })}
-                options={[12, 24, 48, 96].map((value) => ({ value: String(value), label: `${value} per page`, tone: "lavender" as const }))}
-              />
-            </div>
           </div>
         </section>
 

@@ -17,6 +17,14 @@ export type StudyItem = {
   example?: string;
   phonetic?: string;
   difficulty?: VocabularyDifficulty;
+  /**
+   * Whether the SAT used this word as the keyed answer or as a distractor in a
+   * Words-in-Context question. Both are worth studying — students have to rule
+   * distractors out — but answers are the words the test rewards knowing.
+   */
+  satRole?: "answer" | "distractor";
+  /** Question-bank ids this term is tested in. */
+  satQuestionIds?: string[];
 };
 
 type VocabularyEntry = {
@@ -27,13 +35,19 @@ type VocabularyEntry = {
   definition: string;
   definitions?: string[];
   example?: string;
+  satRole?: string;
+  satQuestionIds?: string[];
 };
 
 const VOCABULARY_ITEMS: StudyItem[] = (vocabulary as VocabularyEntry[]).map((item) => ({
   ...item,
   topic: "Vocabulary" as const,
   difficulty: item.difficulty as VocabularyDifficulty,
+  satRole: item.satRole === "answer" || item.satRole === "distractor" ? item.satRole : undefined,
 }));
+
+/** Number of vocabulary cards in the deck (shown in the study library footer). */
+export const VOCABULARY_COUNT = VOCABULARY_ITEMS.length;
 
 export const STUDY_ITEMS: StudyItem[] = [
   ...VOCABULARY_ITEMS,

@@ -95,7 +95,7 @@ export async function GET(req: Request) {
     await requireAdmin(req);
     const res = await db.execute(sql`
       SELECT f.id, f.email, f.category, f.title, f.message, f.status,
-             f.github_issue_url AS "githubIssueUrl", f.context, f.created_at AS "createdAt",
+             f.github_issue_url AS "githubIssueUrl", f.context, (f.created_at AT TIME ZONE 'UTC') AS "createdAt",
              u.display_name AS "displayName"
       FROM feedback f
       LEFT JOIN users u ON u.id = f.user_id

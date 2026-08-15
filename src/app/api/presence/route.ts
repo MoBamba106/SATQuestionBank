@@ -4,12 +4,18 @@ import { db } from "@/db";
 import { getRequestUser, requireAdmin, AdminAuthError } from "@/lib/auth/server";
 import { isLocalGuestId } from "@/lib/auth/types";
 import { ensureSeeded } from "@/lib/seed";
+import { touchPresence } from "@/lib/presence";
 
 export const dynamic = "force-dynamic";
 
 /**
  * POST /api/presence -> record current user's heartbeat (last_seen = now)
- * Used by clients every ~30s to indicate they are online.
+ * Used by clients every ~60s to indicate they are online.
+ *
+ * `getRequestUser` already records presence for every authenticated request
+ * (throttled), so this endpoint mainly keeps an *idle* tab marked online. The
+ * heartbeat is no longer the only source of "last active" — see
+ * `@/lib/presence`.
  */
 export async function POST(req: Request) {
   try {
@@ -25,13 +31,7 @@ export async function POST(req: Request) {
       }
       return NextResponse.json({ ok: true, guest: true, recorded: false });
     }
-    await db.execute(sql`
-      INSERT INTO user_presence (user_id, last_seen, updated_at)
-      VALUES (${user.id}, now(), now())
-      ON CONFLICT (user_id) DO UPDATE SET
-        last_seen = now(),
-        updated_at = now()
-    `);
+    await touchPresence(user.id);
     return NextResponse.json({ ok: true, recorded: true });
   } catch (e) {
     console.error("[api/presence] POST failed:", e);
@@ -41,6 +41,9 @@ export async function POST(req: Request) {
 
 /**
  * GET /api/presence -> admin can list presence, regular user gets own status
+ *
+ * All timestamps are returned as UTC ISO strings; the UI converts them to
+ * America/Detroit for display.
  */
 export async function GET(req: Request) {
   try {
@@ -49,10 +52,12 @@ export async function GET(req: Request) {
     try {
       await requireAdmin(req);
       const res = await db.execute(sql`
-        SELECT up.user_id as "userId", up.last_seen as "lastSeen", u.email, u.display_name as "displayName"
+        SELECT up.user_id as "userId",
+               (up.last_seen AT TIME ZONE 'UTC') as "lastSeen",
+               u.email, u.display_name as "displayName"
         FROM user_presence up
         LEFT JOIN users u ON u.id = up.user_id
-        WHERE up.last_seen >= now() - interval '5 minutes'
+        WHERE up.last_seen >= timezone('utc', now()) - interval '5 minutes'
         ORDER BY up.last_seen DESC
         LIMIT 500
       `);
@@ -68,7 +73,7 @@ export async function GET(req: Request) {
     const user = await getRequestUser(req);
     if (user.isGuest || isLocalGuestId(user.id)) return NextResponse.json({ online: [] });
     const res = await db.execute(sql`
-      SELECT user_id as "userId", last_seen as "lastSeen"
+      SELECT user_id as "userId", (last_seen AT TIME ZONE 'UTC') as "lastSeen"
       FROM user_presence WHERE user_id = ${user.id}
     `);
     const rows = (res as unknown as { rows?: unknown[] }).rows ?? [];

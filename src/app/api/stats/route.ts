@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { ensureSeeded } from "@/lib/seed";
 import type { StatsPayload } from "@/lib/types";
 import { getRequestUser } from "@/lib/auth/server";
+import { detroitDateString, detroitDay, shiftDetroitDate, utcNow } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
@@ -87,47 +88,46 @@ export async function GET(req: Request) {
 
     const activity = rows<{ date: string; attempts: number; correct: number }>(
       await db.execute(sql`
-        SELECT to_char((a.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS date, COUNT(*)::int AS attempts,
+        SELECT ${detroitDay(sql`a.created_at`)} AS date, COUNT(*)::int AS attempts,
                SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END)::int AS correct
         FROM attempts a
         INNER JOIN quiz_sessions qs ON qs.id = a.session_id AND qs.user_id = ${uid}
-        WHERE a.created_at >= now() - interval '14 days'
+        WHERE a.created_at >= ${utcNow} - interval '14 days'
         GROUP BY 1 ORDER BY 1
       `),
     );
 
     const days = rows<{ d: string }>(
       await db.execute(sql`
-        SELECT DISTINCT to_char((a.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'America/Detroit', 'YYYY-MM-DD') AS d
+        SELECT DISTINCT ${detroitDay(sql`a.created_at`)} AS d
         FROM attempts a
         INNER JOIN quiz_sessions qs ON qs.id = a.session_id AND qs.user_id = ${uid}
         ORDER BY d DESC
       `),
     ).map((r) => r.d);
+    /**
+     * Streaks are counted over **Detroit calendar days**. `days` already holds
+     * `YYYY-MM-DD` Detroit dates from the query above, so all arithmetic here
+     * is pure date-string stepping — no Date/local-zone mixing, and DST-safe
+     * (`shiftDetroitDate` anchors at midday UTC).
+     */
+    const daySet = new Set(days);
     let current = 0;
     let longest = 0;
     let run = 0;
-    const daySet = new Set(days);
-    const today = new Date();
-    const fmt = (d: Date) => {
-      const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Detroit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d);
-      const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
-      return `${get("year")}-${get("month")}-${get("day")}`;
-    };
-    let cursor = new Date(today);
-    if (!daySet.has(fmt(cursor))) cursor.setDate(cursor.getDate() - 1);
-    while (daySet.has(fmt(cursor))) {
+
+    // A streak stays alive until the end of today in Detroit: if nothing has
+    // been practised yet today, start counting from yesterday.
+    let cursor = detroitDateString();
+    if (!daySet.has(cursor)) cursor = shiftDetroitDate(cursor, -1);
+    while (daySet.has(cursor)) {
       current++;
-      cursor.setDate(cursor.getDate() - 1);
+      cursor = shiftDetroitDate(cursor, -1);
     }
+
     const sorted = [...daySet].sort();
     for (let i = 0; i < sorted.length; i++) {
-      if (i === 0) run = 1;
-      else {
-        const prev = new Date(sorted[i - 1]);
-        prev.setDate(prev.getDate() + 1);
-        run = fmt(prev) === sorted[i] ? run + 1 : 1;
-      }
+      run = i > 0 && shiftDetroitDate(sorted[i - 1], 1) === sorted[i] ? run + 1 : 1;
       longest = Math.max(longest, run);
     }
 
@@ -137,7 +137,7 @@ export async function GET(req: Request) {
                correct_count AS "correctCount", answered_count AS "answeredCount",
                total_score AS "totalScore", rw_score AS "rwScore", math_score AS "mathScore",
                adaptive_path AS "adaptivePath", skill_bands AS "skillBands",
-               started_at AS "startedAt", finished_at AS "finishedAt"
+               (started_at AT TIME ZONE 'UTC') AS "startedAt", (finished_at AT TIME ZONE 'UTC') AS "finishedAt"
         FROM quiz_sessions
         WHERE user_id = ${uid} AND finished_at IS NOT NULL
         ORDER BY finished_at DESC LIMIT 5
