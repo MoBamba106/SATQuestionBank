@@ -1,12 +1,12 @@
 {
-  "totalQuestions": 3444,
-  "mathQuestions": 1756,
-  "readingWritingQuestions": 1688,
+  "totalQuestions": 3714,
+  "mathQuestions": 1876,
+  "readingWritingQuestions": 1838,
   "skillCount": 8,
   "difficulties": {
-    "Easy": 1240,
-    "Hard": 1068,
-    "Medium": 1136
+    "Easy": 1288,
+    "Hard": 1218,
+    "Medium": 1208
   },
   "vocabularyTerms": 871,
   "practiceTests": 9,

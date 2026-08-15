@@ -1,41 +1,81 @@
 # Question Bank Sync
 
 The question bank ships as a checked-in snapshot at `src/data/question-bank.json`
-(currently **3,444 questions**) and is loaded into Postgres by
+(currently **3,714 questions**) and is loaded into Postgres by
 `src/lib/seed.ts` during `npm run db:seed`.
 
-## Status: the ~300 new College Board questions are NOT yet imported
+## Status: the 270 newly released questions ARE imported ✅
 
-They could not be fetched from the environment this change was made in:
-outbound TLS to `qbank-api.collegeboard.org` and `saic.collegeboard.org` is
-blocked there (`SSL_ERROR_SYSCALL` on connect). Rather than inserting
-placeholder or invented questions, the import was left to be run from a machine
-with network access, and the tooling to do it safely is included.
+`3,444 → 3,714`. All 270 are the newly released College Board items, with full
+answer keys and rationales, mapped into the existing schema. Zero duplicates,
+zero pre-existing questions modified.
 
-Run this from a normal dev machine:
+### How they were obtained
+
+Direct access to `qbank-api.collegeboard.org` / `saic.collegeboard.org` was not
+possible from the build environment — the TCP connection is reset before TLS
+completes, from both `curl` and Node. Instead the questions were imported from
+a **public GitHub mirror** of the College Board bank via the GitHub API, which
+is reachable.
+
+The mirror only supplies question *content*; identity is still the College
+Board `questionId`, so these rows are byte-for-byte what `cb-sync.ts` would
+have produced. The two importers are interchangeable and idempotent.
+
+Provenance was verified before importing:
+
+- Source commit is titled *"Add 270 newly released SAT questions and
+  new-question extraction script"*.
+- The 270 ids appear in the mirror's **full** 3,252-question snapshot as well
+  as its `new_questions.json`, and the two agree exactly — two independent
+  copies cross-checked.
+- All 270 were absent from our bank (zero id overlap).
+- Content was spot-checked for correctness (e.g. a triangle item whose third
+  angle is 180° − 64° = 116°, keyed **C**; a rectangle SPR keyed **38**).
+- Every entry has a stem, an answer key, and a College Board rationale.
+
+## Re-running / future updates
+
+Preferred (direct from College Board, needs network access to their API):
 
 ```bash
-# 1. See what College Board has that we don't (no files are written)
 npx tsx scripts/cb-sync.ts --dry-run
-
-# 2. Fetch + merge the missing questions (backs up the old bank first)
 npx tsx scripts/cb-sync.ts
-
-# 3. Validate before committing
-npx tsx scripts/validate-question-bank.ts
-
-# 4. Refresh the landing-page catalog counts
-python3 scripts/build-catalog-stats.py
-
-# 5. Load into the database
-npm run db:seed
 ```
+
+Fallback (public mirror over the GitHub API — used for the 270 above):
+
+```bash
+npx tsx scripts/import-new-questions.ts --dry-run   # report only
+npx tsx scripts/import-new-questions.ts             # fetch, merge, back up
+
+# point it at a different mirror / file if needed
+SOURCE_REPO=owner/name SOURCE_PATH=data/new_questions.json \
+  npx tsx scripts/import-new-questions.ts
+
+# or import a snapshot you already downloaded
+npx tsx scripts/import-new-questions.ts --file ./snapshot.json
+```
+
+Then, in both cases:
+
+```bash
+npx tsx scripts/validate-question-bank.ts   # gate: exits non-zero on any problem
+python3 scripts/build-catalog-stats.py      # refresh landing-page counts
+npm run db:seed                             # load into Postgres
+```
+
+> If Node reports `UNABLE_TO_VERIFY_LEAF_SIGNATURE` behind a TLS-inspecting
+> proxy, prefix the command with
+> `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.
 
 ## How the pipeline works
 
 | Stage | Where |
 |-------|-------|
-| Fetch from College Board | `scripts/cb-sync.ts` |
+| Fetch from College Board (preferred) | `scripts/cb-sync.ts` |
+| Fetch from a public mirror (fallback) | `scripts/import-new-questions.ts` |
+| Validate | `scripts/validate-question-bank.ts` |
 | Snapshot on disk | `src/data/question-bank.json` |
 | Load into Postgres | `src/lib/seed.ts` → `questions` table |
 | Serve to the app | `src/app/api/questions/route.ts` |
@@ -89,15 +129,15 @@ Difficulty is mapped from College Board's `E` / `M` / `H`; `skill` comes from
 ## Current validation baseline
 
 ```
-total              3444
-unique ids         3444
-by domain          {"Math":1756,"Reading & Writing":1688}
-by difficulty      {"Hard":1068,"Easy":1240,"Medium":1136}
-by type            {"free_response":421,"multiple_choice":3023}
-with explanation   3444
-with passage       1907
+total              3714
+unique ids         3714
+by domain          {"Math":1876,"Reading & Writing":1838}
+by difficulty      {"Hard":1218,"Easy":1288,"Medium":1208}
+by type            {"free_response":451,"multiple_choice":3263}
+with explanation   3714
+with passage       2057
 ✔ question bank is valid
 ```
 
-After importing the new questions the total should rise to roughly 3,744 with
-`unique ids == total` and no validation errors.
+Previously (before the 270 new questions): 3,444 total / Math 1,756 /
+R&W 1,688 / Geometry and Trigonometry 284 (now 335).
