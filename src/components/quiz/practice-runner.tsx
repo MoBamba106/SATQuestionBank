@@ -10,6 +10,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { QuestionView } from "@/components/quiz/question-view";
 import { FloatingDesmos } from "@/components/quiz/floating-desmos";
 import { FloatingMathCanvas } from "@/components/quiz/floating-math-canvas";
+import { useMathTools } from "@/components/quiz/use-math-tools";
 import { QuizResults, type GradedMap } from "@/components/quiz/quiz-results";
 import { FavoriteButton } from "@/components/favorite-button";
 import { AddToCollectionButton } from "@/components/add-to-collection";
@@ -50,9 +51,6 @@ export function PracticeRunner({
   const [done, setDone] = React.useState(false);
   const [elapsed, setElapsed] = React.useState(0);
   const [noteOpen, setNoteOpen] = React.useState(false);
-  const [desmosOpen, setDesmosOpen] = React.useState(false);
-  const [desmosRestoreRequest, setDesmosRestoreRequest] = React.useState(0);
-  const [canvasOpen, setCanvasOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [shareQuizOpen, setShareQuizOpen] = React.useState(false);
   const [feedbackOpen, setFeedbackOpen] = React.useState(false);
@@ -60,9 +58,21 @@ export function PracticeRunner({
   const noteSaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isExam = mode === "exam";
+  /**
+   * Difficulty / category badges are visible either by preference or because
+   * the question has been graded. When they are hidden the toolbar has room,
+   * so the highlighter joins the shared control group instead of getting its
+   * own bar (see `highlighterSlot`).
+   */
+  const [highlighterSlot, setHighlighterSlot] = React.useState<HTMLDivElement | null>(null);
+
   const current = pool[idx];
+  // Math-only floating tools. Closes itself when the student leaves Math so a
+  // previously-open calculator never re-opens on its own.
+  const mathTools = useMathTools(current?.domain);
   const chosen = current ? answers[current.id] : undefined;
   const isGraded = current ? !!graded[current.id] : false;
+  const showMeta = settings.showQuestionMeta || isGraded;
 
   // elapsed timer (informational — no pressure timer)
   React.useEffect(() => {
@@ -300,7 +310,7 @@ export function PracticeRunner({
         {/* Question card */}
         <GlassCard hover={false} className="p-5 sm:p-7">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {(settings.showQuestionMeta || isGraded) && (
+            {showMeta && (
               <>
                 <span className={cn("badge", domainColor(current.domain))}>{current.domain}</span>
                 <span className={cn("badge", skillColor(current.skill))}>{current.skill}</span>
@@ -308,13 +318,16 @@ export function PracticeRunner({
                 <span className={cn("badge border", difficultyColor(current.difficulty))}>{current.difficulty}</span>
               </>
             )}
-            <div className="ml-auto flex items-center gap-1">
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+              {/* Highlighter renders here (via portal) when the badges are
+                  hidden, so it reads as part of the same control group. */}
+              {!showMeta && <div ref={setHighlighterSlot} className="flex items-center" />}
               {current.domain === "Math" && (
                 <>
-                  <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => { setDesmosOpen(true); setDesmosRestoreRequest((n) => n + 1); }}>
+                  <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={mathTools.openDesmos}>
                     <Calculator className="h-3.5 w-3.5" /> Desmos
                   </button>
-                  <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={() => setCanvasOpen(true)}>
+                  <button type="button" className="btn btn-soft !min-h-8 !px-2.5 !py-1.5 !text-[12px]" onClick={mathTools.openCanvas}>
                     <PencilRuler className="h-3.5 w-3.5" /> Canvas
                   </button>
                 </>
@@ -366,6 +379,7 @@ export function PracticeRunner({
             lockSelection={!isExam && isGraded}
             showExplanation={!isExam}
             onOverrideCorrect={doOverrideCorrect}
+            highlighterSlot={showMeta ? null : highlighterSlot}
           />
 
           {noteOpen && (
@@ -483,8 +497,8 @@ export function PracticeRunner({
         skill: current?.skill,
       }}
     />
-    <FloatingDesmos open={desmosOpen && current.domain === "Math"} restoreRequest={desmosRestoreRequest} onClose={() => setDesmosOpen(false)} />
-    <FloatingMathCanvas open={canvasOpen && current.domain === "Math"} onClose={() => setCanvasOpen(false)} />
+    <FloatingDesmos open={mathTools.desmosOpen} restoreRequest={mathTools.desmosRestoreRequest} onClose={mathTools.closeDesmos} />
+    <FloatingMathCanvas open={mathTools.canvasOpen} onClose={mathTools.closeCanvas} />
     </>
   );
 }

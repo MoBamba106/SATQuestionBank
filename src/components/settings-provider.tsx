@@ -7,6 +7,17 @@ export type FontScale = "small" | "default" | "large";
 export type QuizModeSetting = "practice" | "exam";
 export type PassageLayout = "scroll" | "expand";
 
+/**
+ * Questions a new quiz starts with, and the question-bank page size.
+ *
+ * This is a *default*, not a limit: the quiz builder's slider still lets a
+ * student pick any supported length, and the question bank still paginates
+ * through everything. The old "Practice defaults" settings section that made
+ * users configure this was removed — 12 is a sensible session out of the box.
+ */
+export const DEFAULT_QUIZ_SIZE = 12;
+export const DEFAULT_BANK_PAGE_SIZE = 12;
+
 export type AppSettings = {
   theme: AppTheme;
   fontScale: FontScale;
@@ -14,19 +25,25 @@ export type AppSettings = {
   compactMode: boolean;
   showTimer: boolean;
   soundEffects: boolean;
-  defaultQuizSize: number;
-  defaultQuizMode: QuizModeSetting;
   /** When true, reading passages grow to full height instead of a fixed scroll box. */
   expandPassages: boolean;
   /** Default focus mode for Bluebook practice tests (hide chrome, fullscreen-like). */
   focusModeDefault: boolean;
   /** Show the category / difficulty badges above quiz and practice-test questions. */
   showQuestionMeta: boolean;
-  /** Questions per page in the question bank. */
-  bankPageSize: number;
   /** Math Canvas: auto-correct rough pen scribbles into crisp shapes/glyphs. */
   canvasSmartShapes: boolean;
 };
+
+/** Settings keys that used to exist and are dropped when loading old storage. */
+const RETIRED_SETTING_KEYS = [
+  "navMode",
+  "showDock",
+  // Removed with the "Practice defaults" settings section.
+  "defaultQuizSize",
+  "defaultQuizMode",
+  "bankPageSize",
+] as const;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   /** Guests and first-time visitors land on Light. */
@@ -36,12 +53,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   compactMode: false,
   showTimer: true,
   soundEffects: true,
-  defaultQuizSize: 10,
-  defaultQuizMode: "practice",
   expandPassages: false,
   focusModeDefault: false,
   showQuestionMeta: true,
-  bankPageSize: 48,
   canvasSmartShapes: true,
 };
 
@@ -86,11 +100,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           }
         }
         if (raw) {
-          const saved = JSON.parse(raw) as Partial<AppSettings> & { navMode?: string; showDock?: boolean };
-          // The dock / keyboard navigation styles were removed — the sidebar is
-          // the only navigation now, so retired keys are dropped on load.
-          delete saved.navMode;
-          delete saved.showDock;
+          const saved = JSON.parse(raw) as Partial<AppSettings> & Record<string, unknown>;
+          // Retired keys (dock/nav styles, practice defaults) are dropped on
+          // load so stale stored values can't resurrect removed behaviour.
+          for (const key of RETIRED_SETTING_KEYS) delete saved[key];
           setSettings({
             ...DEFAULT_SETTINGS,
             ...saved,

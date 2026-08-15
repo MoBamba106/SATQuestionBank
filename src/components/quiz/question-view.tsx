@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { Ban, CheckCircle2, Highlighter, MousePointer2, XCircle } from "lucide-react";
 import { SafeHtml } from "@/components/ui/safe-html";
 import { AiDisclosure } from "@/components/ai-disclosure";
@@ -205,6 +206,7 @@ export function QuestionView({
   lockSelection,
   showExplanation = true,
   onOverrideCorrect,
+  highlighterSlot,
 }: {
   question: SATQuestion;
   selected: string | undefined;
@@ -213,6 +215,16 @@ export function QuestionView({
   lockSelection?: boolean;
   showExplanation?: boolean;
   onOverrideCorrect?: () => void;
+  /**
+   * Optional element to render the highlighter controls into.
+   *
+   * When the runner hides the difficulty / category badges there is room in
+   * the existing quiz control group, so it passes that node here and the
+   * highlighter becomes just another tool in the shared toolbar instead of
+   * getting a bar of its own. When the badges are visible the slot is omitted
+   * and the highlighter keeps its own row so the controls don't crowd.
+   */
+  highlighterSlot?: HTMLElement | null;
 }) {
   const { settings } = useSettings();
   const correctKey = resolveCorrectAnswer(question.correctAnswer, question.explanation);
@@ -293,7 +305,54 @@ export function QuestionView({
     applyColorToCurrentSelection(highlightColor);
   };
 
-  /** Position the floating color tooltip directly above/below the live selection. */
+  /**
+   * Compute and apply the menu position for a range.
+   *
+   * Positions against the *actual selection geometry* in viewport coordinates
+   * (the menu is `position: fixed`). Multi-line selections report one rect per
+   * line, so we anchor on the first line when placing above and the last line
+   * when placing below — the menu then hugs the text edge it points at instead
+   * of drifting to the bounding box of the whole paragraph.
+   *
+   * Shared by the initial show and by scroll/resize repositioning.
+   */
+  const repositionFloatingForRange = React.useCallback((range: Range) => {
+    const clientRects = Array.from(range.getClientRects()).filter((r) => r.width > 0 || r.height > 0);
+    const firstRect = clientRects[0] ?? range.getBoundingClientRect();
+    const lastRect = clientRects[clientRects.length - 1] ?? firstRect;
+    if (!firstRect || (firstRect.width === 0 && firstRect.height === 0)) return false;
+
+    const pad = 8;
+    const gap = 8;
+    const menuW = floatingRef.current?.offsetWidth || 220;
+    const menuH = floatingRef.current?.offsetHeight || 44;
+    const viewportW = document.documentElement.clientWidth || window.innerWidth;
+    const viewportH = document.documentElement.clientHeight || window.innerHeight;
+
+    const roomAbove = firstRect.top;
+    const roomBelow = viewportH - lastRect.bottom;
+    // Prefer above; flip below when the selection is near the top. If neither
+    // side fits (short viewports / mobile keyboards) use the roomier one.
+    let placeAbove = roomAbove >= menuH + gap + pad;
+    if (!placeAbove && roomBelow < menuH + gap + pad) placeAbove = roomAbove >= roomBelow;
+
+    const anchor = placeAbove ? firstRect : lastRect;
+    // Center on the anchored line, then clamp so the menu can never be clipped
+    // by either viewport edge — including narrow phones where the menu is
+    // wider than the selection itself.
+    const centerX = anchor.left + anchor.width / 2;
+    const halfW = Math.min(menuW, viewportW - pad * 2) / 2;
+    const x = Math.min(Math.max(pad + halfW, centerX), viewportW - pad - halfW);
+    // `y` is the menu's bottom edge when above, top edge when below.
+    const y = placeAbove
+      ? Math.max(menuH + pad, anchor.top - gap)
+      : Math.min(viewportH - menuH - pad, anchor.bottom + gap);
+
+    setFloatingMenu({ x, y, visible: true, place: placeAbove ? "above" : "below" });
+    return true;
+  }, []);
+
+  /** Show the 3-color menu for the current selection. */
   const showFloatingForSelection = React.useCallback(() => {
     if (highlightColor) {
       hideFloating();
@@ -304,28 +363,10 @@ export function QuestionView({
       hideFloating();
       return;
     }
-    // Prefer the first client rect (multi-line selections) so the menu sits
-    // over the actual highlighted glyphs, not the bounding box of the whole block.
-    const clientRects = Array.from(range.getClientRects()).filter((r) => r.width > 0 || r.height > 0);
-    const rect = clientRects[0] ?? range.getBoundingClientRect();
-    if (!rect || (rect.width === 0 && rect.height === 0 && !range.toString().trim())) {
+    if (!repositionFloatingForRange(range)) {
       hideFloating();
       return;
     }
-    const pad = 10;
-    const menuW = floatingRef.current?.offsetWidth || 220;
-    const menuH = floatingRef.current?.offsetHeight || 44;
-    // Anchor on the horizontal center of the first selected line so the menu
-    // hugs the selection instead of drifting toward the right edge.
-    const centerX = rect.left + rect.width / 2;
-    const x = Math.min(
-      Math.max(pad + menuW / 2, centerX),
-      window.innerWidth - pad - menuW / 2,
-    );
-    // Prefer directly above the selection; if clipped, flip directly below.
-    const aboveY = rect.top - 8;
-    const placeAbove = aboveY - menuH >= pad;
-    const y = placeAbove ? aboveY : Math.min(window.innerHeight - pad, rect.bottom + 8);
 
     // Preserve the range, then clear the native selection so the browser's
     // built-in selection popup (Opera GX copy/search overlay, etc.) never
@@ -334,9 +375,7 @@ export function QuestionView({
     if (setPendingSelectionHighlight(range)) {
       window.getSelection()?.removeAllRanges();
     }
-
-    setFloatingMenu({ x, y, visible: true, place: placeAbove ? "above" : "below" });
-  }, [getValidSelectionRange, hideFloating, highlightColor]);
+  }, [getValidSelectionRange, hideFloating, highlightColor, repositionFloatingForRange]);
 
   // Suppress browser context menu + Chrome/Edge "Search / Copy / Translate"
   // selection toolbar while selecting inside question content.
@@ -378,7 +417,7 @@ export function QuestionView({
     return () => clearPendingSelectionHighlight();
   }, [question.id]);
 
-  // Hide floating menu on outside click / scroll / escape.
+  // Dismiss on outside click / Escape; follow the selection on scroll & resize.
   React.useEffect(() => {
     if (!floatingMenu.visible) return;
     const onPointerDown = (e: PointerEvent) => {
@@ -388,16 +427,36 @@ export function QuestionView({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") hideFloating();
     };
-    const onScroll = () => hideFloating();
+    /**
+     * Scrolling used to dismiss the menu. Because the range is preserved
+     * (`pendingRangeRef`), we can simply re-measure and keep the menu glued to
+     * the text instead — and only give up if the selection scrolls out of view.
+     */
+    const reposition = () => {
+      const range = pendingRangeRef.current;
+      if (!range) {
+        hideFloating();
+        return;
+      }
+      const rect = range.getBoundingClientRect();
+      const viewportH = document.documentElement.clientHeight || window.innerHeight;
+      if (rect.bottom < 0 || rect.top > viewportH) {
+        hideFloating();
+        return;
+      }
+      repositionFloatingForRange(range);
+    };
     window.addEventListener("pointerdown", onPointerDown, true);
     window.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
     return () => {
       window.removeEventListener("pointerdown", onPointerDown, true);
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
     };
-  }, [floatingMenu.visible, hideFloating]);
+  }, [floatingMenu.visible, hideFloating, repositionFloatingForRange]);
 
   /**
    * Triple-click normally selects a whole paragraph/block. Block that on
@@ -431,43 +490,104 @@ export function QuestionView({
     window.requestAnimationFrame(() => showFloatingForSelection());
   };
 
+  /**
+   * Touch devices do not fire a usable mouseup for selection handles, so mirror
+   * the mouseup behaviour on touchend. Deferred twice (rAF + timeout) because
+   * mobile engines finalise the selection after the touch sequence ends.
+   */
+  const onRootTouchEnd = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement | null)?.closest("button, input, textarea, select, a")) return;
+    if (highlightColor) {
+      window.requestAnimationFrame(() => applyHighlight());
+      return;
+    }
+    window.setTimeout(() => showFloatingForSelection(), 60);
+  };
+
+  const pickHighlightColor = (color: HighlightColor) => {
+    setHighlightColor((current) => (current === color ? null : color));
+    hideFloating();
+  };
+  const clearHighlightTool = () => {
+    setHighlightColor(null);
+    hideFloating();
+  };
+
+  /**
+   * Highlighter controls. `inline` is the compact form used when they are
+   * portaled into the shared quiz toolbar; otherwise they render in their own
+   * bar above the question. Both forms expose the same three colors and the
+   * cursor (off) toggle.
+   */
+  const highlighterControls = (inline: boolean) => (
+    <div
+      role="group"
+      aria-label="Highlighter"
+      className={cn(
+        "flex flex-wrap items-center gap-1.5",
+        inline
+          ? "rounded-[6px] border border-[var(--line-soft)] bg-[var(--paper-soft)]/70 px-1.5 py-1"
+          : "gap-2 rounded-[7px] border border-[var(--line-soft)] bg-[var(--paper-soft)]/60 p-2",
+      )}
+    >
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[var(--ink-faint)]",
+          inline ? "text-[10.5px]" : "text-[11.5px]",
+        )}
+      >
+        <Highlighter className="h-3.5 w-3.5" />
+        {/* Label collapses on narrow screens so the shared toolbar stays usable. */}
+        <span className={inline ? "hidden lg:inline" : undefined}>Highlighter</span>
+      </span>
+      {(["yellow", "red", "blue"] as const).map((color) => (
+        <button
+          key={color}
+          type="button"
+          title={`Highlight ${color}`}
+          aria-label={`Highlight ${color}`}
+          aria-pressed={highlightColor === color}
+          onClick={() => pickHighlightColor(color)}
+          className={cn(
+            "highlight-swatch",
+            `highlight-swatch-${color}`,
+            highlightColor === color && "is-active",
+            // Inline: color chips only — the word would make the bar too wide.
+            inline && "!min-h-6 !w-6 !p-0 !text-[0px]",
+          )}
+        >
+          {color}
+        </button>
+      ))}
+      <button
+        type="button"
+        title="Turn the highlighter off"
+        onClick={clearHighlightTool}
+        className={cn(
+          "btn btn-ghost",
+          inline ? "!min-h-6 !px-1.5 !py-0.5 !text-[11px]" : "!min-h-7 !px-2.5 !py-1 !text-[11.5px]",
+        )}
+      >
+        <MousePointer2 className="h-3.5 w-3.5" />
+        <span className={inline ? "hidden xl:inline" : undefined}>Cursor</span>
+      </button>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 rounded-[7px] border border-[var(--line-soft)] bg-[var(--paper-soft)]/60 p-2">
-        <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">
-          <Highlighter className="h-3.5 w-3.5" /> Highlighter
-        </span>
-        {(["yellow", "red", "blue"] as const).map((color) => (
-          <button
-            key={color}
-            type="button"
-            className={cn("highlight-swatch", `highlight-swatch-${color}`, highlightColor === color && "is-active")}
-            onClick={() => {
-              setHighlightColor((current) => (current === color ? null : color));
-              hideFloating();
-            }}
-            aria-pressed={highlightColor === color}
-          >
-            {color}
-          </button>
-        ))}
-        <button
-          type="button"
-          className="btn btn-ghost !min-h-7 !px-2.5 !py-1 !text-[11.5px]"
-          onClick={() => {
-            setHighlightColor(null);
-            hideFloating();
-          }}
-        >
-          <MousePointer2 className="h-3.5 w-3.5" /> Cursor
-        </button>
-      </div>
+      {/* Merged into the quiz control group when a slot is provided (badges
+          hidden), otherwise shown as its own bar. */}
+      {highlighterSlot
+        ? ReactDOM.createPortal(highlighterControls(true), highlighterSlot)
+        : highlighterControls(false)}
 
       <div
         key={question.id}
         ref={highlightRootRef}
         onMouseDown={onRootMouseDown}
         onMouseUp={onRootMouseUp}
+        onTouchEnd={onRootTouchEnd}
         className={cn("space-y-4", highlightColor && "highlight-tool-active")}
       >
         {question.passageHtml && (
@@ -613,7 +733,7 @@ export function QuestionView({
           }}
         >
           <span className="highlight-floating-label">
-            <Highlighter className="h-3 w-3" /> Highlight
+            <Highlighter className="h-3 w-3" /> <span>Highlight</span>
           </span>
           {(["yellow", "red", "blue"] as const).map((color) => (
             <button

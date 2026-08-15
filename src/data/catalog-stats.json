@@ -1,0 +1,18 @@
+{
+  "totalQuestions": 3714,
+  "mathQuestions": 1876,
+  "readingWritingQuestions": 1838,
+  "skillCount": 8,
+  "difficulties": {
+    "Easy": 1288,
+    "Hard": 1218,
+    "Medium": 1208
+  },
+  "vocabularyTerms": 871,
+  "practiceTests": 9,
+  "generatedFrom": [
+    "src/data/question-bank.json",
+    "src/data/vocabulary.json",
+    "src/lib/seed.ts"
+  ]
+}

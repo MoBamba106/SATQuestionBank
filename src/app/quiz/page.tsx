@@ -9,7 +9,7 @@ import { PaperSelect } from "@/components/ui/paper-select";
 import { PaperMultiSelect } from "@/components/ui/paper-multi-select";
 import { PaperSlider } from "@/components/ui/paper-slider";
 import { PracticeRunner } from "@/components/quiz/practice-runner";
-import { useSettings } from "@/components/settings-provider";
+import { DEFAULT_QUIZ_SIZE } from "@/components/settings-provider";
 import { BluebookRunner } from "@/components/quiz/bluebook-runner";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { clearPool, readPool } from "@/lib/quiz-session";
@@ -32,8 +32,6 @@ type Phase =
 function QuizInner() {
   const router = useRouter();
   const sp = useSearchParams();
-  const { settings, ready: settingsReady } = useSettings();
-  const defaultsApplied = React.useRef(false);
   const [phase, setPhase] = React.useState<Phase>({ kind: "setup" });
   const [booting, setBooting] = React.useState(false);
   const [handoffError, setHandoffError] = React.useState<string | null>(null);
@@ -45,16 +43,9 @@ function QuizInner() {
   const [skill, setSkill] = React.useState("All");
   const [subskill, setSubskill] = React.useState("All");
   const [difficulty, setDifficulty] = React.useState<string[]>([]);
-  const [count, setCount] = React.useState(10);
+  const [count, setCount] = React.useState(DEFAULT_QUIZ_SIZE);
   const [quizMode, setQuizMode] = React.useState<"practice" | "exam">("practice");
   const [available, setAvailable] = React.useState<number | null>(null);
-
-  React.useEffect(() => {
-    if (!settingsReady || defaultsApplied.current) return;
-    defaultsApplied.current = true;
-    setCount(settings.defaultQuizSize);
-    setQuizMode(settings.defaultQuizMode);
-  }, [settings, settingsReady]);
 
   const skillOpts = React.useMemo(
     () => [
@@ -349,12 +340,14 @@ function QuizInner() {
             <label className="text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Questions</label>
             <span className="font-display text-2xl font-bold text-[var(--accent)]">{count}</span>
           </div>
+          {/* step=1 so the 12-question default is representable and students
+              can still dial in any length they want. */}
           <PaperSlider
             value={count}
             onValueChange={setCount}
             min={5}
             max={40}
-            step={5}
+            step={1}
             ticks={[5, 10, 15, 20, 25, 30, 35, 40]}
             formatValue={(v) => `${v}`}
             ariaLabel="Number of questions"

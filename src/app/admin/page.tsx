@@ -83,8 +83,12 @@ type AdminUser = {
   attempts: number;
   correct: number;
   sessions: number;
+  /** Newest of the presence heartbeat and any real activity (UTC ISO). */
   lastActive: string | null;
+  /** Raw presence heartbeat (UTC ISO); may be null for users who predate it. */
   lastSeen: string | null;
+  /** Newest graded attempt (UTC ISO). */
+  lastAttemptAt: string | null;
   isOnline: boolean;
 };
 
@@ -353,9 +357,9 @@ export default function AdminPage() {
                                     title={
                                       user.isOnline
                                         ? "Online now (Detroit time)"
-                                        : user.lastSeen
-                                          ? `Last seen ${formatDetroitDateTime(user.lastSeen)}`
-                                          : "Offline"
+                                        : user.lastActive
+                                          ? `Last active ${formatDetroitDateTime(user.lastActive)}`
+                                          : "Never active"
                                     }
                                   />
                                 </span>
@@ -372,25 +376,25 @@ export default function AdminPage() {
                             <td className="px-4 py-3 font-mono">{user.attempts > 0 ? `${acc}%` : "—"}</td>
                             <td className="px-4 py-3 font-mono">{user.sessions}</td>
                             <td className="px-4 py-3 text-[12px]">
+                              {/* `lastActive` already folds in the presence
+                                  heartbeat AND every kind of real activity, so
+                                  it is the single source of truth here. Only a
+                                  genuinely unused account has none. */}
                               {user.isOnline ? (
                                 <span className="inline-flex items-center gap-1 font-semibold text-green-600">
                                   ● Online now
-                                  {user.lastSeen ? (
+                                  {user.lastActive ? (
                                     <span className="font-normal text-[var(--ink-faint)]">
-                                      · {formatDetroitDateTime(user.lastSeen)}
+                                      · {formatDetroitDateTime(user.lastActive)}
                                     </span>
                                   ) : null}
                                 </span>
-                              ) : user.lastSeen ? (
-                                <span className="text-[var(--ink-faint)]" title={formatDetroitDateTime(user.lastSeen)}>
-                                  {formatDetroitRelative(user.lastSeen)}
-                                </span>
                               ) : user.lastActive ? (
                                 <span className="text-[var(--ink-faint)]" title={formatDetroitDateTime(user.lastActive)}>
-                                  Active {formatDetroitRelative(user.lastActive)}
+                                  {formatDetroitRelative(user.lastActive)}
                                 </span>
                               ) : (
-                                <span className="text-[var(--ink-faint)]">never</span>
+                                <span className="text-[var(--ink-faint)]">Never active</span>
                               )}
                             </td>
                             <td className="px-4 py-3">

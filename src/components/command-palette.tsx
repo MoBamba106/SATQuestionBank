@@ -8,6 +8,7 @@ import {
   BookOpenText,
   CalendarClock,
   Folders,
+  Home,
   LayoutDashboard,
   Library,
   MonitorSmartphone,
@@ -35,7 +36,8 @@ export type CommandItem = {
 };
 
 const BASE_NAV_COMMANDS: CommandItem[] = [
-  { id: "home", label: "Study desk", href: "/", icon: LayoutDashboard, keywords: "home dashboard" },
+  { id: "home", label: "Home", href: "/", icon: Home, keywords: "landing start overview about" },
+  { id: "desk", label: "Study desk", href: "/desk", icon: LayoutDashboard, keywords: "dashboard progress stats" },
   { id: "study", label: "Study library", href: "/study", icon: BookMarked, keywords: "vocab flashcards" },
   { id: "quiz", label: "Practice quiz", href: "/quiz", icon: PenSquare, keywords: "practice exam" },
   { id: "bank", label: "Question bank", href: "/bank", icon: Library, keywords: "questions search" },

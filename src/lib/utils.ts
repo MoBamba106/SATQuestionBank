@@ -394,7 +394,7 @@ export function formatDetroitDateTime(value: string | number | Date) {
 /** Relative presence label in Detroit time (e.g. "3 min ago · 4:12 PM EDT"). */
 export function formatDetroitRelative(value: string | number | Date | null | undefined): string {
   const date = parseUtcDate(value ?? null);
-  if (!date) return "never";
+  if (!date) return "Never active";
   const diffMs = Date.now() - date.getTime();
   const abs = Math.abs(diffMs);
   const mins = Math.round(abs / 60_000);

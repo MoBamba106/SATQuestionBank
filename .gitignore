@@ -13,3 +13,6 @@ src/app/_api_disabled
 .vercel
 src-tauri/target
 .env
+
+# Question-bank snapshots created by scripts/cb-sync.ts (large; keep local)
+src/data/backups/

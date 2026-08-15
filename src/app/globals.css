@@ -430,6 +430,9 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
+  /* Never wider than the viewport — keeps the menu usable on phones. */
+  max-width: calc(100vw - 16px);
+  flex-wrap: nowrap;
   color: var(--ink);
   background: var(--paper-raised);
   border: 1px solid var(--line);
@@ -437,6 +440,12 @@ html[data-theme="cardboard"] ::selection { color: #2f2118; background: #e8bd66; 
   box-shadow: 0 10px 28px rgba(20, 24, 34, 0.18);
   pointer-events: auto;
   animation: paper-pop 120ms ease-out both;
+}
+/* Drop the "Highlight" caption on narrow screens so the colors always fit. */
+@media (max-width: 420px) {
+  .highlight-floating-menu .highlight-floating-label span {
+    display: none;
+  }
 }
 .highlight-floating-label {
   display: inline-flex;

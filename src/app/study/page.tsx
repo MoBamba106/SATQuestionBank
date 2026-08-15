@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { BookMarked, Check, Gamepad2, LayoutGrid, Search, Shuffle } from "lucide-react";
-import { STUDY_ITEMS, type StudyTopic } from "@/lib/study-content";
+import { STUDY_ITEMS, VOCABULARY_COUNT, type StudyTopic } from "@/lib/study-content";
 import { cn, difficultyColor } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PaperMultiSelect } from "@/components/ui/paper-multi-select";
@@ -160,7 +160,12 @@ export default function StudyLibraryPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-[var(--ink-faint)]">
         <span className="inline-flex items-center gap-2"><Shuffle className="h-3.5 w-3.5" /> {mastered.length} study notes marked mastered on this device.</span>
-        {topic === "Vocabulary" && <span>600 academic words · definitions aligned with Merriam-Webster · difficulty is relative frequency · see VOCABULARY_ATTRIBUTION.md</span>}
+        {topic === "Vocabulary" && (
+          <span>
+            {VOCABULARY_COUNT} words pulled from official SAT &ldquo;Words in Context&rdquo; questions · difficulty matches
+            the College Board question it was tested in · see VOCABULARY_ATTRIBUTION.md
+          </span>
+        )}
       </div>
     </div>
   );
