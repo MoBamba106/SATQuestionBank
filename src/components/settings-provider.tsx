@@ -13,9 +13,9 @@ export type PassageLayout = "scroll" | "expand";
  * This is a *default*, not a limit: the quiz builder's slider still lets a
  * student pick any supported length, and the question bank still paginates
  * through everything. The old "Practice defaults" settings section that made
- * users configure this was removed — 12 is a sensible session out of the box.
+ * users configure this was removed — 10 is a sensible session out of the box.
  */
-export const DEFAULT_QUIZ_SIZE = 12;
+export const DEFAULT_QUIZ_SIZE = 10;
 export const DEFAULT_BANK_PAGE_SIZE = 12;
 
 export type AppSettings = {

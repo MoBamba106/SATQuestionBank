@@ -343,7 +343,7 @@ function QuizInner() {
             <label className="text-[12px] font-bold uppercase tracking-wider text-[var(--ink-faint)]">Questions</label>
             <span className="font-display text-2xl font-bold text-[var(--accent)]">{count}</span>
           </div>
-          {/* step=1 so the 12-question default is representable and students
+          {/* step=1 so the 10-question default is representable and students
               can still dial in any length they want. */}
           <PaperSlider
             value={count}
