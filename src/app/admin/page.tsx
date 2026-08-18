@@ -221,6 +221,7 @@ export default function AdminPage() {
       if (item.context) lines.push(`Context: ${item.context}`);
       if (item.email || item.displayName) lines.push(`From: ${item.displayName || "anonymous"}${item.email ? ` <${item.email}>` : ""}`);
       lines.push(`Status: ${item.status}`);
+      lines.push(`Filed: ${formatDetroitDateTime(item.createdAt)}`);
       if (index < fbData.feedback.length - 1) lines.push("", "---", "");
     });
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });

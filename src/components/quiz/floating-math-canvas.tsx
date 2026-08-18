@@ -66,6 +66,14 @@ function isDarkTheme(theme: string): boolean {
   return theme === "dark" || theme === "obsidian";
 }
 
+/** Whether a keyboard event targets an editable control, where the browser's
+ *  native undo/redo should win and our canvas shortcuts must not interfere. */
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  return target.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+}
+
 function moveItem(item: DrawItem, dx: number, dy: number): DrawItem {
   if (item.type === "path") return { ...item, points: item.points.map((point) => ({ x: point.x + dx, y: point.y + dy })) };
   if (item.type === "text") return { ...item, point: { x: item.point.x + dx, y: item.point.y + dy } };
@@ -405,8 +413,12 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   const [strokeWidth, setStrokeWidth] = React.useState(3);
   const [textValue, setTextValue] = React.useState("x");
   const [items, setItems] = React.useState<DrawItem[]>([]);
-  const [redo, setRedo] = React.useState<DrawItem[]>([]);
+  // Snapshot history: `past` holds up to HISTORY_LIMIT previous item states and
+  // `future` holds undone states for redo. A new action clears `future`.
+  const [past, setPast] = React.useState<DrawItem[][]>([]);
+  const [future, setFuture] = React.useState<DrawItem[][]>([]);
   const [draft, setDraft] = React.useState<DrawItem | null>(null);
+  const HISTORY_LIMIT = 10;
   const [selected, setSelected] = React.useState<string | null>(null);
   /** Digits typed so far while Alt is held (committed on Alt release). */
   const [pendingNumber, setPendingNumber] = React.useState("");
@@ -417,6 +429,57 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   // only override the automatic default, not a deliberate choice.
   const userPickedColor = React.useRef(false);
   const lastAutoColor = React.useRef(color);
+
+  // --- Undo/redo history --------------------------------------------------
+  // These refs mirror `items`/`past`/`future` so callbacks (undo/redo/commit)
+  // can read the *latest* values synchronously instead of a possibly-stale
+  // closure. They are synced in effects (updating a ref during render is
+  // disallowed) — which is fine because effects run before the next user event.
+  const itemsRef = React.useRef<DrawItem[]>(items);
+  const pastRef = React.useRef<DrawItem[][]>(past);
+  const futureRef = React.useRef<DrawItem[][]>(future);
+  React.useEffect(() => { itemsRef.current = items; }, [items]);
+  React.useEffect(() => { pastRef.current = past; }, [past]);
+  React.useEffect(() => { futureRef.current = future; }, [future]);
+  /** Snapshot taken just before a select-tool move drag begins. */
+  const moveSnapshotRef = React.useRef<DrawItem[]>([]);
+
+  /** Apply `next` as a new committed action: record the current state in the
+   *  undo stack (capped at HISTORY_LIMIT) and drop the redo stack. */
+  const commitItems = React.useCallback((next: DrawItem[]) => {
+    setPast((p) => [...p, itemsRef.current].slice(-HISTORY_LIMIT));
+    setFuture([]);
+    itemsRef.current = next;
+    setItems(next);
+  }, []);
+
+  /** Live update used mid-drag (e.g. moving an object) — does NOT create a new
+   *  history entry; the pre-drag snapshot is committed once on pointer-up. */
+  const setItemsLive = React.useCallback((updater: (cur: DrawItem[]) => DrawItem[]) => {
+    const next = updater(itemsRef.current);
+    itemsRef.current = next;
+    setItems(next);
+  }, []);
+
+  const undo = React.useCallback(() => {
+    const p = pastRef.current;
+    if (p.length === 0) return;
+    const prev = p[p.length - 1];
+    setFuture((f) => [...f, itemsRef.current].slice(-HISTORY_LIMIT));
+    itemsRef.current = prev;
+    setItems(prev);
+    setPast((cur) => cur.slice(0, -1));
+  }, []);
+
+  const redo = React.useCallback(() => {
+    const f = futureRef.current;
+    if (f.length === 0) return;
+    const next = f[f.length - 1];
+    setPast((cur) => [...cur, itemsRef.current].slice(-HISTORY_LIMIT));
+    itemsRef.current = next;
+    setItems(next);
+    setFuture((cur) => cur.slice(0, -1));
+  }, []);
 
   React.useEffect(() => {
     const next = defaultPenForTheme(theme);
@@ -431,9 +494,8 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   }, [theme]);
 
   const addText = React.useCallback((text: string, point = { x: 360, y: 240 }) => {
-    setItems((current) => [...current, { id: uid(), type: "text", point, text, color, size: 24 }]);
-    setRedo([]);
-  }, [color]);
+    commitItems([...itemsRef.current, { id: uid(), type: "text", point, text, color, size: 24 }]);
+  }, [color, commitItems]);
 
   /**
    * Alt + letter/digit inserts a quick label onto the canvas.
@@ -501,6 +563,30 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
     };
   }, [addText, flushPendingDigits, open]);
 
+  // History keyboard shortcuts: Ctrl/Cmd+Z to undo, Ctrl/Cmd+Shift+Z or
+  // Ctrl/Cmd+Y to redo. Skipped inside editable fields so the browser's native
+  // text-undo keeps working, and never fires when the canvas is closed.
+  React.useEffect(() => {
+    if (!open) return;
+    const onHistoryKey = (event: KeyboardEvent) => {
+      if (event.repeat) return;
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod || event.altKey) return;
+      if (isEditableTarget(event.target)) return;
+      const key = event.key.toLowerCase();
+      if (key === "z") {
+        event.preventDefault();
+        if (event.shiftKey) redo();
+        else undo();
+      } else if (key === "y") {
+        event.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener("keydown", onHistoryKey);
+    return () => window.removeEventListener("keydown", onHistoryKey);
+  }, [open, undo, redo]);
+
   if (!open) return null;
 
   const pointFromEvent = (event: React.PointerEvent<SVGSVGElement>): Point => {
@@ -524,13 +610,15 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
     event.currentTarget.setPointerCapture(event.pointerId);
 
     if (tool === "eraser") {
-      if (itemId) setItems((current) => current.filter((item) => item.id !== itemId));
+      if (itemId) commitItems(itemsRef.current.filter((item) => item.id !== itemId));
       return;
     }
     if (tool === "select") {
       setSelected(itemId ?? null);
       const original = items.find((item) => item.id === itemId);
       drawDrag.current = { id: event.pointerId, start: point, original };
+      // Snapshot the pre-move state so one undo restores the original position.
+      if (original) moveSnapshotRef.current = itemsRef.current;
       return;
     }
     if (tool === "text") {
@@ -551,7 +639,7 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
       const dx = point.x - drawDrag.current.start.x;
       const dy = point.y - drawDrag.current.start.y;
       const moved = moveItem(drawDrag.current.original, dx, dy);
-      setItems((current) => current.map((item) => (item.id === moved.id ? moved : item)));
+      setItemsLive((current) => current.map((item) => (item.id === moved.id ? moved : item)));
       return;
     }
     setDraft((current) => {
@@ -563,21 +651,29 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
   };
 
   const finishDrawing = () => {
+    // A select-tool drag (moving an object) just ended — commit the pre-move
+    // snapshot so undo restores the object's original position.
+    if (tool === "select" && drawDrag.current?.original) {
+      if (moveSnapshotRef.current.length > 0) {
+        setPast((p) => [...p, moveSnapshotRef.current].slice(-HISTORY_LIMIT));
+        setFuture([]);
+        moveSnapshotRef.current = [];
+      }
+    }
+
     if (draft) {
       // Smart shape recognition: convert rough pen scribbles into crisp
       // shapes / legible glyphs when the setting is enabled.
       if (draft.type === "path" && smartShapes && draft.points.length > 2) {
         const recognized = recognizeStroke(draft.points);
         if (recognized) {
-          setItems((current) => [...current, itemFromRecognized(recognized, draft.color, draft.width)]);
-          setRedo([]);
+          commitItems([...itemsRef.current, itemFromRecognized(recognized, draft.color, draft.width)]);
           setDraft(null);
           drawDrag.current = null;
           return;
         }
       }
-      setItems((current) => [...current, draft]);
-      setRedo([]);
+      commitItems([...itemsRef.current, draft]);
     }
     setDraft(null);
     drawDrag.current = null;
@@ -793,38 +889,27 @@ export function FloatingMathCanvas({ open, onClose }: { open: boolean; onClose: 
             <button
               type="button"
               className="btn btn-ghost !min-h-8 !px-2.5"
-              disabled={!items.length}
-              onClick={() => {
-                const last = items.at(-1);
-                if (last) {
-                  setItems(items.slice(0, -1));
-                  setRedo((current) => [...current, last]);
-                }
-              }}
+              title="Undo (Ctrl+Z)"
+              disabled={past.length === 0}
+              onClick={undo}
             >
               <Undo2 className="h-4 w-4" />
             </button>
             <button
               type="button"
               className="btn btn-ghost !min-h-8 !px-2.5"
-              disabled={!redo.length}
-              onClick={() => {
-                const last = redo.at(-1);
-                if (last) {
-                  setRedo(redo.slice(0, -1));
-                  setItems((current) => [...current, last]);
-                }
-              }}
+              title="Redo (Ctrl+Y)"
+              disabled={future.length === 0}
+              onClick={redo}
             >
               <Redo2 className="h-4 w-4" />
             </button>
             <button
               type="button"
               className="btn btn-ghost !min-h-8 !px-2.5 text-[var(--bad)]"
-              onClick={() => {
-                setItems([]);
-                setRedo([]);
-              }}
+              title="Clear canvas (undoable)"
+              disabled={items.length === 0}
+              onClick={() => commitItems([])}
             >
               <Trash2 className="h-4 w-4" />
             </button>
