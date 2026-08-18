@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       const existing = await tx.execute(sql`
         SELECT COUNT(*) as c FROM practice_tests WHERE user_id = ${user.id} AND is_custom = true
       `);
-      const existingCount = Number((existing as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
+      const existingCount = Number((existing as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
       const generatedNumber = existingCount + 1;
       finalTitle = `Generated Practice Test ${generatedNumber}`;
 

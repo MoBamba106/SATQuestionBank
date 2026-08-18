@@ -59,7 +59,7 @@ export function PaperMultiSelect({
     const el = triggerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const menuHeight = Math.min(MENU_ESTIMATE, Math.max(120, options.length * 42 + 12));
+    const menuHeight = Math.min(MENU_ESTIMATE, Math.max(120, options.length * 42 + 42));
     const spaceBelow = window.innerHeight - rect.bottom - 8;
     const spaceAbove = rect.top - 8;
     const up = spaceBelow < menuHeight && spaceAbove >= Math.min(menuHeight, spaceBelow);
@@ -71,31 +71,52 @@ export function PaperMultiSelect({
     });
   }, [options.length]);
 
+  // Use layout effect so position is computed synchronously before paint when opening.
+  // This avoids the double-render flash where open=true but pos=null hid the menu.
+  React.useLayoutEffect(() => {
+    if (open) computePos();
+  }, [open, computePos]);
+
   React.useEffect(() => {
     if (!open) return;
-    computePos();
+    // Recompute on scroll (capture phase so we catch scrolls inside any container)
     const onScroll = () => computePos();
     const onResize = () => setOpen(false);
-    // The menu is portaled to document.body, so it is not a descendant of
-    // rootRef. Ignore pointerdowns that land in the menu — otherwise the
-    // dismiss handler unmounts the list before the option's click can fire.
-    const onPointerDown = (event: PointerEvent) => {
+
+    const isInside = (target: Node | null) => {
+      if (!target) return false;
+      // composedPath handles shadow DOM / portal cases more reliably than contains alone
+      const path = (target as unknown as { composedPath?: () => EventTarget[] })?.composedPath?.()
+        ? ((target as unknown as { composedPath: () => EventTarget[] }).composedPath() as unknown as Node[])
+        : [];
+      if (path.length) {
+        return path.some((node) => rootRef.current?.contains(node) || menuRef.current?.contains(node));
+      }
+      return Boolean(rootRef.current?.contains(target) || menuRef.current?.contains(target));
+    };
+
+    const onPointerDown = (event: PointerEvent | MouseEvent) => {
       const target = event.target as Node | null;
-      if (!target) return;
-      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      if (isInside(target)) return;
       setOpen(false);
     };
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
+
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onResize);
-    document.addEventListener("pointerdown", onPointerDown);
+    // Listen to both pointerdown and mousedown for maximum compatibility (some
+    // browsers / assistive tech still fire mousedown without pointerdown).
+    document.addEventListener("pointerdown", onPointerDown as unknown as EventListener);
+    document.addEventListener("mousedown", onPointerDown as unknown as EventListener);
     document.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", onResize);
-      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointerdown", onPointerDown as unknown as EventListener);
+      document.removeEventListener("mousedown", onPointerDown as unknown as EventListener);
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open, computePos]);
@@ -111,19 +132,28 @@ export function PaperMultiSelect({
     return values.map((v) => options.find((o) => o.value === v)?.label ?? v).join(", ");
   }, [values, options, placeholder]);
 
-  const toggle = (value: string) => {
-    // Stay open while multi-selecting; only "All" clears and leaves the menu open
-    // so the user can confirm the empty state, then click outside to dismiss.
-    if (value === "All") {
-      onValuesChange([]);
-      return;
-    }
-    onValuesChange(
-      selectedSet.has(value)
-        ? values.filter((v) => v !== value)
-        : [...values, value],
-    );
-  };
+  const toggle = React.useCallback(
+    (value: string) => {
+      if (value === "All") {
+        onValuesChange([]);
+        return;
+      }
+      onValuesChange(
+        selectedSet.has(value)
+          ? values.filter((v) => v !== value)
+          : [...values, value],
+      );
+    },
+    [onValuesChange, selectedSet, values],
+  );
+
+  const handleTriggerClick = React.useCallback(() => {
+    if (disabled) return;
+    // Compute position synchronously before opening so the menu can appear on the
+    // very first render with open=true (no flash where open && !pos hides it).
+    if (!open) computePos();
+    setOpen((o) => !o);
+  }, [disabled, open, computePos]);
 
   const menu = (
     <div
@@ -132,14 +162,32 @@ export function PaperMultiSelect({
         "paper-pop fixed z-[999] overflow-hidden rounded-[7px] border border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink)] shadow-[0_16px_36px_rgba(20,24,34,0.18)]",
       )}
       style={{
-        top: pos?.top,
-        left: pos?.left,
+        top: pos?.top ?? 0,
+        left: pos?.left ?? 0,
         width: pos?.width,
         transform: pos?.up ? "translateY(-100%)" : undefined,
+        // While pos is null (first frame after opening) keep the menu invisible
+        // but mounted so refs are set and outside-click detection works.
+        opacity: pos ? 1 : 0,
+        pointerEvents: pos ? "auto" : "none",
       }}
       role="listbox"
       aria-multiselectable="true"
-      onPointerDown={(event) => event.stopPropagation()}
+      // Prevent the document's pointerdown/mousedown outside handler from
+      // seeing inside clicks as outside. Stop both the React synthetic event
+      // and the native event's immediate propagation for robustness across
+      // React's portal delegation (where stopPropagation alone may not prevent
+      // a document-level listener at the same node).
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        // Also stop native propagation for listeners at the same document node.
+        (event.nativeEvent as unknown as { stopImmediatePropagation?: () => void })?.stopImmediatePropagation?.();
+      }}
+      onMouseDown={(event) => {
+        event.stopPropagation();
+        (event.nativeEvent as unknown as { stopImmediatePropagation?: () => void })?.stopImmediatePropagation?.();
+      }}
+      onClick={(event) => event.stopPropagation()}
     >
       <div className="max-h-[300px] overflow-y-auto p-1.5 scrollbar-thin">
         {visibleOptions.map((option) => {
@@ -153,7 +201,17 @@ export function PaperMultiSelect({
               aria-selected={active}
               data-tone={option.tone ?? tone}
               data-state={active ? "checked" : undefined}
-              onClick={() => toggle(option.value)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle(option.value);
+              }}
+              // Also handle mousedown to ensure selection works even if click is
+              // somehow swallowed by the outside-click handler's timing.
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               className={cn(
                 "paper-select-item flex w-full cursor-pointer select-none items-center gap-2 rounded-[5px] py-2 pl-3 pr-2 text-left text-[13.5px] outline-none transition-colors",
                 "hover:bg-[var(--paper-soft)]",
@@ -188,12 +246,16 @@ export function PaperMultiSelect({
         aria-expanded={open}
         data-tone={tone}
         data-state={open ? "open" : "closed"}
-        onClick={() => {
-          setOpen((o) => {
-            const next = !o;
-            if (next) computePos();
-            return next;
-          });
+        onClick={handleTriggerClick}
+        onPointerDown={(e) => {
+          // Prevent the document's outside handler (which listens on pointerdown)
+          // from closing the menu immediately when the trigger itself is clicked.
+          // We stop propagation at the trigger so the outside handler sees it as inside.
+          if (open) {
+            // When closing via trigger, let the click toggle handle it; just keep
+            // the event from being treated as an outside click.
+            e.stopPropagation();
+          }
         }}
         className={cn(
           "paper-select-trigger group inline-flex w-full items-center justify-between gap-2 rounded-[7px] border border-[var(--line)] bg-[var(--control-bg,var(--paper-raised))] text-left text-[var(--ink)] transition-[background-color,border-color,box-shadow] duration-150",
@@ -206,7 +268,7 @@ export function PaperMultiSelect({
         <ChevronDown className={cn("h-4 w-4 shrink-0 opacity-65 transition-transform duration-150", open && "rotate-180")} />
       </button>
 
-      {open && pos && createPortal(menu, document.body)}
+      {open && typeof document !== "undefined" && createPortal(menu, document.body)}
     </div>
   );
 }
