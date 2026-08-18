@@ -130,7 +130,17 @@ export function buildQuestionFilters(p: {
   const conds: SQL[] = [];
   const eq = (v?: string | null) => v && v !== "All" && v !== "all";
   if (eq(p.domain)) conds.push(sql`q.domain = ${p.domain}`);
-  if (eq(p.skill)) conds.push(sql`q.skill = ${p.skill}`);
+  if (eq(p.skill)) {
+    // Categories/domains can be multi-selected (e.g. "Craft and Structure",
+    // "Information and Ideas") — match questions from ANY selected category.
+    const parts = p.skill!.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length === 1) {
+      conds.push(sql`q.skill = ${parts[0]}`);
+    } else if (parts.length > 1) {
+      const params = sql.join(parts.map((part) => sql`${part}`), sql`, `);
+      conds.push(sql`q.skill IN (${params})`);
+    }
+  }
   if (eq(p.subskill)) conds.push(sql`TRIM(LOWER(q.subskill)) = TRIM(LOWER(${p.subskill}))`);
   if (eq(p.difficulty)) {
     const parts = p.difficulty!.split(",").map((part) => part.trim()).filter(Boolean);
@@ -142,12 +152,34 @@ export function buildQuestionFilters(p: {
     }
   }
   if (p.search && p.search.trim()) {
-    const cleanSearch = p.search.trim();
-    if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(cleanSearch)) {
-      conds.push(sql`q.id = ${cleanSearch}`);
+    // Users often paste an id with its leading "#" (e.g. "#000259aa"). Strip it
+    // so we match the actual 8-hex-char ids stored in the bank.
+    let clean = p.search.trim();
+    if (clean.startsWith("#")) clean = clean.slice(1).trim();
+    const s = `%${clean}%`;
+
+    // Exact full id match (our bank stores 8-char hex ids; UUIDs are also
+    // accepted for forward-compatibility).
+    const isFullId =
+      /^[0-9a-fA-F]{8}$/.test(clean) ||
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(clean);
+
+    if (isFullId) {
+      conds.push(sql`q.id = ${clean}`);
     } else {
-      const s = `%${cleanSearch}%`;
-      conds.push(sql`(q.question_text ILIKE ${s} OR q.id ILIKE ${s} OR q.skill ILIKE ${s} OR q.subskill ILIKE ${s})`);
+      // Search the meaningful textual fields — question stem, passage (and its
+      // html), id, skill/subskill, and explanation — so a word or phrase that
+      // appears in a passage still surfaces the question.
+      conds.push(sql`(
+        q.question_text ILIKE ${s} OR
+        q.question_html ILIKE ${s} OR
+        q.passage ILIKE ${s} OR
+        q.passage_html ILIKE ${s} OR
+        q.id ILIKE ${s} OR
+        q.skill ILIKE ${s} OR
+        q.subskill ILIKE ${s} OR
+        q.explanation ILIKE ${s}
+      )`);
     }
   }
   if (p.favoritesOnly) {

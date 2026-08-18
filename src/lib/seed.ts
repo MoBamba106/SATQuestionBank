@@ -154,9 +154,14 @@ async function doSeed() {
   const qCount = await db.execute(sql`select count(*)::int as c from questions`);
   const c = Number((qCount as unknown as { rows?: { c: number }[] }).rows?.[0]?.c ?? 0);
 
-  let all: SeedQuestion[] = [];
-  if (c === 0) {
-    all = loadQuestionBank();
+  const all = loadQuestionBank();
+
+  // Bring the database up to the full bank whenever it has fewer questions than
+  // the shipped data (e.g. a DB seeded from an older, smaller bank). Inserts
+  // are idempotent (`onConflictDoNothing`), so this safely adds only the rows
+  // that are missing and is a no-op once the DB already has them all. This is
+  // what keeps the question-bank count and the homepage count in agreement.
+  if (c < all.length) {
     const BATCH = 100;
     for (let i = 0; i < all.length; i += BATCH) {
       const chunk = all.slice(i, i + BATCH).map((q) => ({
@@ -177,11 +182,10 @@ async function doSeed() {
       }));
       await db.insert(questions).values(chunk).onConflictDoNothing();
     }
-  } else {
-    // Existing DBs may predate answer backfills — fill blanks in place.
-    all = loadQuestionBank();
-    await backfillMissingAnswers(all);
   }
+
+  // Existing DBs may predate answer backfills — fill blanks in place.
+  await backfillMissingAnswers(all);
 
   // --- practice tests 3-11 ---
   const tCount = await db.execute(sql`select count(*)::int as c from practice_tests`);
@@ -206,11 +210,6 @@ async function doSeed() {
   if (tc > 0) {
     await db.execute(sql`DELETE FROM practice_test_questions`);
     await db.execute(sql`DELETE FROM practice_tests`);
-  }
-
-  if (all.length === 0) {
-    const file = path.join(process.cwd(), "src/data/question-bank.json");
-    all = JSON.parse(fs.readFileSync(file, "utf8"));
   }
 
   for (const meta of PRACTICE_TEST_META) {

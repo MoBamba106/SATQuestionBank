@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Loader2, Swords, Send, Search, UserRound, Play, X, Check, Trophy,
+  Loader2, Swords, Send, Search, UserRound, Play, X, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -15,7 +15,7 @@ import { RequireAccount } from "@/components/require-account";
 import { useApi, apiPost, apiPatch, mutateKey } from "@/lib/api-client";
 import { useAuth } from "@/components/auth-provider";
 import { skillsForDomain, subskillsFor } from "@/lib/sat-categories";
-import { cn, formatDetroitDateTime, skillTone } from "@/lib/utils";
+import { formatDetroitDateTime, skillTone } from "@/lib/utils";
 
 import posthog from "posthog-js";
 
@@ -43,15 +43,6 @@ type DuelList = {
     questionCount: number;
     hostUserId: string;
     guestUserId: string;
-  }>;
-  recent: Array<{
-    id: string;
-    label: string;
-    status: string;
-    hostScore: number;
-    guestScore: number;
-    winnerUserId?: string | null;
-    finishedAt?: string | null;
   }>;
 };
 
@@ -95,11 +86,11 @@ function DuelInner() {
   );
 
   React.useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
     const t = window.setTimeout(async () => {
+      if (query.trim().length < 2) {
+        setResults([]);
+        return;
+      }
       setSearching(true);
       try {
         const res = await fetch(`/api/users/search?q=${encodeURIComponent(query.trim())}`);
@@ -396,35 +387,6 @@ function DuelInner() {
           </button>
         </div>
       </GlassCard>
-
-      {(data?.recent?.length ?? 0) > 0 && (
-        <GlassCard hover={false} className="p-5">
-          <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Recent</h2>
-          <ul className="space-y-1.5">
-            {data!.recent.map((d) => {
-              const won = d.winnerUserId === auth.user.id;
-              return (
-                <li
-                  key={d.id}
-                  className={cn(
-                    "flex items-center gap-3 rounded-[7px] border px-3.5 py-2.5",
-                    "border-[var(--line-soft)] bg-[var(--paper-raised)]",
-                  )}
-                >
-                  <Trophy className={cn("h-4 w-4", won ? "text-[#d7a13c]" : "text-[var(--ink-faint)]")} />
-                  <div className="min-w-0 grow">
-                    <div className="truncate text-[13px] font-semibold text-[var(--ink)]">{d.label}</div>
-                    <div className="text-[11px] capitalize text-[var(--ink-faint)]">{d.status}</div>
-                  </div>
-                  <span className="font-mono text-[13px] font-bold">
-                    {d.hostScore}–{d.guestScore}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </GlassCard>
-      )}
 
       {loading && !data && <PageSkeleton cards={2} />}
     </div>

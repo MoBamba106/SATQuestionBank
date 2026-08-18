@@ -53,7 +53,7 @@ const FEATURES: {
   {
     icon: Filter,
     title: "Filter down to the exact skill",
-    body: `Narrow by section, domain, skill, and difficulty — ${catalog.skillCount} SAT domains across Math and Reading & Writing — then practise only what you're working on.`,
+    body: `Narrow by section, domain, skill, and difficulty — ${catalog.skillCount} SAT domains across Math and Reading & Writing — then practice only what you're working on.`,
   },
   {
     icon: PenSquare,
@@ -83,7 +83,7 @@ const FEATURES: {
   {
     icon: Highlighter,
     title: "Highlight as you read",
-    body: "Three highlighter colours for marking up passages, exactly like annotating on paper — with a colour picker that appears right next to your selection.",
+    body: "Three highlighter colors for marking up passages, exactly like annotating on paper — with a color picker that appears right next to your selection.",
   },
   {
     icon: RotateCcw,
@@ -98,7 +98,7 @@ const FEATURES: {
   {
     icon: Layers,
     title: "Collections and sharing",
-    body: "Group questions into custom collections, favourite the tricky ones, and share a question, collection, or whole quiz with a friend.",
+    body: "Group questions into custom collections, favorite the tricky ones, and share a question, collection, or whole quiz with a friend.",
   },
   {
     icon: Swords,
@@ -160,7 +160,7 @@ export default function HomePage() {
           <Sparkles className="h-3.5 w-3.5" /> Free SAT practice, in your browser
         </p>
         <h1 className="font-display mt-3 max-w-4xl text-[clamp(2.1rem,5.5vw,3.4rem)] font-bold leading-[1.05] text-[var(--ink)]">
-          A smarter way to practise for the SAT.
+          A smarter way to practice for the SAT.
         </h1>
         <p className="mt-4 max-w-2xl text-[16px] leading-7 text-[var(--ink-soft)]">
           SAT Nexus puts the entire official College Board question bank —{" "}
@@ -182,7 +182,7 @@ export default function HomePage() {
             </button>
           )}
           <Link href="/quiz" className="btn btn-soft !py-3 !text-[15px]">
-            <PenSquare className="h-4 w-4" /> Start practising
+            <PenSquare className="h-4 w-4" /> Start practicing
           </Link>
           <Link href="/bank" className="btn btn-soft !py-3 !text-[15px]">
             <Library className="h-4 w-4" /> Explore the question bank
@@ -190,7 +190,7 @@ export default function HomePage() {
         </div>
 
         <p className="mt-4 text-[12.5px] text-[var(--ink-faint)]">
-          No sign-up needed to browse and practise. Create an account to sync progress, analytics, and collections
+          No sign-up needed to browse and practice. Create an account to sync progress, analytics, and collections
           across devices.
         </p>
       </section>
@@ -257,7 +257,7 @@ export default function HomePage() {
             A study loop that actually closes
           </h2>
           <p className="mt-1.5 text-[14.5px] leading-6 text-[var(--ink-soft)]">
-            Practising more questions only helps if you know which ones to practise. SAT Nexus is built around finding
+            Practicing more questions only helps if you know which ones to practice. SAT Nexus is built around finding
             the gap, drilling it, and proving it&rsquo;s fixed.
           </p>
         </div>

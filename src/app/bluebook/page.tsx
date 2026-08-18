@@ -3,14 +3,17 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, WandSparkles, X, Trash2 } from "lucide-react";
+import { MonitorSmartphone, Clock, BookOpen, Calculator, GitBranch, Loader2, Play, Info, WandSparkles, X, Trash2, History, ArrowLeft } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PaperDialog } from "@/components/ui/paper-dialog";
-import { apiDelete, apiPost, mutateKey, useApi } from "@/lib/api-client";
+import { apiDelete, apiPost, mutateKey, useApi, apiGet } from "@/lib/api-client";
 import { readBluebookProgress, removeBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import { useAccountGate } from "@/components/account-gate";
-import type { PracticeTestInfo } from "@/lib/types";
+import { cn, formatDetroitDateTime } from "@/lib/utils";
+import type { CompletedTestSession, PracticeTestInfo } from "@/lib/types";
+
+type TestTab = "available" | "past";
 
 export default function BluebookPage() {
   const router = useRouter();
@@ -20,6 +23,31 @@ export default function BluebookPage() {
   const [starting, setStarting] = React.useState(false);
   const [generating, setGenerating] = React.useState(false);
   const [saved, setSaved] = React.useState<Record<string, BluebookProgress>>({});
+  // Past-tests tab
+  const [tab, setTab] = React.useState<TestTab>("available");
+  const [pastTests, setPastTests] = React.useState<CompletedTestSession[] | null>(null);
+  const [pastLoading, setPastLoading] = React.useState(false);
+  const [pastError, setPastError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (tab !== "past") return;
+    let alive = true;
+    // Deferred so the loading-state setState doesn't cascade renders inside the
+    // effect body (repo convention).
+    const kick = window.setTimeout(async () => {
+      setPastLoading(true);
+      setPastError(null);
+      try {
+        const res = await apiGet<{ sessions: CompletedTestSession[] }>("/api/sessions");
+        if (alive) setPastTests(res.sessions ?? []);
+      } catch (e) {
+        if (alive) setPastError(e instanceof Error ? e.message : "Could not load your past tests");
+      } finally {
+        if (alive) setPastLoading(false);
+      }
+    }, 0);
+    return () => { alive = false; window.clearTimeout(kick); };
+  }, [tab]);
 
   React.useEffect(() => {
     if (!data?.tests) return;
@@ -122,6 +150,27 @@ export default function BluebookPage() {
         </p>
       </div>
 
+      <div className="flex flex-wrap gap-1.5 rounded-[10px] border border-[var(--line)] bg-[var(--paper-soft)] p-1.5">
+        {([
+          ["available", "Available tests"],
+          ["past", "Past Tests"],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={cn(
+              "inline-flex min-h-10 items-center gap-2 rounded-[7px] px-4 text-[13.5px] font-bold transition-colors",
+              tab === id ? "bg-[var(--paper-raised)] text-[var(--ink)] shadow-sm ring-1 ring-[var(--line)]" : "text-[var(--ink-faint)] hover:text-[var(--ink)]",
+            )}
+          >
+            {id === "past" ? <History className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "available" && (<>
       {error && (
         <div className="rounded-[6px] border border-[#f3ccd4] bg-[#fdf0f2] px-4 py-3 text-[13.5px] font-semibold text-[#a33046]">
           {error}
@@ -216,6 +265,16 @@ export default function BluebookPage() {
           })}
         </div>
       )}
+      </>)}
+
+      {tab === "past" && (
+        <PastTests
+          tests={pastTests}
+          loading={pastLoading}
+          error={pastError}
+          onOpen={(session) => router.push(`/bluebook/review?session=${session.id}`)}
+        />
+      )}
 
       <PaperDialog
         open={!!selected}
@@ -246,6 +305,110 @@ export default function BluebookPage() {
           </>
         )}
       </PaperDialog>
+    </div>
+  );
+}
+
+function PastTests({
+  tests,
+  loading,
+  error,
+  onOpen,
+}: {
+  tests: CompletedTestSession[] | null;
+  loading: boolean;
+  error: string | null;
+  onOpen: (session: CompletedTestSession) => void;
+}) {
+  if (loading && !tests) {
+    return <PageSkeleton cards={4} />;
+  }
+
+  if (error) {
+    return (
+      <GlassCard hover={false} className="p-10 text-center">
+        <p className="text-[14px] font-semibold text-[#a33046]">{error}</p>
+        <button className="btn btn-soft mt-4" onClick={() => window.location.reload()}>
+          Try again
+        </button>
+      </GlassCard>
+    );
+  }
+
+  if (!tests || tests.length === 0) {
+    return (
+      <GlassCard hover={false} className="flex flex-col items-center p-12 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-[var(--accent-soft)]">
+          <History className="h-6 w-6 text-[var(--accent)]" />
+        </div>
+        <p className="font-display mt-4 text-xl font-bold text-[var(--ink)]">No past tests yet</p>
+        <p className="mt-1 max-w-sm text-[13.5px] text-[var(--ink-faint)]">
+          Finish a timed practice test and it will show up here with your score, so you can review every question and answer.
+        </p>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[13px] text-[var(--ink-faint)]">
+        {tests.length} completed test{tests.length === 1 ? "" : "s"} — pick one to review it in detail.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {tests.map((session) => {
+          const title = session.testTitle || session.label || "Practice test";
+          const correct = session.correctCount ?? 0;
+          const total = session.totalQuestions || 0;
+          return (
+            <GlassCard key={session.id} className="flex flex-col p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-display text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-faint)]">
+                    {session.isCustom ? "Generated Test" : "Practice Test"}
+                  </div>
+                  <div className="font-display mt-1 truncate text-2xl font-bold text-[var(--ink)]">{title}</div>
+                </div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)]">
+                  <MonitorSmartphone className="h-5 w-5" />
+                </div>
+              </div>
+
+              <p className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-[var(--ink-faint)]">
+                <Clock className="h-3.5 w-3.5" />
+                Completed {session.finishedAt ? formatDetroitDateTime(session.finishedAt) : "—"}
+              </p>
+
+              <div className="mt-4 flex items-end justify-between rounded-[8px] border border-[var(--line)] bg-[var(--paper-soft)] px-4 py-3">
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Estimated score</div>
+                  <div className="font-display text-4xl font-bold text-[var(--ink)]">
+                    {session.totalScore != null ? session.totalScore : "—"}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-[var(--ink-faint)]">
+                    {correct}/{total} correct
+                  </div>
+                </div>
+                <div className="grid gap-1.5 text-right text-[12px]">
+                  <div className="soft-tone soft-tone-lavender rounded-[6px] px-2.5 py-1">
+                    <span className="block text-[9.5px] font-bold uppercase">Reading &amp; Writing</span>
+                    <span className="font-bold">{session.rwScore ?? "—"}</span>
+                  </div>
+                  <div className="soft-tone soft-tone-teal rounded-[6px] px-2.5 py-1">
+                    <span className="block text-[9.5px] font-bold uppercase">Math</span>
+                    <span className="font-bold">{session.mathScore ?? "—"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-auto flex gap-2 pt-4">
+                <button className="btn btn-primary grow" onClick={() => onOpen(session)}>
+                  <ArrowLeft className="h-4 w-4 rotate-180" /> Review test
+                </button>
+              </div>
+            </GlassCard>
+          );
+        })}
+      </div>
     </div>
   );
 }

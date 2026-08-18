@@ -16,6 +16,7 @@ import { clearPool, readPool } from "@/lib/quiz-session";
 import { readBluebookProgress, type BluebookProgress } from "@/lib/bluebook-cache";
 import { skillsForDomain, subskillsFor } from "@/lib/sat-categories";
 import { cn, skillTone } from "@/lib/utils";
+import catalog from "@/data/catalog-stats.json";
 import type { PracticeTestDetail, QuestionSummary, SATQuestion } from "@/lib/types";
 
 const DOMAIN_OPTS = [
@@ -40,7 +41,9 @@ function QuizInner() {
 
   // setup state
   const [domain, setDomain] = React.useState("All");
-  const [skill, setSkill] = React.useState("All");
+  // Categories (SAT domains/skills) are multi-selectable — e.g. the user can
+  // pick both "Craft and Structure" and "Information and Ideas" at once.
+  const [skill, setSkill] = React.useState<string[]>([]);
   const [subskill, setSubskill] = React.useState("All");
   const [difficulty, setDifficulty] = React.useState<string[]>([]);
   const [count, setCount] = React.useState(DEFAULT_QUIZ_SIZE);
@@ -48,16 +51,15 @@ function QuizInner() {
   const [available, setAvailable] = React.useState<number | null>(null);
 
   const skillOpts = React.useMemo(
-    () => [
-      { value: "All", label: "All domains", tone: "blue" as const },
-      ...skillsForDomain(domain).map((item) => ({ value: item, label: item, tone: skillTone(item) })),
-    ],
+    () => skillsForDomain(domain).map((item) => ({ value: item, label: item, tone: skillTone(item) })),
     [domain],
   );
+  // Sub-skills only make sense when exactly one category is selected; the
+  // dropdown is disabled (and forced to "All") for multiple categories.
   const subskillOpts = React.useMemo(
     () => [
       { value: "All", label: "All skills", tone: "green" as const },
-      ...subskillsFor(domain, skill).map((item) => ({ value: item, label: item, tone: "green" as const })),
+      ...(skill.length === 1 ? subskillsFor(domain, skill[0]).map((item) => ({ value: item, label: item, tone: "green" as const })) : []),
     ],
     [domain, skill],
   );
@@ -65,7 +67,7 @@ function QuizInner() {
   const filterQS = React.useMemo(() => {
     const p = new URLSearchParams();
     if (domain !== "All") p.set("domain", domain);
-    if (skill !== "All") p.set("skill", skill);
+    if (skill.length > 0) p.set("skill", skill.join(","));
     if (subskill !== "All") p.set("subskill", subskill);
     if (difficulty.length > 0) p.set("difficulty", difficulty.join(","));
     return p.toString();
@@ -198,7 +200,7 @@ function QuizInner() {
     try {
       const labelParts = [
         domain !== "All" ? domain : "All domains",
-        skill !== "All" ? skill : null,
+        skill.length > 0 ? skill.join(" & ") : null,
         difficulty.length > 0 ? difficulty.join(" & ") : null,
       ].filter(Boolean);
       const label = `${quizMode === "exam" ? "Exam" : "Practice"} · ${labelParts.join(" · ")}`;
@@ -283,7 +285,7 @@ function QuizInner() {
           Practice <span className="hl-blue px-1">Quiz</span>
         </h1>
         <p className="mt-1 text-[15px] text-[var(--ink-faint)]">
-          Build a custom drill from all 3,444 official College Board questions.
+          Build a custom drill from all {catalog.totalQuestions.toLocaleString()} official College Board questions.
         </p>
       </div>
 
@@ -294,16 +296,18 @@ function QuizInner() {
             <PaperSelect
               tone="lavender"
               value={domain}
-              onValueChange={(v) => { setDomain(v); setSkill("All"); setSubskill("All"); }}
+              onValueChange={(v) => { setDomain(v); setSkill([]); setSubskill("All"); }}
               options={DOMAIN_OPTS}
             />
           </div>
           <div>
-            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="blue">Domain</label>
-            <PaperSelect
+            <label className="filter-label mb-1.5 block text-[12px] font-bold uppercase tracking-wider" data-tone="blue">Category</label>
+            <PaperMultiSelect
               tone="blue"
-              value={skill}
-              onValueChange={(v) => { setSkill(v); setSubskill("All"); }}
+              values={skill}
+              onValuesChange={(values) => { setSkill(values); setSubskill("All"); }}
+              placeholder="All categories"
+              allLabel="All categories"
               options={skillOpts}
               disabled={domain === "All"}
             />
@@ -315,7 +319,7 @@ function QuizInner() {
               value={subskill}
               onValueChange={setSubskill}
               options={subskillOpts}
-              disabled={skill === "All"}
+              disabled={skill.length !== 1}
             />
           </div>
           <div>

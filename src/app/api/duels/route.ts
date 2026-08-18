@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     await ensureSeeded();
     const user = await getRequestUser(req);
     if (user.isGuest || isLocalGuestId(user.id)) {
-      return NextResponse.json({ inbox: [], active: [], recent: [] });
+      return NextResponse.json({ inbox: [], active: [] });
     }
 
     await db.execute(sql`
@@ -30,8 +30,7 @@ export async function GET(req: Request) {
     `);
 
     // Auto-expire abandoned active rooms: no WebSocket heartbeat or user
-    // action in the staleness window (90s). They disappear from "Active duels"
-    // and move into the recent/expired list.
+    // action in the staleness window (90s) so they leave the "Active duels" list.
     await db.execute(sql`
       UPDATE duels SET status = 'expired', finished_at = now()
       WHERE status = 'active'
@@ -68,20 +67,10 @@ export async function GET(req: Request) {
       `),
     );
 
-    const recent = rows<Record<string, unknown>>(
-      await db.execute(sql`
-        SELECT d.id, d.label, d.status, d.host_score AS "hostScore", d.guest_score AS "guestScore",
-               d.winner_user_id AS "winnerUserId", d.finished_at AS "finishedAt",
-               d.host_user_id AS "hostUserId", d.guest_user_id AS "guestUserId"
-        FROM duels d
-        WHERE d.status IN ('completed','declined','cancelled','expired')
-          AND (d.host_user_id = ${user.id} OR d.guest_user_id = ${user.id})
-        ORDER BY COALESCE(d.finished_at, d.created_at) DESC
-        LIMIT 20
-      `),
-    );
+    // Note: completed/declined/cancelled/expired duels are intentionally NOT
+    // returned here — there is no "Recent duels" history by design.
 
-    return NextResponse.json({ inbox, active, recent });
+    return NextResponse.json({ inbox, active });
   } catch (e) {
     console.error("[api/duels] GET failed:", e);
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 500 });

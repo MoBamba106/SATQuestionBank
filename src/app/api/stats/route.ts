@@ -117,7 +117,7 @@ export async function GET(req: Request) {
     let run = 0;
 
     // A streak stays alive until the end of today in Detroit: if nothing has
-    // been practised yet today, start counting from yesterday.
+    // been practiced yet today, start counting from yesterday.
     let cursor = detroitDateString();
     if (!daySet.has(cursor)) cursor = shiftDetroitDate(cursor, -1);
     while (daySet.has(cursor)) {

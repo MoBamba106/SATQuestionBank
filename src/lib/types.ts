@@ -87,6 +87,27 @@ export interface SkillBand {
   band: number;
 }
 
+/** A completed Bluebook practice-test session, listed on the "Past Tests" tab. */
+export interface CompletedTestSession {
+  id: string;
+  mode: string;
+  label: string | null;
+  testId: string | null;
+  testTitle: string | null;
+  testNumber: number | null;
+  isCustom: boolean | null;
+  totalQuestions: number;
+  correctCount: number | null;
+  answeredCount: number | null;
+  adaptivePath: AdaptivePath | null;
+  totalScore: number | null;
+  rwScore: number | null;
+  mathScore: number | null;
+  skillBands: SkillBand[] | null;
+  startedAt: string;
+  finishedAt: string;
+}
+
 export interface SessionSummary {
   id: string;
   mode: string;
