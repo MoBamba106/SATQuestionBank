@@ -55,11 +55,11 @@ export const DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
 export function skillsForDomain(domain: string): string[] {
   if (domain === "Math") return [...SAT_DOMAINS.Math];
   if (domain === "Reading & Writing") return [...SAT_DOMAINS["Reading & Writing"]];
-  return [];
+  return [...SAT_DOMAINS["Reading & Writing"], ...SAT_DOMAINS.Math];
 }
 
 export function subskillsFor(domain: string, skill: string): string[] {
   if (domain === "Math") return MATH_SUBSKILLS[skill] ?? [];
   if (domain === "Reading & Writing") return RW_SUBSKILLS[skill] ?? [];
-  return [];
+  return MATH_SUBSKILLS[skill] ?? RW_SUBSKILLS[skill] ?? [];
 }

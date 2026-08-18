@@ -137,10 +137,12 @@ export default function BluebookPage() {
       <div className="glass-subtle flex items-start gap-3 px-4 py-3.5">
         <Info className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#3a5fc8]" />
         <p className="text-[13px] leading-relaxed text-[var(--ink-soft)]">
-          Each test uses official College Board question-bank items and the digital SAT module
-          sizes: 27 Reading &amp; Writing questions and 22 Math questions per module. A score of at
-          least 60% on a section&apos;s first module selects its harder second module; otherwise the
-          easier route is used. Timing is 32 minutes per R&amp;W module and 35 minutes per Math module.
+          Each test uses official College Board question-bank items and the digital SAT blueprint:
+          27 Reading &amp; Writing questions and 22 Math questions per module, official domain
+          counts, Math ordered easiest to hardest with about 25% student-produced responses, and a
+          harder Module 2 that is mostly Hard items. A score of at least 60% on a section&apos;s
+          first module selects its harder second module; otherwise the easier route is used.
+          Timing is 32 minutes per R&amp;W module and 35 minutes per Math module.
           <span className="mt-1.5 block font-semibold">
             Heads up: these are built from the public official question bank — College Board does not
             release the exact questions used in the real Bluebook Practice Tests 1–11, so the test

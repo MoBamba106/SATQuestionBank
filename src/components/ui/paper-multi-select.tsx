@@ -52,6 +52,7 @@ export function PaperMultiSelect({
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const menuRef = React.useRef<HTMLDivElement | null>(null);
   const [pos, setPos] = React.useState<{ top: number; left: number; width: number; up: boolean } | null>(null);
 
   const computePos = React.useCallback(() => {
@@ -64,7 +65,7 @@ export function PaperMultiSelect({
     const up = spaceBelow < menuHeight && spaceAbove >= Math.min(menuHeight, spaceBelow);
     setPos({
       top: up ? rect.top - 8 : rect.bottom + 6,
-      left: Math.max(6, rect.left),
+      left: Math.max(6, Math.min(rect.left, window.innerWidth - rect.width - 6)),
       width: rect.width,
       up,
     });
@@ -75,8 +76,14 @@ export function PaperMultiSelect({
     computePos();
     const onScroll = () => computePos();
     const onResize = () => setOpen(false);
+    // The menu is portaled to document.body, so it is not a descendant of
+    // rootRef. Ignore pointerdowns that land in the menu — otherwise the
+    // dismiss handler unmounts the list before the option's click can fire.
     const onPointerDown = (event: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -120,12 +127,19 @@ export function PaperMultiSelect({
 
   const menu = (
     <div
+      ref={menuRef}
       className={cn(
         "paper-pop fixed z-[999] overflow-hidden rounded-[7px] border border-[var(--line)] bg-[var(--paper-raised)] text-[var(--ink)] shadow-[0_16px_36px_rgba(20,24,34,0.18)]",
       )}
-      style={{ top: pos?.top, left: pos?.left, width: pos?.width }}
+      style={{
+        top: pos?.top,
+        left: pos?.left,
+        width: pos?.width,
+        transform: pos?.up ? "translateY(-100%)" : undefined,
+      }}
       role="listbox"
       aria-multiselectable="true"
+      onPointerDown={(event) => event.stopPropagation()}
     >
       <div className="max-h-[300px] overflow-y-auto p-1.5 scrollbar-thin">
         {visibleOptions.map((option) => {
@@ -138,6 +152,7 @@ export function PaperMultiSelect({
               role="option"
               aria-selected={active}
               data-tone={option.tone ?? tone}
+              data-state={active ? "checked" : undefined}
               onClick={() => toggle(option.value)}
               className={cn(
                 "paper-select-item flex w-full cursor-pointer select-none items-center gap-2 rounded-[5px] py-2 pl-3 pr-2 text-left text-[13.5px] outline-none transition-colors",
