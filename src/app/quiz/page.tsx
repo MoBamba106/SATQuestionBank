@@ -309,7 +309,6 @@ function QuizInner() {
               placeholder="All categories"
               allLabel="All categories"
               options={skillOpts}
-              disabled={domain === "All"}
             />
           </div>
           <div>
