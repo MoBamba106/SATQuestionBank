@@ -66,7 +66,20 @@ function centered(w = 680, h = 600) {
   };
 }
 
-export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: boolean; onClose: () => void; restoreRequest?: number }) {
+export function FloatingDesmos({
+  open,
+  onClose,
+  restoreRequest = 0,
+  docked = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  restoreRequest?: number;
+  /** Render as an in-layout docked panel (parent supplies size) instead of a
+   *  draggable, floating window. Used by the practice-test runner so Desmos
+   *  sits beside the question like Bluebook instead of covering it. */
+  docked?: boolean;
+}) {
   const [mounted, setMounted] = React.useState(false);
   const [pos, setPos] = React.useState<{ x: number; y: number }>(() => {
     const c = centered();
@@ -157,7 +170,7 @@ export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: bo
     if (!open || mined) return;
     const t = setTimeout(() => calcRef.current?.resize(), 80);
     return () => clearTimeout(t);
-  }, [open, mined, maxed, pos, size]);
+  }, [open, mined, maxed, pos, size, docked]);
 
   React.useEffect(() => {
     const move = (e: PointerEvent) => {
@@ -273,6 +286,49 @@ export function FloatingDesmos({ open, onClose, restoreRequest = 0 }: { open: bo
     { dir: "ne", cn: "right-0 top-0 h-5 w-5 cursor-nesw-resize" },
     { dir: "nw", cn: "left-0 top-0 h-5 w-5 cursor-nwse-resize" },
   ];
+
+  // Docked mode: an in-layout panel (no portal, no floating chrome) whose size
+  // is supplied by the parent. This is what lets the practice-test runner put
+  // Desmos beside the question instead of over it.
+  if (docked) {
+    return (
+      <div
+        className="flex h-full w-full flex-col overflow-hidden rounded-[12px] border border-[var(--line)] bg-[var(--paper-raised)] shadow-[0_18px_50px_rgba(0,0,0,.28)]"
+        role="dialog"
+        aria-label="Desmos"
+      >
+        <div className="flex h-11 shrink-0 select-none items-center gap-2 border-b border-[var(--line)] bg-[var(--paper-soft)] px-3">
+          <GripHorizontal className="h-4 w-4 text-[var(--ink-faint)]" />
+          <span className="grow truncate text-[13px] font-bold text-[var(--ink)]">Desmos Graphing Calculator</span>
+          <button
+            type="button"
+            className="rounded p-1.5 hover:bg-[var(--paper-deep)] hover:text-[var(--bad)]"
+            onClick={onClose}
+            title="Close Desmos"
+            aria-label="Close Desmos"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="relative min-h-0 flex-1 bg-white">
+          <div ref={containerRef} className="absolute inset-0" />
+          {status === "loading" && (
+            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white text-sm text-slate-500">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+            </div>
+          )}
+          {status === "error" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white p-8 text-center">
+              <p className="text-sm font-semibold">Needs internet</p>
+              <a className="text-sm font-bold text-blue-600 underline inline-flex items-center gap-2" href="https://www.desmos.com/calculator" target="_blank" rel="noreferrer">
+                Open Desmos <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const node = (
     <div

@@ -200,6 +200,10 @@ function ReviewInner() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [tab, setTab] = React.useState<ReviewTab>("all");
+  /** Correct / Incorrect / Unanswered result filter (within this test only). */
+  const [resultFilter, setResultFilter] = React.useState<"all" | "correct" | "incorrect" | "unanswered">("all");
+  /** Category (SAT domain/skill, e.g. "Craft and Structure") filter. */
+  const [categoryFilter, setCategoryFilter] = React.useState("all");
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set());
   const [lightbox, setLightbox] = React.useState<{ type: "img"; src: string } | { type: "svg"; html: string } | null>(null);
 
@@ -251,6 +255,13 @@ function ReviewInner() {
     });
   }, []);
 
+  // Category options come from THIS test's questions only (not the whole bank).
+  // Declared before the early returns so hook order stays stable.
+  const categoryOptions = React.useMemo(
+    () => Array.from(new Set(items.map((item) => item.q.skill))).filter(Boolean).sort(),
+    [items],
+  );
+
   if (!sessionId)
     return (
       <GlassCard hover={false} className="p-10 text-center">
@@ -277,9 +288,15 @@ function ReviewInner() {
   const correct = session?.attempts.filter((a) => a.isCorrect).length ?? 0;
 
   const visible = items.filter((item) => {
-    if (tab === "all") return true;
-    if (tab === "rw") return item.section === "rw";
-    return item.section === "math";
+    if (tab !== "all" && tab !== item.section) return false;
+    if (categoryFilter !== "all" && item.q.skill !== categoryFilter) return false;
+    const attempt = attemptMap.get(item.q.id);
+    const answered = Boolean(attempt?.answer);
+    const isCorrect = Boolean(attempt?.isCorrect);
+    if (resultFilter === "correct" && !isCorrect) return false;
+    if (resultFilter === "incorrect" && (isCorrect || !answered)) return false;
+    if (resultFilter === "unanswered" && answered) return false;
+    return true;
   });
 
   const groups: { key: string; title: string; items: FlatItem[] }[] = [];
@@ -356,6 +373,55 @@ function ReviewInner() {
         ))}
       </div>
 
+      <div className="flex flex-wrap items-center gap-3 rounded-[10px] border border-[var(--line)] bg-[var(--paper-soft)] px-3 py-2.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[10.5px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Result</span>
+          {([
+            ["all", "All"],
+            ["correct", "Correct"],
+            ["incorrect", "Incorrect"],
+            ["unanswered", "Unanswered"],
+          ] as const).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setResultFilter(id)}
+              className={cn(
+                "rounded-[6px] px-2.5 py-1.5 text-[12px] font-bold transition-colors",
+                resultFilter === id ? "bg-[var(--paper-raised)] text-[var(--ink)] shadow-sm ring-1 ring-[var(--line)]" : "text-[var(--ink-faint)] hover:text-[var(--ink)]",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[10.5px] font-bold uppercase tracking-wide text-[var(--ink-faint)]">Category</span>
+          {categoryOptions.length > 0 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="input !h-9 !min-w-0 !px-2.5 !py-1.5 !text-[12.5px]"
+              aria-label="Filter by category"
+            >
+              <option value="all">All categories</option>
+              {categoryOptions.map((skill) => (
+                <option key={skill} value={skill}>{skill}</option>
+              ))}
+            </select>
+          )}
+        </div>
+        {(resultFilter !== "all" || categoryFilter !== "all") && (
+          <button
+            type="button"
+            className="ml-auto text-[11.5px] font-semibold text-[var(--ink-faint)] hover:text-[var(--ink)]"
+            onClick={() => { setResultFilter("all"); setCategoryFilter("all"); }}
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <div className="space-y-8">
         {groups.map((group) => {
           const start = running;
@@ -373,7 +439,11 @@ function ReviewInner() {
             />
           );
         })}
-        {visible.length === 0 && <p className="py-10 text-center text-[14px] text-[var(--ink-faint)]">No questions in this tab.</p>}
+        {visible.length === 0 && (
+          <p className="py-10 text-center text-[14px] text-[var(--ink-faint)]">
+            No questions match these filters in this section.
+          </p>
+        )}
       </div>
 
       <ImageLightbox content={lightbox} onClose={() => setLightbox(null)} />

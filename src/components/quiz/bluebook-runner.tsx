@@ -124,6 +124,16 @@ export function BluebookRunner({
   const [graded, setGraded] = React.useState<Record<string, { correct: boolean; answer: string }>>({});
   const [focusMode, setFocusMode] = React.useState(settings.focusModeDefault);
   const finishingLock = React.useRef(false);
+  /** Docked (split-screen) Desmos needs a wide viewport; below lg it falls
+   *  back to the floating window. Re-computed on resize. */
+  const [isDesktop, setIsDesktop] = React.useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 1024,
+  );
+  React.useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const mod = React.useMemo(
     () => activeModule(test, stage, rwRoute, mathRoute),
@@ -574,8 +584,20 @@ export function BluebookRunner({
     </GlassCard>
   );
 
+  // Split-screen (Bluebook-style) layout when Desmos is open on desktop: the
+  // question column narrows and Desmos docks on the right instead of floating
+  // over the content. Question/answer state lives in `answers`/`flags`, so it is
+  // untouched by opening or closing the calculator.
+  const desmosDocked = mathTools.desmosOpen && isDesktop && !focusMode;
+
   return (
-    <div className={cn(focusMode ? "fixed inset-0 z-[900] overflow-y-auto bg-[var(--paper)]" : "grid gap-5 lg:grid-cols-[1fr_240px]")}>
+    <div className={cn(
+      focusMode
+        ? "fixed inset-0 z-[900] overflow-y-auto bg-[var(--paper)]"
+        : desmosDocked
+          ? "grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]"
+          : "grid gap-5 lg:grid-cols-[1fr_240px]",
+    )}>
       <div className={cn("space-y-4", focusMode && "mx-auto w-full max-w-3xl px-4 py-4 sm:px-6")}>
         {chrome}
         {questionCard}
@@ -605,7 +627,14 @@ export function BluebookRunner({
         )}
       </div>
 
-      {navigator}
+      {/* While Desmos is docked the navigator gives way to it; Back/Next buttons
+          and the ←/→ shortcuts still navigate. */}
+      {!desmosDocked && navigator}
+      {desmosDocked && (
+        <div className="hidden lg:sticky lg:top-6 lg:block lg:h-[calc(100vh-3rem)]">
+          <FloatingDesmos open={mathTools.desmosOpen} restoreRequest={mathTools.desmosRestoreRequest} onClose={mathTools.closeDesmos} docked />
+        </div>
+      )}
 
       <ShareQuestionDialog open={shareOpen} onOpenChange={setShareOpen} questionId={current?.id ?? ""} />
       <FeedbackDialog
@@ -619,7 +648,9 @@ export function BluebookRunner({
           skill: current?.skill,
         }}
       />
-      <FloatingDesmos open={mathTools.desmosOpen} restoreRequest={mathTools.desmosRestoreRequest} onClose={mathTools.closeDesmos} />
+      {!desmosDocked && (
+        <FloatingDesmos open={mathTools.desmosOpen} restoreRequest={mathTools.desmosRestoreRequest} onClose={mathTools.closeDesmos} />
+      )}
       <FloatingMathCanvas open={mathTools.canvasOpen} onClose={mathTools.closeCanvas} />
 
       <PaperDialog
